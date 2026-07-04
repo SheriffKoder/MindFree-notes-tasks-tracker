@@ -5,20 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] disabled:pointer-events-none disabled:shadow-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+          "border-transparent [background-color:var(--color-accent)] [color:var(--color-accent-fg)] shadow-sm hover:brightness-95 disabled:[background-color:color-mix(in_srgb,var(--color-accent)_70%,var(--color-surface))] disabled:[color:var(--color-accent-fg)]",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "border-transparent [background-color:var(--color-error)] text-white shadow-sm hover:brightness-95 disabled:[background-color:color-mix(in_srgb,var(--color-error)_70%,var(--color-surface))] disabled:text-white",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border-[var(--color-border)] [background-color:color-mix(in_srgb,var(--color-surface)_88%,transparent)] [color:var(--color-fg)] shadow-sm hover:[background-color:var(--color-accent-light)] hover:[color:var(--color-accent)] disabled:[background-color:color-mix(in_srgb,var(--color-surface-secondary)_82%,transparent)] disabled:[color:var(--color-fg-disabled)]",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "border-[var(--color-border)] [background-color:var(--color-surface-secondary)] [color:var(--color-fg)] shadow-sm hover:[background-color:var(--color-card-hover)] disabled:[background-color:var(--color-surface-secondary)] disabled:[color:var(--color-fg-disabled)]",
+        ghost:
+          "border-transparent [color:var(--color-fg)] hover:[background-color:var(--color-accent-light)] hover:[color:var(--color-accent)] disabled:[color:var(--color-fg-disabled)]",
+        link:
+          "border-transparent p-0 [color:var(--color-accent)] shadow-none underline-offset-4 hover:underline disabled:[color:var(--color-fg-disabled)]",
       },
       size: {
         default: "h-9 px-4 py-2",

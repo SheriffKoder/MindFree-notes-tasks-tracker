@@ -10,7 +10,6 @@
 
 /* ---------------------------------------------------------------------------
  * Design tokens — semantic names components should reference.
- * Shadcn HSL vars (--background, --primary, …) mirror these for ui/* kit.
  * Custom profile theme overrides apply via .theme-custom on <html>.
  * --------------------------------------------------------------------------- */
 
@@ -20,6 +19,7 @@
   --color-surface: #ffffff;
   --color-surface-secondary: #f1f1ee;
   --color-card-surface: #ffffff;
+  --color-card-overlay: rgba(0, 0, 0, 0.02);
   --color-card-hover: #f4f4f2;
   --color-drawer: #fbfaf8;
   --color-popup: #ffffff;
@@ -31,7 +31,7 @@
   --color-fg-disabled: #b7b6b2;
 
   /* Borders */
-  --color-border: #e8e7e4;
+  --color-border: rgba(232, 231, 228, 0.5);
   --color-divider: #ecebe8;
 
   /* Accent */
@@ -110,31 +110,6 @@
   --dur-2: 180ms;
   --dur-3: 260ms;
 
-  /* Shadcn/ui HSL bridge (must stay space-separated for hsl(var(...))) */
-  --background: 40 20% 96%;
-  --foreground: 45 8% 20%;
-  --card: 0 0% 100%;
-  --card-foreground: 45 8% 20%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 45 8% 20%;
-  --primary: 223 87% 63%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 60 6% 94%;
-  --secondary-foreground: 45 8% 20%;
-  --muted: 60 6% 94%;
-  --muted-foreground: 40 2% 46%;
-  --accent: 223 87% 63%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 4 70% 55%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 40 9% 90%;
-  --input: 40 9% 90%;
-  --ring: 223 87% 63%;
-  --chart-1: 223 87% 63%;
-  --chart-2: 140 57% 40%;
-  --chart-3: 43 90% 64%;
-  --chart-4: 48 100% 67%;
-  --chart-5: 4 70% 55%;
 }
 
 .dark {
@@ -142,6 +117,7 @@
   --color-surface: #202020;
   --color-surface-secondary: #262626;
   --color-card-surface: #2a2a2a;
+  --color-card-overlay: rgba(255, 255, 255, 0.02);
   --color-card-hover: #303030;
   --color-drawer: #252525;
   --color-popup: #2d2d2d;
@@ -151,11 +127,11 @@
   --color-fg-hint: #7b7b78;
   --color-fg-disabled: #5e5e5b;
 
-  --color-border: #3a3a3a;
+  --color-border: rgba(58, 58, 58, 0.5);
   --color-divider: #343434;
 
   --color-accent: #6c8eff;
-  --color-accent-fg: #191919;
+  --color-accent-fg: #ffffff;
   --color-accent-light: #8da9ff;
   --color-accent-dark: #4a73f0;
 
@@ -185,30 +161,6 @@
 
   --shadow-elevation: 0 1px 3px rgba(0, 0, 0, 0.35);
 
-  --background: 0 0% 10%;
-  --foreground: 60 7% 95%;
-  --card: 0 0% 16%;
-  --card-foreground: 60 7% 95%;
-  --popover: 0 0% 18%;
-  --popover-foreground: 60 7% 95%;
-  --primary: 227 100% 71%;
-  --primary-foreground: 0 0% 10%;
-  --secondary: 0 0% 15%;
-  --secondary-foreground: 60 7% 95%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 60 2% 66%;
-  --accent: 227 100% 71%;
-  --accent-foreground: 0 0% 10%;
-  --destructive: 1 87% 66%;
-  --destructive-foreground: 0 0% 10%;
-  --border: 0 0% 23%;
-  --input: 0 0% 23%;
-  --ring: 227 100% 71%;
-  --chart-1: 227 100% 71%;
-  --chart-2: 122 39% 49%;
-  --chart-3: 43 74% 58%;
-  --chart-4: 48 100% 67%;
-  --chart-5: 1 87% 66%;
 }
 
 /* Profile custom theme — JS sets these when user picks Custom in settings. */
@@ -221,7 +173,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--color-border);
   }
 
   html {
@@ -231,7 +183,6 @@
   }
 
   body {
-    @apply bg-background text-foreground;
     background-color: var(--color-bg);
     color: var(--color-fg);
     font-size: var(--text-sm);
@@ -277,19 +228,11 @@
 @layer components {
   /** Unified opaque card surface — glass-friendly over custom backgrounds. */
   .app-card {
-    background-color: color-mix(
-      in srgb,
-      var(--color-card-surface) calc(var(--glass-card-opacity) * 100%),
-      transparent
-    );
+    background-color: var(--color-card-overlay);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-3);
     box-shadow: var(--shadow-elevation);
     backdrop-filter: blur(var(--glass-blur));
-  }
-
-  .app-card:hover {
-    background-color: var(--color-card-hover);
   }
 
   /** Page header pattern: title left, actions right. */
