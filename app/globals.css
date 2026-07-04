@@ -36,7 +36,7 @@
 
   /* Accent */
   --color-accent: #4f7df3;
-  --color-accent-fg: #ffffff;
+  --color-accent-fg: var(--color-bg);
   --color-accent-light: #e8f0ff;
   --color-accent-dark: #3968e0;
 
@@ -131,7 +131,7 @@
   --color-divider: #343434;
 
   --color-accent: #6c8eff;
-  --color-accent-fg: #ffffff;
+  --color-accent-fg: var(--color-bg);
   --color-accent-light: #8da9ff;
   --color-accent-dark: #4a73f0;
 
