@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleSignInButton } from "@/features/auth/google-sign-in";
 import { useSignupForm } from "@/features/auth/signup/model/use-signup-form";
 
 /**
@@ -98,12 +99,10 @@ export function SignupForm() {
         ) : null}
 
         <div className="flex flex-col gap-4 pt-1">
-          <Button className="w-full" disabled type="button" variant="outline">
-            Continue with Google
-          </Button>
+          <GoogleSignInButton errorRedirectPath="/signup" />
 
           <p className="text-caption">
-            Signup and confirmation flows will be wired in the next auth steps.
+            Google sign-in starts the OAuth flow and returns here after callback setup.
           </p>
         </div>
       </CardContent>

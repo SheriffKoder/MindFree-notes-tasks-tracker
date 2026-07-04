@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleSignInButton } from "@/features/auth/google-sign-in";
 import { useLoginForm } from "@/features/auth/login/model/use-login-form";
 
 /**
@@ -97,12 +98,13 @@ export function LoginForm({ nextPath = "/" }: LoginFormProps) {
         ) : null}
 
         <div className="flex flex-col gap-4 pt-1 ">
-          <Button className="w-full" disabled type="button" variant="outline">
-            Continue with Google
-          </Button>
+          <GoogleSignInButton
+            errorRedirectPath="/login"
+            nextPath={nextPath}
+          />
 
           <p className="text-caption">
-            Login actions will be wired in the next auth steps.
+            Google sign-in starts the OAuth flow and returns here after callback setup.
           </p>
         </div>
       </CardContent>
