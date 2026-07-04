@@ -1,7 +1,9 @@
 /**
  * @file features/auth/signup/ui/signup-form.tsx
- * Signup feature shell that renders the basic account creation card for the auth route group.
+ * Signup feature form shell that renders the auth UI and delegates form state to the feature hook.
  */
+
+"use client";
 
 import Link from "next/link";
 
@@ -16,13 +18,24 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSignupForm } from "@/features/auth/signup/model/use-signup-form";
 
 /**
- * Renders the basic signup page shell before auth actions are wired.
+ * Renders the signup page shell with the email and password signup flow.
  *
  * @returns Static signup form shell for the `/signup` route
  */
 export function SignupForm() {
+  // Delegate RHF, Zod, and server action orchestration to the feature hook.
+  const {
+    errors,
+    isPending,
+    onSubmit,
+    register,
+    serverErrorMessage,
+    successMessage,
+  } = useSignupForm();
+
   return (
     <Card className="app-card w-full max-w-md">
       <CardHeader className="flex flex-col gap-2">
@@ -34,16 +47,21 @@ export function SignupForm() {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-6">
-        <form className="flex flex-col gap-5">
+        <form className="flex flex-col gap-5" noValidate onSubmit={onSubmit}>
           <div className="flex flex-col gap-2">
             <Label htmlFor="signup-email">Email</Label>
             <Input
               autoComplete="email"
               id="signup-email"
-              name="email"
               placeholder="you@example.com"
               type="email"
+              {...register("email")}
             />
+            {errors.email?.message ? (
+              <p className="text-caption [color:var(--color-error)]" role="alert">
+                {errors.email.message}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -51,16 +69,33 @@ export function SignupForm() {
             <Input
               autoComplete="new-password"
               id="signup-password"
-              name="password"
               placeholder="Create a password"
               type="password"
+              {...register("password")}
             />
+            {errors.password?.message ? (
+              <p className="text-caption [color:var(--color-error)]" role="alert">
+                {errors.password.message}
+              </p>
+            ) : null}
           </div>
 
-          <Button className="mt-1 w-full" disabled type="button">
-            Create account
+          <Button className="mt-1 w-full" disabled={isPending} type="submit">
+            {isPending ? "Creating account..." : "Create account"}
           </Button>
         </form>
+
+        {serverErrorMessage ? (
+          <p className="text-caption [color:var(--color-error)]" role="alert">
+            {serverErrorMessage}
+          </p>
+        ) : null}
+
+        {successMessage ? (
+          <p className="text-caption [color:var(--color-success)]" role="status">
+            {successMessage}
+          </p>
+        ) : null}
 
         <div className="flex flex-col gap-4 pt-1">
           <Button className="w-full" disabled type="button" variant="outline">
