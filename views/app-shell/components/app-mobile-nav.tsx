@@ -9,6 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, CheckSquare, FileText, Home } from "lucide-react";
 
+import { CardBackground } from "@/components/ui/card-background";
 import {
   APP_NAVIGATION_ITEMS,
   type AppNavigationIcon,
@@ -60,15 +61,30 @@ export function AppMobileNav() {
             <Link
               key={item.id}
               className={cn(
-                "flex min-w-[72px] shrink-0 snap-center flex-col items-center gap-1 rounded-2xl px-3 py-2 text-caption transition-colors duration-200",
+                "group relative flex min-w-[72px] shrink-0 snap-center px-3 py-2 text-caption transition-colors duration-200",
                 active
-                  ? "[background-color:var(--color-accent)] [color:var(--color-accent-fg)]"
-                  : "[color:var(--color-fg-muted)] hover:[background-color:var(--color-card-overlay)] hover:[color:var(--color-fg)]",
+                  ? "[color:var(--color-accent-fg)]"
+                  : "[color:var(--color-fg-muted)] hover:[color:var(--color-fg)]",
               )}
               href={item.href}
             >
-              <Icon size={18} />
-              <span>{item.label}</span>
+              <CardBackground
+                active={active}
+                activeColor="var(--color-accent)"
+                activeHoverColor="var(--color-accent-dark)"
+                defaultColor="var(--color-card-overlay)"
+                defaultHoverColor="var(--color-card-hover)"
+                defaultBorderColor="var(--color-border)"
+                activeBorderColor="var(--color-accent)"
+                backgroundOpacity={0.2}
+                borderOpacity={0.3}
+                blur={0}
+                radius="0.7rem"
+              />
+              <span className="relative z-10 flex flex-col items-center gap-1 h-full w-full">
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </span>
             </Link>
           );
         })}

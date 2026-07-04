@@ -9,6 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, CheckSquare, FileText, Home } from "lucide-react";
 
+import { CardBackground } from "@/components/ui/card-background";
 import {
   APP_NAVIGATION_ITEMS,
   type AppNavigationIcon,
@@ -51,7 +52,7 @@ export function AppDesktopNav() {
       aria-label="Desktop primary"
       className="h-full"
     >
-      <div className="h-full flex flex-col gap-2 rounded-3xl border border-[var(--color-border)] px-2 py-2 [background-color:color-mix(in_srgb,var(--color-surface)_88%,transparent)] shadow-sm">
+      <div className="h-full flex flex-col gap-2 rounded-3xl border border-[var(--color-border)] px-2 py-2 [background-color:color-mix(in_srgb,var(--color-surface)_40%,transparent)] shadow-sm">
         {APP_NAVIGATION_ITEMS.map(function renderNavItem(item) {
           const Icon = NAV_ICON_BY_NAME[item.icon];
           const active = isActiveNavItem(pathname, item.href);
@@ -60,15 +61,30 @@ export function AppDesktopNav() {
             <Link
               key={item.id}
               className={cn(
-                "flex w-full flex-col items-center gap-1 rounded-2xl px-2 py-3 text-caption transition-colors duration-200",
+                "group relative flex w-full overflow-hidden px-2 py-3 text-caption transition-colors duration-200",
                 active
-                  ? "[background-color:var(--color-accent)] [color:var(--color-accent-fg)]"
-                  : "[color:var(--color-fg-muted)] hover:[background-color:var(--color-card-overlay)] hover:[color:var(--color-fg)]",
+                  ? "dark:[color:var(--color-accent-fg)] [color:var(--color-fg-muted)]"
+                  : "[color:var(--color-fg-muted)] hover:[color:var(--color-fg)]",
               )}
               href={item.href}
             >
-              <Icon size={18} />
-              <span>{item.label}</span>
+              <CardBackground
+                active={active}
+                activeColor="var(--color-accent)"
+                activeHoverColor="var(--color-accent-dark)"
+                defaultColor="var(--color-card-overlay)"
+                defaultHoverColor="var(--color-card-hover)"
+                defaultBorderColor="var(--color-border)"
+                activeBorderColor="var(--color-accent)"
+                backgroundOpacity={0.2}
+                borderOpacity={0.4}
+                blur={0}
+                radius="0.8rem"
+              />
+              <span className="relative z-10 flex flex-col items-center gap-1 h-full w-full">
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </span>
             </Link>
           );
         })}

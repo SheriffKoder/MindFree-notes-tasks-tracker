@@ -9,7 +9,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border border-[var(--color-border)] [color:var(--color-fg)] shadow",
+      "app-card rounded-[var(--radius-3)] [color:var(--color-fg)]",
       className,
     )}
     {...props}
@@ -35,7 +35,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
+    className={cn("[color:var(--color-fg)] font-semibold leading-tight tracking-tight", className)}
     {...props}
   />
 ));
@@ -47,7 +47,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm [color:var(--color-fg-muted)]", className)}
+    className={cn("text-sm leading-normal [color:var(--color-fg-muted)]", className)}
     {...props}
   />
 ));
@@ -67,7 +67,7 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    className={cn("flex items-center p-6 pt-0 [color:var(--color-fg)]", className)}
     {...props}
   />
 ));

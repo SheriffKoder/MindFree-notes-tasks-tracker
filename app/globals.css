@@ -36,9 +36,19 @@
 
   /* Accent */
   --color-accent: #4f7df3;
-  --color-accent-fg: var(--color-bg);
+  --color-accent-fg: #ffffff;
   --color-accent-light: #e8f0ff;
   --color-accent-dark: #3968e0;
+  --color-interactive-accent-surface: color-mix(
+    in srgb,
+    var(--color-accent-light) 38%,
+    transparent
+  );
+  --color-button-outline-hover-bg: color-mix(
+    in srgb,
+    var(--color-interactive-accent-surface) 100%,
+    transparent
+  );
 
   /* Status */
   --color-success: #2ea043;
@@ -113,8 +123,8 @@
 }
 
 .dark {
-  --color-bg: #191919;
-  --color-surface: #202020;
+  --color-bg: #101010;
+  --color-surface: #151515;
   --color-surface-secondary: #262626;
   --color-card-surface: #2a2a2a;
   --color-card-overlay: rgba(255, 255, 255, 0.02);
@@ -127,13 +137,23 @@
   --color-fg-hint: #7b7b78;
   --color-fg-disabled: #5e5e5b;
 
-  --color-border: rgba(58, 58, 58, 0.5);
+  --color-border: rgba(58, 58, 58, 0.404);
   --color-divider: #343434;
 
   --color-accent: #6c8eff;
-  --color-accent-fg: var(--color-bg);
+  --color-accent-fg: #e3e3e3;
   --color-accent-light: #8da9ff;
   --color-accent-dark: #4a73f0;
+  --color-interactive-accent-surface: color-mix(
+    in srgb,
+    var(--color-accent-light) 22%,
+    transparent
+  );
+  --color-button-outline-hover-bg: color-mix(
+    in srgb,
+    var(--color-interactive-accent-surface) 100%,
+    transparent
+  );
 
   --color-success: #4caf50;
   --color-success-light: #305a38;
@@ -168,6 +188,7 @@
   --color-bg: var(--custom-bg, var(--color-bg));
   --color-drawer: var(--custom-drawer-bg, var(--color-drawer));
   --color-accent: var(--custom-accent, var(--color-accent));
+  --color-accent-fg: var(--custom-accent-fg, var(--color-accent-fg));
   --color-fg: var(--custom-fg, var(--color-fg));
 }
 

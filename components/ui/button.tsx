@@ -14,13 +14,13 @@ const buttonVariants = cva(
         destructive:
           "border-transparent [background-color:var(--color-error)] text-white shadow-sm hover:brightness-95 disabled:[background-color:color-mix(in_srgb,var(--color-error)_70%,var(--color-surface))] disabled:text-white",
         outline:
-          "border-[var(--color-border)] [background-color:color-mix(in_srgb,var(--color-surface)_88%,transparent)] [color:var(--color-fg)] shadow-sm hover:border-transparent hover:[background-color:var(--color-accent)] hover:[color:var(--color-accent-fg)] disabled:[background-color:color-mix(in_srgb,var(--color-surface-secondary)_82%,transparent)] disabled:[color:var(--color-fg-disabled)]",
+          "border-[var(--color-border)] [background-color:color-mix(in_srgb,var(--color-surface)_88%,transparent)] [color:var(--color-fg)] shadow-sm hover:border-[color-mix(in_srgb,var(--color-accent)_35%,var(--color-border))] hover:[background-color:var(--color-button-outline-hover-bg)] hover:[color:var(--color-accent)] disabled:[background-color:color-mix(in_srgb,var(--color-surface-secondary)_82%,transparent)] disabled:[color:var(--color-fg-disabled)]",
         secondary:
           "border-[var(--color-border)] [background-color:var(--color-surface-secondary)] [color:var(--color-fg)] shadow-sm hover:[background-color:var(--color-card-hover)] disabled:[background-color:var(--color-surface-secondary)] disabled:[color:var(--color-fg-disabled)]",
         ghost:
-          "border-transparent [color:var(--color-fg)] hover:[background-color:var(--color-accent-light)] hover:[color:var(--color-accent)] disabled:[color:var(--color-fg-disabled)]",
+          "border-transparent [color:var(--color-fg)] hover:[background-color:var(--color-interactive-accent-surface)] hover:[color:var(--color-accent)] disabled:[color:var(--color-fg-disabled)]",
         link:
-          "border-transparent p-0 [color:var(--color-accent)] shadow-none underline-offset-4 hover:underline disabled:[color:var(--color-fg-disabled)]",
+          "border-transparent p-0 [color:var(--color-accent)] shadow-none underline-offset-4 hover:[color:var(--color-accent-dark)] hover:underline disabled:[color:var(--color-fg-disabled)]",
       },
       size: {
         default: "h-9 px-4 py-2",
