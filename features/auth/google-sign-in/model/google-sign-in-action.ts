@@ -46,6 +46,7 @@ export async function signInWithGoogle(formData: FormData) {
   // Build the OAuth callback URL and preserve the final in-app destination.
   const callbackUrl = new URL("/auth/callback", appUrl);
   callbackUrl.searchParams.set("next", nextPath);
+  callbackUrl.searchParams.set("errorRedirect", errorRedirectPath);
 
   // Create the per-request server Supabase client for the OAuth request.
   const supabase = await createClient();

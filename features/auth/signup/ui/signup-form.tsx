@@ -16,17 +16,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleSignInButton } from "@/features/auth/google-sign-in";
 import { useSignupForm } from "@/features/auth/signup/model/use-signup-form";
+import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
 
 /**
  * Renders the signup page shell with the email and password signup flow.
  *
+ * @param props - signup shell configuration
  * @returns Static signup form shell for the `/signup` route
  */
-export function SignupForm() {
+export function SignupForm({
+  nextPath = "/",
+  notice = null,
+}: {
+  nextPath?: string;
+  notice?: AuthNotice | null;
+}) {
   // Delegate RHF, Zod, and server action orchestration to the feature hook.
   const {
     errors,
@@ -36,6 +45,10 @@ export function SignupForm() {
     serverErrorMessage,
     successMessage,
   } = useSignupForm();
+
+  // Preserve the original protected destination when switching back to login.
+  const loginHref =
+    nextPath === "/" ? "/login" : { pathname: "/login", query: { next: nextPath } };
 
   return (
     <Card className="app-card w-full max-w-md">
@@ -48,6 +61,8 @@ export function SignupForm() {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-6">
+        {notice ? <AuthNoticeBanner notice={notice} /> : null}
+
         <form className="flex flex-col gap-5" noValidate onSubmit={onSubmit}>
           <div className="flex flex-col gap-2">
             <Label htmlFor="signup-email">Email</Label>
@@ -99,7 +114,7 @@ export function SignupForm() {
         ) : null}
 
         <div className="flex flex-col gap-4 pt-1">
-          <GoogleSignInButton errorRedirectPath="/signup" />
+          <GoogleSignInButton errorRedirectPath="/signup" nextPath={nextPath} />
 
           <p className="text-caption">
             Google sign-in starts the OAuth flow and returns here after callback setup.
@@ -110,10 +125,7 @@ export function SignupForm() {
       <CardFooter className="justify-center border-t border-border pt-6">
         <p className="text-body-muted">
           Already have an account?{" "}
-          <Link
-            className="font-medium [color:var(--color-fg)] underline"
-            href="/login"
-          >
+          <Link className="font-medium [color:var(--color-fg)] underline" href={loginHref}>
             Sign in
           </Link>
         </p>

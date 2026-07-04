@@ -16,10 +16,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleSignInButton } from "@/features/auth/google-sign-in";
 import { useLoginForm } from "@/features/auth/login/model/use-login-form";
+import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
 
 /**
  * Props for the login form shell.
@@ -27,6 +29,8 @@ import { useLoginForm } from "@/features/auth/login/model/use-login-form";
 interface LoginFormProps {
   /** Protected destination to return to after a successful sign-in. */
   nextPath?: string;
+  /** Optional auth redirect or fallback notice rendered above the form. */
+  notice?: AuthNotice | null;
 }
 
 /**
@@ -35,12 +39,16 @@ interface LoginFormProps {
  * @param props - login form configuration
  * @returns Login form shell for the `/login` route
  */
-export function LoginForm({ nextPath = "/" }: LoginFormProps) {
+export function LoginForm({ nextPath = "/", notice = null }: LoginFormProps) {
   // Delegate RHF, Zod, and server action orchestration to the feature hook.
   const { errors, isPending, onSubmit, register, serverErrorMessage } =
     useLoginForm({
       nextPath,
     });
+
+  // Preserve the original protected destination when switching to signup.
+  const signupHref =
+    nextPath === "/" ? "/signup" : { pathname: "/signup", query: { next: nextPath } };
 
   return (
     <Card className="app-card w-full max-w-md">
@@ -53,6 +61,8 @@ export function LoginForm({ nextPath = "/" }: LoginFormProps) {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-5">
+        {notice ? <AuthNoticeBanner notice={notice} /> : null}
+
         <form className="flex flex-col gap-5" noValidate onSubmit={onSubmit}>
           <div className="flex flex-col gap-2">
             <Label htmlFor="login-email">Email</Label>
@@ -112,10 +122,7 @@ export function LoginForm({ nextPath = "/" }: LoginFormProps) {
       <CardFooter className="justify-center border-t border-border pt-6">
         <p className="text-body-muted">
           Don&apos;t have an account?{" "}
-          <Link
-            className="font-medium [color:var(--color-fg)] underline"
-            href="/signup"
-          >
+          <Link className="font-medium [color:var(--color-fg)] underline" href={signupHref}>
             Create one
           </Link>
         </p>
