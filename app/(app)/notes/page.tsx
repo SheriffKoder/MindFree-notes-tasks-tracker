@@ -7,6 +7,7 @@ import { Suspense } from "react";
 
 import type { SearchParamsRecord } from "@/features/auth/model/auth-notice";
 import { getNotesPageInitialData } from "@/entities/note";
+import { parseNotesViewParam } from "@/shared/view-switcher";
 import { NotesView } from "@/views/notes";
 
 /**
@@ -46,12 +47,15 @@ function getSearchParamValue(
 async function NotesRouteContent({ searchParams }: NotesRouteProps) {
   const resolvedSearchParams = await searchParams;
   const monthParam = getSearchParamValue(resolvedSearchParams.month);
+  const viewParam = getSearchParamValue(resolvedSearchParams.view);
+  const view = parseNotesViewParam(viewParam);
   const { month, calendarNotes, generalNotes } =
     await getNotesPageInitialData(monthParam);
 
   return (
     <NotesView
       month={month}
+      view={view}
       initialCalendarNotes={calendarNotes}
       initialGeneralNotes={generalNotes}
     />

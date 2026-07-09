@@ -7,6 +7,7 @@ import type {
   CalendarNotesResponse,
   GeneralNotesResponse,
 } from "@/entities/note";
+import type { NotesViewId } from "@/shared/view-switcher";
 import { NotesClient } from "@/views/notes/ui/notes-client";
 
 /**
@@ -15,6 +16,8 @@ import { NotesClient } from "@/views/notes/ui/notes-client";
 export interface NotesViewProps {
   /** Resolved URL month (`YYYY-MM`). */
   month: string;
+  /** Resolved URL view (`calendar`, `month-notes`, `general-notes`). */
+  view: NotesViewId;
   /** SSR calendar payload. */
   initialCalendarNotes: CalendarNotesResponse;
   /** SSR general notes payload. */
@@ -29,12 +32,14 @@ export interface NotesViewProps {
  */
 export function NotesView({
   month,
+  view,
   initialCalendarNotes,
   initialGeneralNotes,
 }: NotesViewProps) {
   return (
     <NotesClient
       month={month}
+      view={view}
       initialCalendarNotes={initialCalendarNotes}
       initialGeneralNotes={initialGeneralNotes}
     />
