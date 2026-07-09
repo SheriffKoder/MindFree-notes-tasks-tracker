@@ -6,16 +6,17 @@
 "use client";
 
 import type {
+  Note,
   CalendarNotesResponse,
   GeneralNotesResponse,
 } from "@/entities/note";
 import { MonthNavigator, useMonthNavigation } from "@/shared/month-navigator";
 import {
   ViewSwitcher,
-  getNotesViewDefinition,
   useViewNavigation,
   type NotesViewId,
 } from "@/shared/view-switcher";
+import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
 
 /**
  * Props for the Notes client island.
@@ -31,31 +32,78 @@ export interface NotesClientProps {
   initialGeneralNotes: GeneralNotesResponse;
 }
 
-/**
- * Placeholder copy for the active view until Steps 4a/4b ship content.
- *
- * @param view - active Notes view
- * @param month - resolved month key
- * @param initialCalendarNotes - SSR calendar payload
- * @param initialGeneralNotes - SSR general notes payload
- * @returns temporary view status text
- */
-function getViewPlaceholder(
-  view: NotesViewId,
+function buildMockData(
   month: string,
   initialCalendarNotes: CalendarNotesResponse,
   initialGeneralNotes: GeneralNotesResponse,
-): string {
-  const viewLabel = getNotesViewDefinition(view).label;
+): {
+  calendarNotes: CalendarNotesResponse;
+  generalNotes: GeneralNotesResponse;
+} {
+  const currentMonth = month;
+  const [yearPart, monthPart] = currentMonth.split("-");
+  const monthDate = new Date(Date.UTC(Number(yearPart), Number(monthPart) - 1, 1));
+  monthDate.setUTCMonth(monthDate.getUTCMonth() - 1);
+  const previousMonth = `${monthDate.getUTCFullYear()}-${String(
+    monthDate.getUTCMonth() + 1,
+  ).padStart(2, "0")}`;
 
-  switch (view) {
-    case "calendar":
-      return `${viewLabel} for ${month}: ${initialCalendarNotes.calendarDays.length} days, ${initialCalendarNotes.monthNotes.length} notes. Calendar grid arrives in Step 4b.`;
-    case "month-notes":
-      return `${viewLabel} for ${month}: ${initialCalendarNotes.monthNotes.length} notes. List grid arrives in Step 4a.`;
-    case "general-notes":
-      return `${viewLabel}: ${initialGeneralNotes.generalNotes.length} notes across all months. List grid arrives in Step 4a.`;
-  }
+  const mockMonthNotes: Note[] = [
+    {
+      id: "mock-note-july-1",
+      date: `${currentMonth}-06`,
+      title: "July planning",
+      content: "Ship Step 4a list view polish and prep Step 4b calendar layout.",
+      starred: true,
+      isImportant: true,
+      isQuick: false,
+      lastEditedAt: "2026-07-09T10:15:00.000Z",
+    },
+    {
+      id: "mock-note-june-1",
+      date: `${previousMonth}-27`,
+      title: "June retrospective",
+      content: "Reviewed previous month notes and extracted reusable list patterns.",
+      starred: false,
+      isImportant: false,
+      isQuick: false,
+      lastEditedAt: "2026-06-27T16:40:00.000Z",
+    },
+  ];
+
+  const mockGeneralNotes: Note[] = [
+    {
+      id: "mock-general-july",
+      date: null,
+      title: "July priorities",
+      content: "Keep drawer navigation independent from month URL state.",
+      starred: true,
+      isImportant: false,
+      isQuick: false,
+      lastEditedAt: "2026-07-08T13:30:00.000Z",
+    },
+    {
+      id: "mock-general-june",
+      date: null,
+      title: "June learnings",
+      content: "Prefer small focused containers when prop surfaces stay simple.",
+      starred: false,
+      isImportant: true,
+      isQuick: false,
+      lastEditedAt: "2026-06-21T09:05:00.000Z",
+    },
+  ];
+
+  return {
+    calendarNotes: {
+      ...initialCalendarNotes,
+      monthNotes: [...mockMonthNotes, ...initialCalendarNotes.monthNotes],
+    },
+    generalNotes: {
+      ...initialGeneralNotes,
+      generalNotes: [...mockGeneralNotes, ...initialGeneralNotes.generalNotes],
+    },
+  };
 }
 
 /**
@@ -72,6 +120,7 @@ export function NotesClient({
 }: NotesClientProps) {
   const { onPrevious, onNext } = useMonthNavigation(month);
   const { onViewChange, onCycleView } = useViewNavigation(view);
+  const mockData = buildMockData(month, initialCalendarNotes, initialGeneralNotes);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
@@ -100,16 +149,12 @@ export function NotesClient({
         />
       </section>
 
-      <section className="rounded-2xl border border-dashed border-[var(--color-border)] p-4">
-        <p className="text-body-muted">
-          {getViewPlaceholder(
-            view,
-            month,
-            initialCalendarNotes,
-            initialGeneralNotes,
-          )}
-        </p>
-      </section>
+      <NotesViewsSection
+        month={month}
+        view={view}
+        initialCalendarNotes={mockData.calendarNotes}
+        initialGeneralNotes={mockData.generalNotes}
+      />
     </div>
   );
 }
