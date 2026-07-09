@@ -24,14 +24,16 @@ export interface AppShellProps {
  */
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="h-screen flex-row md:pl-24">
-      
+    <div className="flex h-screen flex-row md:pl-24">
+
       <div className="w-fit hidden md:block absolute top-0 left-0 h-full z-50 p-3">
         <AppDesktopNav />
       </div>
 
-      <div className="flex-1 px-4 py-6 md:px-6">{children}</div>
-      
+      <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-6 md:py-6">
+        {children}
+      </main>
+
       <div className="md:hidden">
         <AppMobileNav />
       </div>

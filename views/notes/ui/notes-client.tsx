@@ -159,8 +159,8 @@ export function NotesClient({
   const mockData = buildMockData(month, initialCalendarNotes, initialGeneralNotes);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
-      <section className="flex flex-col gap-2">
+    <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-4">
+      <section className="flex shrink-0 flex-col gap-2">
         <h2 className="text-h2">Notes</h2>
         <p className="text-body-muted">
           Browse calendar notes by month. Lists, calendar grid, and the drawer
@@ -170,7 +170,7 @@ export function NotesClient({
 
       <section
         aria-label="Notes controls"
-        className="flex flex-row items-stretch gap-3"
+        className="flex shrink-0 flex-row items-stretch gap-3"
       >
         <MonthNavigator
           className="min-w-0 flex-1"
@@ -185,12 +185,21 @@ export function NotesClient({
         />
       </section>
 
-      <NotesViewsSection
-        month={month}
-        view={view}
-        initialCalendarNotes={mockData.calendarNotes}
-        initialGeneralNotes={mockData.generalNotes}
-      />
+      <div className="relative min-h-0 flex-1">
+        {/* shadow over the list view when scrolling and padding on the scrollable area to avoid overlaying the content */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-[-3] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
+        />
+        <div className="h-full min-h-0 overflow-y-auto pt-2 md:pt-4">
+          <NotesViewsSection
+            month={month}
+            view={view}
+            initialCalendarNotes={mockData.calendarNotes}
+            initialGeneralNotes={mockData.generalNotes}
+          />
+        </div>
+      </div>
     </div>
   );
 }
