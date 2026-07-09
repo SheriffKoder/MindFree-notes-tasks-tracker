@@ -5,7 +5,10 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getNotesViewDefinition } from "@/shared/view-switcher/lib/note-views";
+import {
+  getNextNotesView,
+  getNotesViewDefinition,
+} from "@/shared/view-switcher/lib/note-views";
 import type { NotesViewId } from "@/shared/view-switcher/lib/note-views";
 import { ViewIcon } from "@/shared/view-switcher/ui/view-icon";
 
@@ -32,23 +35,28 @@ export function ViewSwitcherMobile({
   onCycleView,
   className,
 }: ViewSwitcherMobileProps) {
-  const { label } = getNotesViewDefinition(view);
+  const current = getNotesViewDefinition(view);
+  const next = getNotesViewDefinition(getNextNotesView(view));
 
   return (
     <div
       className={cn(
-        "flex items-center rounded-2xl border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-surface)_88%,transparent)] p-2 shadow-sm",
+        "flex items-center rounded-2xl shadow-sm",
         className,
       )}
     >
       <Button
         type="button"
         variant="ghost"
-        size="icon"
-        aria-label={`Current view: ${label}. Switch view.`}
+        className="h-auto flex-col p-1 aspect-square w-14 border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-surface)_88%,transparent)]"
+        aria-label={`Current view: ${current.title}. Switch to ${next.title}.`}
+        title={`Switch to ${next.title}`}
         onClick={onCycleView}
       >
         <ViewIcon view={view} />
+        <span className="text-[10px] leading-none [color:var(--color-fg-muted)]">
+          {current.label}
+        </span>
       </Button>
     </div>
   );

@@ -7,7 +7,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatMonthLabel } from "@/shared/month-navigator/lib/month-key";
+import {
+  formatMonthLabel,
+  shiftMonth,
+} from "@/shared/month-navigator/lib/month-key";
 
 /**
  * Props for the month navigator control.
@@ -36,6 +39,8 @@ export function MonthNavigator({
   className,
 }: MonthNavigatorProps) {
   const monthLabel = formatMonthLabel(month);
+  const previousMonthLabel = formatMonthLabel(shiftMonth(month, -1));
+  const nextMonthLabel = formatMonthLabel(shiftMonth(month, 1));
 
   return (
     <div
@@ -49,13 +54,17 @@ export function MonthNavigator({
         type="button"
         variant="outline"
         size="icon"
-        aria-label="Previous month"
+        aria-label={`Go to ${previousMonthLabel}`}
+        title={`Go to ${previousMonthLabel}`}
         onClick={onPrevious}
       >
         <ChevronLeft />
       </Button>
 
-      <p className="min-w-0 flex-1 text-center text-sm font-medium [color:var(--color-fg)]">
+      <p
+        className="min-w-0 flex-1 text-center text-sm font-medium [color:var(--color-fg)]"
+        title={monthLabel}
+      >
         {monthLabel}
       </p>
 
@@ -63,7 +72,8 @@ export function MonthNavigator({
         type="button"
         variant="outline"
         size="icon"
-        aria-label="Next month"
+        aria-label={`Go to ${nextMonthLabel}`}
+        title={`Go to ${nextMonthLabel}`}
         onClick={onNext}
       >
         <ChevronRight />

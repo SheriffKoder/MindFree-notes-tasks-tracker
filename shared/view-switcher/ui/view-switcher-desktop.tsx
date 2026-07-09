@@ -54,7 +54,8 @@ export function ViewSwitcherDesktop({
             size="icon"
             role="tab"
             aria-selected={isActive}
-            aria-label={definition.label}
+            aria-label={definition.title}
+            title={definition.title}
             onClick={() => onViewChange(definition.id)}
           >
             <ViewIcon view={definition.id} />

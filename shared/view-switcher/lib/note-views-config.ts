@@ -16,8 +16,10 @@ export type NotesViewId = "calendar" | "month-notes" | "general-notes";
 export interface NotesViewDefinition {
   /** URL search param value. */
   id: NotesViewId;
-  /** Accessible label for the view. */
+  /** Short label shown below the mobile icon. */
   label: string;
+  /** Hover tooltip describing the view (desktop) or next cycle target (mobile). */
+  title: string;
   /** Icon shown in the view switcher. */
   icon: LucideIcon;
 }
@@ -29,16 +31,19 @@ export const NOTE_VIEWS: readonly NotesViewDefinition[] = [
   {
     id: "calendar",
     label: "Calendar",
+    title: "Calendar view",
     icon: CalendarDays,
   },
   {
     id: "month-notes",
-    label: "Month notes",
+    label: "Month",
+    title: "Month notes",
     icon: List,
   },
   {
     id: "general-notes",
-    label: "General notes",
+    label: "General",
+    title: "General notes",
     icon: FileText,
   },
 ] as const;
