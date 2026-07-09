@@ -40,36 +40,72 @@ function buildMockData(
   calendarNotes: CalendarNotesResponse;
   generalNotes: GeneralNotesResponse;
 } {
-  const currentMonth = month;
-  const [yearPart, monthPart] = currentMonth.split("-");
-  const monthDate = new Date(Date.UTC(Number(yearPart), Number(monthPart) - 1, 1));
-  monthDate.setUTCMonth(monthDate.getUTCMonth() - 1);
-  const previousMonth = `${monthDate.getUTCFullYear()}-${String(
-    monthDate.getUTCMonth() + 1,
-  ).padStart(2, "0")}`;
-
-  const mockMonthNotes: Note[] = [
+  const allMockMonthNotes: Note[] = [
     {
-      id: "mock-note-july-1",
-      date: `${currentMonth}-06`,
-      title: "July planning",
-      content: "Ship Step 4a list view polish and prep Step 4b calendar layout.",
+      id: "mock-note-june-1",
+      date: "2026-06-06",
+      title: "June planning",
+      content: "Outlined list view patterns and week grouping for month notes.",
       starred: true,
       isImportant: true,
       isQuick: false,
-      lastEditedAt: "2026-07-09T10:15:00.000Z",
+      lastEditedAt: "2026-06-06T10:15:00.000Z",
     },
     {
-      id: "mock-note-june-1",
-      date: `${previousMonth}-27`,
+      id: "mock-note-june-2",
+      date: "2026-06-27",
       title: "June retrospective",
-      content: "Reviewed previous month notes and extracted reusable list patterns.",
+      content: "Reviewed notes from this month and extracted reusable list patterns.",
       starred: false,
       isImportant: false,
       isQuick: false,
       lastEditedAt: "2026-06-27T16:40:00.000Z",
     },
+    {
+      id: "mock-note-july-1",
+      date: "2026-07-09",
+      title: "July planning",
+      content: "Ship Step 4a list view polish and prep Step 4b calendar layout.",
+      starred: true,
+      isImportant: false,
+      isQuick: false,
+      lastEditedAt: "2026-07-09T10:15:00.000Z",
+    },
+    {
+      id: "mock-note-june-1",
+      date: "2026-06-06",
+      title: "June planning",
+      content: "Outlined list view patterns and week grouping for month notes.",
+      starred: true,
+      isImportant: true,
+      isQuick: false,
+      lastEditedAt: "2026-06-06T10:15:00.000Z",
+    },
+    {
+      id: "mock-note-june-2",
+      date: "2026-06-27",
+      title: "June retrospective",
+      content: "Reviewed notes from this month and extracted reusable list patterns.",
+      starred: false,
+      isImportant: false,
+      isQuick: false,
+      lastEditedAt: "2026-06-27T16:40:00.000Z",
+    },
+    {
+      id: "mock-note-july-1",
+      date: "2026-07-09",
+      title: "July planning",
+      content: "Ship Step 4a list view polish and prep Step 4b calendar layout.",
+      starred: true,
+      isImportant: false,
+      isQuick: false,
+      lastEditedAt: "2026-07-09T10:15:00.000Z",
+    },
   ];
+
+  const mockMonthNotes = allMockMonthNotes.filter(
+    (note) => note.date?.startsWith(month),
+  );
 
   const mockGeneralNotes: Note[] = [
     {

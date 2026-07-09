@@ -44,6 +44,10 @@ export function NotesViewsSection({
         <ListView
           items={initialCalendarNotes.monthNotes}
           getKey={(note) => note.id}
+          groupByWeek
+          groupByWeekKey="date"
+          defaultOpen
+          month={month}
           renderItem={(note) => {
             const reserved = getReservedMeta("month-notes", note);
 
