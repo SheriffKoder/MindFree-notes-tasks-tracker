@@ -1,140 +1,27 @@
 /**
  * @file views/notes/ui/notes-client.tsx
- * Client boundary for the Notes page (hydration in Step 5).
+ * Client boundary for the Notes page — layout, URL state, and TanStack query islands.
  */
 
 "use client";
 
-import type {
-  Note,
-  CalendarNotesResponse,
-  GeneralNotesResponse,
-} from "@/entities/note";
-import { aggregateMonthNotes } from "@/entities/note/transform/aggregate-month-notes";
 import { MonthNavigator, useMonthNavigation } from "@/shared/month-navigator";
 import {
   ViewSwitcher,
   useViewNavigation,
-  type NotesViewId,
 } from "@/shared/view-switcher";
-import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
+import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
+import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
 
 /**
- * Props for the Notes client island.
+ * Renders the Notes page shell with month/view controls and hydrated query islands.
  */
-export interface NotesClientProps {
-  /** Resolved URL month (`YYYY-MM`). */
-  month: string;
-  /** Resolved URL view. */
-  view: NotesViewId;
-  /** SSR calendar payload — wired to TanStack Query in Step 5. */
-  initialCalendarNotes: CalendarNotesResponse;
-  /** SSR general notes payload — wired to TanStack Query in Step 5. */
-  initialGeneralNotes: GeneralNotesResponse;
-}
-
-function buildMockData(
-  month: string,
-  initialCalendarNotes: CalendarNotesResponse,
-  initialGeneralNotes: GeneralNotesResponse,
-): {
-  calendarNotes: CalendarNotesResponse;
-  generalNotes: GeneralNotesResponse;
-} {
-  const allMockMonthNotes: Note[] = [
-    {
-      id: "mock-note-june-1",
-      date: "2026-06-06",
-      title: "Hi\nMy name is\nEarth\nand I'm a \nplanet",
-      content: "Outlined list view patterns and week grouping for month notes.",
-      starred: true,
-      isImportant: true,
-      isQuick: false,
-      lastEditedAt: "2026-06-06T10:15:00.000Z",
-    },
-    {
-      id: "mock-note-june-2",
-      date: "2026-06-27",
-      title: "June retrospective",
-      content: "Reviewed notes from this month and extracted reusable list patterns.",
-      starred: false,
-      isImportant: false,
-      isQuick: false,
-      lastEditedAt: "2026-06-27T16:40:00.000Z",
-    },
-    {
-      id: "mock-note-july-1",
-      date: "2026-07-09",
-      title: "July planning",
-      content: "Ship Step 4a list view polish and prep Step 4b calendar layout.",
-      starred: true,
-      isImportant: false,
-      isQuick: false,
-      lastEditedAt: "2026-07-09T10:15:00.000Z",
-    },
-  ];
-
-  const mockMonthNotes = allMockMonthNotes.filter(
-    (note) => note.date?.startsWith(month),
-  );
-
-  const mockGeneralNotes: Note[] = [
-    {
-      id: "mock-general-july",
-      date: null,
-      title: "July priorities",
-      content: "Keep drawer navigation independent from month URL state.",
-      starred: true,
-      isImportant: false,
-      isQuick: false,
-      lastEditedAt: "2026-07-08T13:30:00.000Z",
-    },
-    {
-      id: "mock-general-june",
-      date: null,
-      title: "June learnings",
-      content: "Prefer small focused containers when prop surfaces stay simple.",
-      starred: false,
-      isImportant: true,
-      isQuick: false,
-      lastEditedAt: "2026-06-21T09:05:00.000Z",
-    },
-  ];
-
-  const monthNotes = [...mockMonthNotes, ...initialCalendarNotes.monthNotes];
-  const calendarDays = aggregateMonthNotes(month, monthNotes);
-
-  return {
-    calendarNotes: {
-      ...initialCalendarNotes,
-      month,
-      monthNotes,
-      calendarDays,
-    },
-    generalNotes: {
-      ...initialGeneralNotes,
-      generalNotes: [...mockGeneralNotes, ...initialGeneralNotes.generalNotes],
-    },
-  };
-}
-
-/**
- * Renders the Notes page client boundary with SSR payloads held for hydration.
- *
- * @param props - month, view, and initial server payloads
- * @returns Notes page shell with month and view controls
- */
-export function NotesClient({
-  month,
-  view,
-  initialCalendarNotes,
-  initialGeneralNotes,
-}: NotesClientProps) {
+export function NotesClient() {
+  const { month, view } = useNotesUrlState();
   const { onPrevious, onNext } = useMonthNavigation(month);
   const { onViewChange, onCycleView } = useViewNavigation(view);
   const { highlightedDate, selectDate } = useNotesPageSelection(month);
-  const mockData = buildMockData(month, initialCalendarNotes, initialGeneralNotes);
 
   return (
     <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-4">
@@ -173,8 +60,6 @@ export function NotesClient({
           <NotesViewsSection
             month={month}
             view={view}
-            initialCalendarNotes={mockData.calendarNotes}
-            initialGeneralNotes={mockData.generalNotes}
             highlightedDate={highlightedDate}
             onDateSelect={selectDate}
           />

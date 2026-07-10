@@ -1,18 +1,11 @@
 /**
  * @file entities/note/index.ts
- * Public exports for the note entity.
+ * Shared domain exports — types and pure helpers only.
+ *
+ * Server reads: `entities/note/server`
+ * Client cache: `entities/note/client`
  */
 
-export {
-  getCalendarNotesResponse,
-} from "@/entities/note/queries/get-calendar-notes-response";
-export {
-  getGeneralNotesResponse,
-} from "@/entities/note/queries/get-general-notes-response";
-export {
-  getNotesPageInitialData,
-} from "@/entities/note/queries/get-notes-page-initial-data";
-export type { NotesPageInitialData } from "@/entities/note/queries/get-notes-page-initial-data";
 export {
   getCurrentMonth,
   getMonthRange,

@@ -3,7 +3,7 @@
  * GET calendar notes aggregated for a month.
  */
 
-import { getCalendarNotesResponse } from "@/entities/note";
+import { getCalendarNotesResponse } from "@/entities/note/server";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 /**

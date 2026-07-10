@@ -3,7 +3,7 @@
  * GET all general notes for the authenticated user.
  */
 
-import { getGeneralNotesResponse } from "@/entities/note";
+import { getGeneralNotesResponse } from "@/entities/note/server";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 /**

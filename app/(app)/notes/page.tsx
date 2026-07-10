@@ -1,83 +1,26 @@
 /**
  * @file app/(app)/notes/page.tsx
- * Protected notes route — server fetch and client boundary composition.
+ * Protected notes route — sync shell; URL params and query reads stay on the client.
  */
 
 import { Suspense } from "react";
 
-import type { SearchParamsRecord } from "@/features/auth/model/auth-notice";
-import { getNotesPageInitialData } from "@/entities/note";
-import { parseNotesViewParam } from "@/shared/view-switcher";
-import { NotesView } from "@/views/notes";
+import { NotesHydrationSeed } from "@/app/(app)/notes/notes-hydration-seed";
+import { NotesClient } from "@/views/notes/ui/notes-client";
 
 /**
- * Props for the protected notes route.
+ * Renders the Notes route. SSR hydration seeds cache in parallel with the client shell.
+ * `?month=` and `?view=` toggles update client state only (no route Suspense flash).
  */
-interface NotesRouteProps {
-  /** Current request search params (`month`, `view` in later steps). */
-  searchParams: Promise<SearchParamsRecord>;
-}
-
-/**
- * Reads the first string value from a search param entry.
- *
- * @param value - raw App Router search param value
- * @returns first string value or `undefined`
- */
-function getSearchParamValue(
-  value: string | string[] | undefined,
-): string | undefined {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-
-  return undefined;
-}
-
-/**
- * Resolves notes page data from the current request search params.
- *
- * @param props - protected route search params
- * @returns Notes view with SSR calendar and general payloads
- */
-async function NotesRouteContent({ searchParams }: NotesRouteProps) {
-  const resolvedSearchParams = await searchParams;
-  const monthParam = getSearchParamValue(resolvedSearchParams.month);
-  const viewParam = getSearchParamValue(resolvedSearchParams.view);
-  const view = parseNotesViewParam(viewParam);
-  const { month, calendarNotes, generalNotes } =
-    await getNotesPageInitialData(monthParam);
-
+export default function NotesRoute() {
   return (
-    <NotesView
-      month={month}
-      view={view}
-      initialCalendarNotes={calendarNotes}
-      initialGeneralNotes={generalNotes}
-    />
-  );
-}
-
-/**
- * Renders the protected notes route inside a Suspense boundary.
- *
- * @param props - protected route search params
- * @returns Notes route composition for `/notes`
- */
-export default function NotesRoute({ searchParams }: NotesRouteProps) {
-  return (
-    <Suspense
-      fallback={
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
-          <p className="text-body-muted">Loading notes…</p>
-        </div>
-      }
-    >
-      <NotesRouteContent searchParams={searchParams} />
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <NotesHydrationSeed />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NotesClient />
+      </Suspense>
+    </>
   );
 }

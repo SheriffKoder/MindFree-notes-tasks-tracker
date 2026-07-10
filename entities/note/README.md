@@ -1,18 +1,29 @@
 # Note entity (`entities/note`)
 
-Business logic for calendar, general, and quick notes. Other layers import from `entities/note/index.ts` only — not from internal folders directly.
+Business logic for calendar, general, and quick notes. Use the correct entry point for your runtime — not every file imports from the same barrel.
+
+## Entry points
+
+| File | Use in | Exports |
+| ---- | ------ | ------- |
+| `index.ts` | Any layer | Domain types, pure month helpers |
+| `server.ts` | Server Components, API routes, server actions | Repository-backed reads, SSR hydration |
+| `client.ts` | `"use client"` modules | TanStack Query keys, fetchers, hooks |
 
 ## Folder layout
 
 ```text
 entities/note/
-├── index.ts                 # Public API (what pages, API routes, and features import)
+├── index.ts                 # Types + pure helpers
+├── server.ts                # Server read API
+├── client.ts                # TanStack Query API
 ├── README.md
 ├── model/                   # Types and contracts
 ├── lib/                     # Pure helpers (no I/O)
 ├── repository/              # Supabase reads/writes
 ├── transform/               # Domain shaping after fetch
-├── queries/                 # Read use-cases (page + API entry points)
+├── queries/                 # Server read use-cases
+├── tanstack/                # Client cache layer (keys, fetchers, hooks, hydrate)
 └── editor/                  # Note form (Step 7 — not yet added)
 ```
 
@@ -21,18 +32,37 @@ entities/note/
 ```text
 model/types  ←  lib  ←  transform  ←  repository
                       ↑
-                   queries  →  consumed by app/(app)/notes/page.tsx and app/api/notes/*
+              queries/ (server)  →  server.ts  →  page + API routes
+              tanstack/ (client) →  client.ts  →  views + drawer
 ```
 
-- Lower layers never import from `queries/`.
-- `app/api/notes/*/route.ts` stays thin: auth check → one query function → JSON response.
+- Lower layers never import from `queries/` or `tanstack/`.
+- `app/api/notes/*/route.ts` stays thin: auth check → one server export → JSON response.
 - Auth guards live in `shared/lib/auth/`, not in this entity.
 
 ## Files
 
 ### `index.ts`
 
-Public barrel export. Exposes query functions, month helpers, and domain types. Does **not** export repository or transform internals.
+Shared domain exports: `Note`, `CalendarNotesResponse`, `GeneralNotesResponse`, `CalendarDay`, and `parseMonthParam` / `getMonthRange` / `getCurrentMonth`.
+
+### `server.ts`
+
+Server-side reads and SSR cache seeding:
+
+- `getCalendarNotesResponse`
+- `getGeneralNotesResponse`
+- `getNotesPageInitialData`
+- `hydrateNotesPageQueries`
+
+### `client.ts`
+
+Client-side TanStack Query surface:
+
+- `calendarNotesQueryKey`, `generalNotesQueryKey`
+- `fetchCalendarNotes`, `fetchGeneralNotes`
+- `calendarNotesQueryOptions`, `generalNotesQueryOptions`
+- `useCalendarNotesQuery`, `useGeneralNotesQuery`
 
 ### `model/types.ts`
 
@@ -76,14 +106,39 @@ Read use-case for `GET /api/notes/general`. Repository fetch wrapped in `General
 
 SSR orchestration for `/notes`. Fetches calendar + general payloads in parallel. Used by `app/(app)/notes/page.tsx`.
 
+### `tanstack/query-keys.ts`
+
+TanStack Query key factories: `calendarNotesQueryKey(month)` → `["calendarNotes", month]`, `generalNotesQueryKey` → `["generalNotes"]`.
+
+### `tanstack/calendar-notes-query.ts`
+
+Client read cache for calendar notes: API fetcher, `calendarNotesQueryOptions`, and `useCalendarNotesQuery(month)`.
+
+### `tanstack/general-notes-query.ts`
+
+Client read cache for general notes: API fetcher, `generalNotesQueryOptions`, and `useGeneralNotesQuery()`.
+
+### `tanstack/hydrate-notes-page-queries.ts`
+
+Seeds a `QueryClient` from SSR payloads (`setQueryData`) and returns `dehydrate()` output. Exported via `server.ts` because it runs on the server page.
+
+### `tanstack/prefetch-calendar-month.ts`
+
+Prefetches one month into `["calendarNotes", month]` via `queryClient.prefetchQuery`.
+
+### `tanstack/prefetch-adjacent-calendar-months.ts`
+
+Prefetches `shiftMonth(month, ±1)` — used by the notes page after the active month loads; reusable by the drawer (Step 8).
+
 ## Consumers
 
 | Consumer | Imports |
 | -------- | ------- |
-| `app/(app)/notes/page.tsx` | `getNotesPageInitialData` |
-| `app/api/notes/calendar/route.ts` | `getCalendarNotesResponse` + `requireAuthenticatedUserId` |
-| `app/api/notes/general/route.ts` | `getGeneralNotesResponse` + `requireAuthenticatedUserId` |
-| `views/notes/*` | Types only (`Note`, `CalendarNotesResponse`, …) |
+| `app/(app)/notes/page.tsx` | `entities/note/server` |
+| `app/api/notes/calendar/route.ts` | `entities/note/server` |
+| `app/api/notes/general/route.ts` | `entities/note/server` |
+| `views/notes/*` (client) | `entities/note/client` |
+| Features, cards, types | `entities/note` (types) |
 
 ## Future additions (Steps 7–10)
 
@@ -97,4 +152,4 @@ entities/note/
     └── ui/
 ```
 
-Add new write operations under `mutations/`; keep `queries/` for reads only.
+Add new write operations under `mutations/`; keep `queries/` for server reads and `tanstack/` for client cache.

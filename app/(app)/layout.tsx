@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
 import { createClient } from "@/shared/lib/supabase/server";
+import { AppQueryProvider } from "@/shared/react-query";
 import { AppShell } from "@/views/app-shell";
 
 /**
@@ -37,7 +38,11 @@ async function ProtectedAppLayoutContent({
     redirect("/login?error=session_missing");
   }
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <AppQueryProvider>
+      <AppShell>{children}</AppShell>
+    </AppQueryProvider>
+  );
 }
 
 /**
