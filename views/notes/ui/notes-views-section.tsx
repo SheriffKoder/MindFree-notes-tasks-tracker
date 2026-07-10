@@ -3,7 +3,10 @@
  * Notes page views container (calendar placeholder, month notes list, general notes list).
  */
 
+import { useCallback, useMemo } from "react";
+
 import type {
+  Note,
   CalendarNotesResponse,
   GeneralNotesResponse,
 } from "@/entities/note";
@@ -19,12 +22,52 @@ export interface NotesViewsSectionProps {
   initialGeneralNotes: GeneralNotesResponse;
 }
 
+/**
+ * Stable key extractor for list rows — module-level so referential identity never changes.
+ */
+function getNoteKey(note: Note): string {
+  return note.id;
+}
+
 export function NotesViewsSection({
   month,
   view,
   initialCalendarNotes,
   initialGeneralNotes,
 }: NotesViewsSectionProps) {
+  
+  // Stable config object for CardGridMobile → WeekOrganizer (avoids regroup on parent re-render).
+  const monthNotesWeekGrouping = useMemo(
+    () => ({ month, dateKey: "date" as const, defaultOpen: true }),
+    [month],
+  );
+
+  // Stable renderItem refs let memoized NoteListCard skip re-renders when note data is unchanged.
+  const renderMonthNote = useCallback((note: Note) => {
+    const reserved = getReservedMeta("month-notes", note);
+
+    return (
+      <NoteListCard
+        note={note}
+        reserved={reserved.value}
+        reservedKind={reserved.kind}
+      />
+    );
+  }, []);
+
+  // Stable renderItem refs let memoized NoteListCard skip re-renders when note data is unchanged.
+  const renderGeneralNote = useCallback((note: Note) => {
+    const reserved = getReservedMeta("general-notes", note);
+
+    return (
+      <NoteListCard
+        note={note}
+        reserved={reserved.value}
+        reservedKind={reserved.kind}
+      />
+    );
+  }, []);
+
   const sectionClassName =
     view === "calendar"
       ? "rounded-2xl border border-dashed border-[var(--color-border)] p-4"
@@ -43,40 +86,18 @@ export function NotesViewsSection({
       {view === "month-notes" ? (
         <ListView
           items={initialCalendarNotes.monthNotes}
-          getKey={(note) => note.id}
-          groupByWeek
-          groupByWeekKey="date"
-          defaultOpen
-          month={month}
-          renderItem={(note) => {
-            const reserved = getReservedMeta("month-notes", note);
-
-            return (
-              <NoteListCard
-                note={note}
-                reserved={reserved.value}
-                reservedKind={reserved.kind}
-              />
-            );
-          }}
+          getKey={getNoteKey}
+          weekGrouping={monthNotesWeekGrouping}
+          renderItem={renderMonthNote}
         />
       ) : null}
 
+      {/* Only one list branch mounts at a time — inactive views unmount entirely. */}
       {view === "general-notes" ? (
         <ListView
           items={initialGeneralNotes.generalNotes}
-          getKey={(note) => note.id}
-          renderItem={(note) => {
-            const reserved = getReservedMeta("general-notes", note);
-
-            return (
-              <NoteListCard
-                note={note}
-                reserved={reserved.value}
-                reservedKind={reserved.kind}
-              />
-            );
-          }}
+          getKey={getNoteKey}
+          renderItem={renderGeneralNote}
         />
       ) : null}
     </section>

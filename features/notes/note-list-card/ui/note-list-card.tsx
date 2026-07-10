@@ -3,6 +3,8 @@
  * Responsive note list card (mobile + desktop variants).
  */
 
+import { memo } from "react";
+
 import type { Note } from "@/entities/note";
 import { NoteListCardDesktop } from "@/features/notes/note-list-card/ui/note-list-card-desktop";
 import { NoteListCardMobile } from "@/features/notes/note-list-card/ui/note-list-card-mobile";
@@ -28,7 +30,12 @@ function formatLastEditedAt(value: string): string {
   }).format(date);
 }
 
-export function NoteListCard({ note, reserved, reservedKind }: NoteListCardProps) {
+/** Skips re-render when `note`, `reserved`, and `reservedKind` are referentially equal. */
+export const NoteListCard = memo(function NoteListCard({
+  note,
+  reserved,
+  reservedKind,
+}: NoteListCardProps) {
   const formattedLastEditedAt = formatLastEditedAt(note.lastEditedAt);
 
   return (
@@ -51,4 +58,4 @@ export function NoteListCard({ note, reserved, reservedKind }: NoteListCardProps
       </div>
     </>
   );
-}
+});
