@@ -10,6 +10,7 @@ import type {
   CalendarNotesResponse,
   GeneralNotesResponse,
 } from "@/entities/note";
+import { aggregateMonthNotes } from "@/entities/note/transform/aggregate-month-notes";
 import { MonthNavigator, useMonthNavigation } from "@/shared/month-navigator";
 import {
   ViewSwitcher,
@@ -17,6 +18,7 @@ import {
   type NotesViewId,
 } from "@/shared/view-switcher";
 import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
+import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 
 /**
  * Props for the Notes client island.
@@ -44,37 +46,7 @@ function buildMockData(
     {
       id: "mock-note-june-1",
       date: "2026-06-06",
-      title: "June planning",
-      content: "Outlined list view patterns and week grouping for month notes.",
-      starred: true,
-      isImportant: true,
-      isQuick: false,
-      lastEditedAt: "2026-06-06T10:15:00.000Z",
-    },
-    {
-      id: "mock-note-june-2",
-      date: "2026-06-27",
-      title: "June retrospective",
-      content: "Reviewed notes from this month and extracted reusable list patterns.",
-      starred: false,
-      isImportant: false,
-      isQuick: false,
-      lastEditedAt: "2026-06-27T16:40:00.000Z",
-    },
-    {
-      id: "mock-note-july-1",
-      date: "2026-07-09",
-      title: "July planning",
-      content: "Ship Step 4a list view polish and prep Step 4b calendar layout.",
-      starred: true,
-      isImportant: false,
-      isQuick: false,
-      lastEditedAt: "2026-07-09T10:15:00.000Z",
-    },
-    {
-      id: "mock-note-june-1",
-      date: "2026-06-06",
-      title: "June planning",
+      title: "Hi\nMy name is\nEarth\nand I'm a \nplanet",
       content: "Outlined list view patterns and week grouping for month notes.",
       starred: true,
       isImportant: true,
@@ -130,10 +102,15 @@ function buildMockData(
     },
   ];
 
+  const monthNotes = [...mockMonthNotes, ...initialCalendarNotes.monthNotes];
+  const calendarDays = aggregateMonthNotes(month, monthNotes);
+
   return {
     calendarNotes: {
       ...initialCalendarNotes,
-      monthNotes: [...mockMonthNotes, ...initialCalendarNotes.monthNotes],
+      month,
+      monthNotes,
+      calendarDays,
     },
     generalNotes: {
       ...initialGeneralNotes,
@@ -156,6 +133,7 @@ export function NotesClient({
 }: NotesClientProps) {
   const { onPrevious, onNext } = useMonthNavigation(month);
   const { onViewChange, onCycleView } = useViewNavigation(view);
+  const { highlightedDate, selectDate } = useNotesPageSelection(month);
   const mockData = buildMockData(month, initialCalendarNotes, initialGeneralNotes);
 
   return (
@@ -189,14 +167,16 @@ export function NotesClient({
         {/* shadow over the list view when scrolling and padding on the scrollable area to avoid overlaying the content */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-[-3] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-[-10] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
         />
-        <div className="h-full min-h-0 overflow-y-auto pt-2 md:pt-4">
+        <div className="h-full min-h-0 overflow-x-auto overflow-y-auto pt-4 md:pt-5">
           <NotesViewsSection
             month={month}
             view={view}
             initialCalendarNotes={mockData.calendarNotes}
             initialGeneralNotes={mockData.generalNotes}
+            highlightedDate={highlightedDate}
+            onDateSelect={selectDate}
           />
         </div>
       </div>

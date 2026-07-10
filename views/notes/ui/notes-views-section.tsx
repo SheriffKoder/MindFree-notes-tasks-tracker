@@ -1,16 +1,21 @@
 /**
  * @file views/notes/ui/notes-views-section.tsx
- * Notes page views container (calendar placeholder, month notes list, general notes list).
+ * Notes page views container (calendar grid, month notes list, general notes list).
  */
+
+"use client";
 
 import { useCallback, useMemo } from "react";
 
 import type {
   Note,
+  CalendarDay,
   CalendarNotesResponse,
   GeneralNotesResponse,
 } from "@/entities/note";
+import { NoteCalendarCell } from "@/features/notes/note-calendar-cell";
 import { NoteListCard } from "@/features/notes/note-list-card";
+import { MonthCalendar, type CalendarCellRenderContext } from "@/shared/calendar";
 import { ListView } from "@/shared/list-view";
 import type { NotesViewId } from "@/shared/view-switcher";
 import { getReservedMeta } from "@/views/notes/lib/reserved-meta";
@@ -20,6 +25,10 @@ export interface NotesViewsSectionProps {
   view: NotesViewId;
   initialCalendarNotes: CalendarNotesResponse;
   initialGeneralNotes: GeneralNotesResponse;
+  /** In-month highlight for the calendar grid (from page selection hook). */
+  highlightedDate?: string;
+  /** Snaps page selection (and later the drawer) to the clicked calendar day. */
+  onDateSelect: (date: string) => void;
 }
 
 /**
@@ -34,8 +43,21 @@ export function NotesViewsSection({
   view,
   initialCalendarNotes,
   initialGeneralNotes,
+  highlightedDate,
+  onDateSelect,
 }: NotesViewsSectionProps) {
-  
+  // Stable renderCell ref lets memoized NoteCalendarCell skip re-renders when day data is unchanged.
+  const renderCalendarCell = useCallback(
+    (day: CalendarDay, { isToday }: CalendarCellRenderContext) => (
+      <NoteCalendarCell
+        day={day}
+        isToday={isToday}
+        isSelected={highlightedDate === day.date}
+      />
+    ),
+    [highlightedDate],
+  );
+
   // Stable config object for CardGridMobile → WeekOrganizer (avoids regroup on parent re-render).
   const monthNotesWeekGrouping = useMemo(
     () => ({ month, dateKey: "date" as const, defaultOpen: true }),
@@ -68,19 +90,19 @@ export function NotesViewsSection({
     );
   }, []);
 
-  const sectionClassName =
-    view === "calendar"
-      ? "rounded-2xl border border-dashed border-[var(--color-border)] p-4"
-      : "";
-
   return (
-    <section className={sectionClassName}>
+    <section>
       {view === "calendar" ? (
-        <p className="text-body-muted">
-          Calendar for {month}: {initialCalendarNotes.calendarDays.length} days,{" "}
-          {initialCalendarNotes.monthNotes.length} notes. Calendar grid arrives in
-          Step 4b.
-        </p>
+        <div className="w-max min-w-full">
+          <MonthCalendar
+            className="min-w-[42rem] md:min-w-0"
+            month={month}
+            calendarDays={initialCalendarNotes.calendarDays}
+            selectedDate={highlightedDate}
+            onDaySelect={onDateSelect}
+            renderCell={renderCalendarCell}
+          />
+        </div>
       ) : null}
 
       {view === "month-notes" ? (
