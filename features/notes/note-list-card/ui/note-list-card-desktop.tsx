@@ -5,6 +5,7 @@
 
 import { CalendarDays, FileText, Star } from "lucide-react";
 import type { Note } from "@/entities/note";
+import { getNoteCardInteractionProps } from "@/features/notes/note-list-card/lib/card-interaction-props";
 import { NOTE_LIST_CARD_CSS_VARS } from "@/features/notes/note-list-card/lib/card-style-config";
 
 export interface NoteListCardDesktopProps {
@@ -12,6 +13,7 @@ export interface NoteListCardDesktopProps {
   reserved?: string;
   reservedKind?: "date" | "file";
   formattedLastEditedAt: string;
+  onClick?: () => void;
 }
 
 export function NoteListCardDesktop({
@@ -19,6 +21,7 @@ export function NoteListCardDesktop({
   reserved,
   reservedKind,
   formattedLastEditedAt,
+  onClick,
 }: NoteListCardDesktopProps) {
   const reservedClass = note.isImportant
     ? "text-caption [color:var(--note-card-important-accent)]"
@@ -30,6 +33,7 @@ export function NoteListCardDesktop({
     <article
       style={NOTE_LIST_CARD_CSS_VARS}
       className="group flex h-56 cursor-pointer flex-col"
+      {...getNoteCardInteractionProps(onClick)}
     >
       <div className="relative flex-1 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--note-card-bg-default)] p-3 transition-colors duration-200 group-hover:border-[color-mix(in_srgb,var(--color-accent)_30%,var(--color-border))] group-hover:bg-[var(--note-card-hover-light)] dark:group-hover:bg-[var(--note-card-hover-dark)]">
         {note.starred ? (

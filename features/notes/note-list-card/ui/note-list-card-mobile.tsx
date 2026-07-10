@@ -5,6 +5,7 @@
 
 import { CalendarDays, FileText, Star } from "lucide-react";
 import type { Note } from "@/entities/note";
+import { getNoteCardInteractionProps } from "@/features/notes/note-list-card/lib/card-interaction-props";
 import { NOTE_LIST_CARD_CSS_VARS } from "@/features/notes/note-list-card/lib/card-style-config";
 
 export interface NoteListCardMobileProps {
@@ -12,6 +13,7 @@ export interface NoteListCardMobileProps {
   reserved?: string;
   reservedKind?: "date" | "file";
   formattedLastEditedAt: string;
+  onClick?: () => void;
 }
 
 export function NoteListCardMobile({
@@ -19,6 +21,7 @@ export function NoteListCardMobile({
   reserved,
   reservedKind,
   formattedLastEditedAt,
+  onClick,
 }: NoteListCardMobileProps) {
   const reservedClass = note.isImportant
     ? "text-caption [color:var(--note-card-important-accent)]"
@@ -29,6 +32,7 @@ export function NoteListCardMobile({
     <article
       style={NOTE_LIST_CARD_CSS_VARS}
       className="relative flex h-40 cursor-pointer flex-col justify-between rounded-xl border-b border-[var(--color-border)] bg-[var(--note-card-bg-default)] px-4 py-3 transition-colors duration-200 hover:bg-[var(--note-card-hover-light)] dark:hover:bg-[var(--note-card-hover-dark)]"
+      {...getNoteCardInteractionProps(onClick)}
     >
       {note.starred ? (
         <Star

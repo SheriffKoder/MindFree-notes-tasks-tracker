@@ -13,6 +13,8 @@ export interface NoteListCardProps {
   note: Note;
   reserved?: string;
   reservedKind?: "date" | "file";
+  /** Opens the note drawer when the card is clicked. */
+  onClick?: () => void;
 }
 
 function formatLastEditedAt(value: string): string {
@@ -35,6 +37,7 @@ export const NoteListCard = memo(function NoteListCard({
   note,
   reserved,
   reservedKind,
+  onClick,
 }: NoteListCardProps) {
   const formattedLastEditedAt = formatLastEditedAt(note.lastEditedAt);
 
@@ -46,6 +49,7 @@ export const NoteListCard = memo(function NoteListCard({
           reserved={reserved}
           reservedKind={reservedKind}
           formattedLastEditedAt={formattedLastEditedAt}
+          onClick={onClick}
         />
       </div>
       <div className="hidden md:block">
@@ -54,6 +58,7 @@ export const NoteListCard = memo(function NoteListCard({
           reserved={reserved}
           reservedKind={reservedKind}
           formattedLastEditedAt={formattedLastEditedAt}
+          onClick={onClick}
         />
       </div>
     </>

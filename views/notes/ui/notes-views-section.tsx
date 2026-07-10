@@ -30,6 +30,8 @@ export interface NotesViewsSectionProps {
   highlightedDate?: string;
   /** Snaps page selection (and later the drawer) to the clicked calendar day. */
   onDateSelect: (date: string) => void;
+  /** Opens the drawer for a list card (month or general note). */
+  onNoteClick: (note: Note) => void;
 }
 
 /**
@@ -44,6 +46,7 @@ export function NotesViewsSection({
   view,
   highlightedDate,
   onDateSelect,
+  onNoteClick,
 }: NotesViewsSectionProps) {
   const calendarQuery = useCalendarNotesQuery(month);
   const generalQuery = useGeneralNotesQuery();
@@ -73,30 +76,37 @@ export function NotesViewsSection({
   );
 
   // Stable renderItem refs let memoized NoteListCard skip re-renders when note data is unchanged.
-  const renderMonthNote = useCallback((note: Note) => {
-    const reserved = getReservedMeta("month-notes", note);
+  const renderMonthNote = useCallback(
+    (note: Note) => {
+      const reserved = getReservedMeta("month-notes", note);
 
-    return (
-      <NoteListCard
-        note={note}
-        reserved={reserved.value}
-        reservedKind={reserved.kind}
-      />
-    );
-  }, []);
+      return (
+        <NoteListCard
+          note={note}
+          reserved={reserved.value}
+          reservedKind={reserved.kind}
+          onClick={() => onNoteClick(note)}
+        />
+      );
+    },
+    [onNoteClick],
+  );
 
-  // Stable renderItem refs let memoized NoteListCard skip re-renders when note data is unchanged.
-  const renderGeneralNote = useCallback((note: Note) => {
-    const reserved = getReservedMeta("general-notes", note);
+  const renderGeneralNote = useCallback(
+    (note: Note) => {
+      const reserved = getReservedMeta("general-notes", note);
 
-    return (
-      <NoteListCard
-        note={note}
-        reserved={reserved.value}
-        reservedKind={reserved.kind}
-      />
-    );
-  }, []);
+      return (
+        <NoteListCard
+          note={note}
+          reserved={reserved.value}
+          reservedKind={reserved.kind}
+          onClick={() => onNoteClick(note)}
+        />
+      );
+    },
+    [onNoteClick],
+  );
 
   if (viewQueryState.kind !== "ready") {
     return (

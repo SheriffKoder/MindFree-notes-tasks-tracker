@@ -7,6 +7,7 @@
 
 import { useCallback, useState } from "react";
 
+import type { Note } from "@/entities/note";
 import { AppDrawer } from "@/shared/drawer";
 import { MonthNavigator, useMonthNavigation } from "@/shared/month-navigator";
 import {
@@ -27,11 +28,26 @@ export function NotesClient() {
   const { selectedDate, highlightedDate, selectDate } =
     useNotesPageSelection(month);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
-  /** Opens drawer shell on view click — replaced by `NoteDrawer` in Step 8. */
+  /** Opens drawer shell on calendar day click — replaced by `NoteDrawer` in Step 8. */
   const handleDateSelect = useCallback(
     (date: string) => {
       selectDate(date);
+      setSelectedNote(null);
+      setDrawerOpen(true);
+    },
+    [selectDate],
+  );
+
+  /** Opens drawer shell on list card click — replaced by `NoteDrawer` in Step 8. */
+  const handleNoteClick = useCallback(
+    (note: Note) => {
+      if (note.date) {
+        selectDate(note.date);
+      }
+
+      setSelectedNote(note);
       setDrawerOpen(true);
     },
     [selectDate],
@@ -76,6 +92,7 @@ export function NotesClient() {
             view={view}
             highlightedDate={highlightedDate}
             onDateSelect={handleDateSelect}
+            onNoteClick={handleNoteClick}
           />
         </div>
       </div>
@@ -89,7 +106,11 @@ export function NotesClient() {
           <p className="text-body">
             Drawer shell — note editor arrives in Steps 7–8.
           </p>
-          {selectedDate ? (
+          {selectedNote ? (
+            <p className="text-body-muted text-sm">
+              Note: {selectedNote.title || selectedNote.content || selectedNote.id}
+            </p>
+          ) : selectedDate ? (
             <p className="text-body-muted text-sm">Selected: {selectedDate}</p>
           ) : null}
           {/* Placeholder blocks to verify scroll inside the panel */}

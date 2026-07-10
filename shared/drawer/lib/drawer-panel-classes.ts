@@ -9,7 +9,7 @@ export const DRAWER_OVERLAY_CLASS =
 
 /** Right-side panel — full width on mobile, capped on desktop. */
 export const DRAWER_PANEL_CLASS =
-  "relative flex h-full w-full max-w-full flex-col border-l border-[var(--color-border)] [background-color:var(--color-drawer)] shadow-[var(--shadow-elevation)] animate-in slide-in-from-right duration-300 md:max-w-md";
+  "relative flex h-full w-full max-w-full flex-col border-l border-[var(--color-border)] [background-color:var(--color-drawer)] shadow-[var(--shadow-elevation)] animate-in slide-in-from-right duration-300 md:max-w-4xl";
 
 /** Fixed header row above scrollable content. */
 export const DRAWER_HEADER_CLASS =
