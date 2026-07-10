@@ -1,5 +1,5 @@
 /**
- * @file shared/list-view/lib/format-week-date-label.ts
+ * @file shared/week-grouping/lib/format-week-date-label.ts
  * Display labels for week range headers (`DD-MM-'YY`).
  */
 

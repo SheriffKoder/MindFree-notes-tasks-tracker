@@ -4,43 +4,36 @@
  */
 
 import type { ReactNode } from "react";
+
 import { CardGridDesktop } from "@/shared/list-view/ui/card-grid-desktop";
-import { CardGirdMobile } from "@/shared/list-view/ui/card-gird-mobile";
+import { CardGridMobile } from "@/shared/list-view/ui/card-grid-mobile";
+import type { WeekGroupingConfig } from "@/shared/week-grouping";
 
 export interface ListViewProps<T> {
+  /** List of items to render. */
   items: T[];
+  /** Function to render each item - a component that renders the item. */
   renderItem: (item: T) => ReactNode;
+  /** Unique identifier for each item. */
   getKey: (item: T) => string;
-  /** Mobile-only: group items by calendar week within `month`. */
-  groupByWeek?: boolean;
-  /** Item property key holding the ISO date (`YYYY-MM-DD`), e.g. `"date"`. */
-  groupByWeekKey?: string;
-  /** Mobile-only: whether week sections start expanded. Default `true`. */
-  defaultOpen?: boolean;
-  /** Month key (`YYYY-MM`) for week grouping. */
-  month?: string;
+  /** Mobile-only. When set, CardGridMobile delegates to WeekOrganizer. */
+  weekGrouping?: WeekGroupingConfig;
 }
 
 export function ListView<T>({
   items,
   renderItem,
   getKey,
-  groupByWeek,
-  groupByWeekKey,
-  defaultOpen,
-  month,
+  weekGrouping,
 }: ListViewProps<T>) {
   return (
     <>
-      <CardGirdMobile
+      <CardGridMobile
         className="md:hidden"
         items={items}
         renderItem={renderItem}
         getKey={getKey}
-        groupByWeek={groupByWeek}
-        groupByWeekKey={groupByWeekKey}
-        defaultOpen={defaultOpen}
-        month={month}
+        weekGrouping={weekGrouping}
       />
       <CardGridDesktop
         className="hidden md:grid"

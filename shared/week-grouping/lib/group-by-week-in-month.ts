@@ -1,5 +1,5 @@
 /**
- * @file shared/list-view/lib/group-by-week-in-month.ts
+ * @file shared/week-grouping/lib/group-by-week-in-month.ts
  * Groups dated list items into calendar weeks within a month.
  */
 
