@@ -13,12 +13,11 @@ import { AppDrawer } from "@/shared/drawer";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
 import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-drawer-date-navigation";
 import { useDrawerMonthPrefetch } from "@/features/notes/note-drawer/model/use-drawer-month-prefetch";
-import { useNoteDrawerMutations } from "@/features/notes/note-drawer/model/use-note-drawer-mutations";
 import { useResolvedDrawerNote } from "@/features/notes/note-drawer/model/use-resolved-drawer-note";
 import {
-  isCalendarDateContext,
-  resolveCalendarDate,
-} from "@/features/notes/note-drawer/lib/note-mutation-rules";
+  resolveOpeningCalendarDate,
+  usePreSaveOrchestrator,
+} from "@/features/notes/note-drawer/pre-save-orchestrator";
 import { NoteDrawerFooter } from "@/features/notes/note-drawer/ui/note-drawer-footer";
 import type { UseNotesDrawerResult } from "@/views/notes/model/editor/use-notes-drawer";
 
@@ -47,14 +46,6 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     isOpen,
   );
   const note = useResolvedDrawerNote(request, activeDate, isDateNavEnabled);
-  const { goToPreviousDay, goToNextDay, swipeHandlers } =
-    useDrawerDateNavigation({
-      activeDate,
-      isDateNavEnabled,
-      setActiveDate,
-    });
-
-  useDrawerMonthPrefetch(activeDate, isDateNavEnabled);
 
   const handleGeneralNoteCreated = useCallback(
     (noteId: string) => {
@@ -63,7 +54,16 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     [openEdit],
   );
 
-  const { saveStatus, handleChange, commitKey } = useNoteDrawerMutations({
+  const {
+    saveStatus,
+    handleChange,
+    commitKey,
+    effectiveDateNavEnabled,
+    applyPickedDate,
+    conflict,
+    resolveReplace,
+    resolveDismiss,
+  } = usePreSaveOrchestrator({
     note,
     isOpen,
     request,
@@ -71,6 +71,15 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     isDateNavEnabled,
     onGeneralNoteCreated: handleGeneralNoteCreated,
   });
+
+  const { goToPreviousDay, goToNextDay, swipeHandlers } =
+    useDrawerDateNavigation({
+      activeDate,
+      isDateNavEnabled: effectiveDateNavEnabled,
+      setActiveDate,
+    });
+
+  useDrawerMonthPrefetch(activeDate, effectiveDateNavEnabled);
 
   const resetKey = useMemo(() => {
     if (note?.id) {
@@ -96,17 +105,23 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     return "draft";
   }, [activeDate, note?.id, request]);
 
-  const calendarDate = useMemo(() => {
-    if (!isCalendarDateContext(request, activeDate, isDateNavEnabled)) {
-      return null;
+  /** Pre-fill title on open only — not tied to pipeline nav gating. */
+  const prefillCalendarDate = useMemo(() => {
+    if (note?.date) {
+      return note.date;
     }
 
-    return resolveCalendarDate(activeDate, request);
-  }, [activeDate, isDateNavEnabled, request]);
+    return resolveOpeningCalendarDate(activeDate, request);
+  }, [activeDate, note?.date, request]);
 
   const handleFooterMetaChange = useCallback((meta: NoteFormFooterMeta) => {
     setFooterMeta(meta);
   }, []);
+
+  const handleDatePick = useCallback(
+    (isoDate: string) => applyPickedDate(isoDate),
+    [applyPickedDate],
+  );
 
   return (
     <AppDrawer
@@ -119,23 +134,27 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
         {...(swipeHandlers ?? {})}
       >
         <NoteForm
-          calendarDate={calendarDate}
+          calendarDate={prefillCalendarDate}
           commitKey={commitKey}
           note={note}
           resetKey={resetKey}
           saveStatus={saveStatus}
           showContentLastSaved={false}
           onChange={handleChange}
+          onDatePick={handleDatePick}
           onFooterMetaChange={handleFooterMetaChange}
         />
 
         <NoteDrawerFooter
           activeDate={activeDate}
+          conflict={conflict}
           formattedLastEditedAt={footerMeta.formattedLastEditedAt}
-          isDateNavEnabled={isDateNavEnabled}
+          isDateNavEnabled={effectiveDateNavEnabled}
           saveStatus={footerMeta.saveStatus}
           onNext={goToNextDay}
           onPrevious={goToPreviousDay}
+          onResolveDismiss={resolveDismiss}
+          onResolveReplace={resolveReplace}
         />
       </div>
     </AppDrawer>

@@ -1,6 +1,10 @@
 /**
  * @file entities/note/editor/ui/note-form-title-row.tsx
- * Row 1 — plain title input with star and important toggles.
+ * Row 1 — plain title input with star, important, and date-picker toggles.
+ *
+ * Purpose: Render editable title and delegate picker intent to onDatePick.
+ * Used in: entities/note/editor/ui/note-form.tsx
+ * Used for: Calendar icon trigger alongside star/important controls.
  */
 
 import { PLAIN_TITLE_CLASS } from "@/entities/note/editor/lib/note-form-classes";
@@ -13,8 +17,8 @@ export interface NoteFormTitleRowProps {
   onTitleChange: (title: string) => void;
   onToggleStarred: () => void;
   onToggleImportant: () => void;
-  /** When true, title is fixed (calendar date) and not editable. */
-  isTitleReadOnly?: boolean;
+  /** When set, shows the calendar date picker beside the toggles. */
+  onDatePick?: (isoDate: string) => void;
 }
 
 /**
@@ -26,7 +30,7 @@ export function NoteFormTitleRow({
   onTitleChange,
   onToggleStarred,
   onToggleImportant,
-  isTitleReadOnly = false,
+  onDatePick,
 }: NoteFormTitleRowProps) {
   return (
     <div className="flex shrink-0 flex-col gap-1">
@@ -36,7 +40,6 @@ export function NoteFormTitleRow({
           className={PLAIN_TITLE_CLASS}
           name="title"
           placeholder="Title"
-          readOnly={isTitleReadOnly}
           type="text"
           value={values.title}
           onChange={(event) => onTitleChange(event.target.value)}
@@ -44,6 +47,7 @@ export function NoteFormTitleRow({
 
         <NoteFormToggleButtons
           values={values}
+          onDatePick={onDatePick}
           onToggleImportant={onToggleImportant}
           onToggleStarred={onToggleStarred}
         />

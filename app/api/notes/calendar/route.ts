@@ -7,6 +7,7 @@ import {
   createCalendarNote,
   getCalendarNotesResponse,
 } from "@/entities/note/server";
+import { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 /**
@@ -55,15 +56,21 @@ export async function POST(request: Request) {
 
     return Response.json({ note }, { status: 201 });
   } catch (error) {
+    if (error instanceof NoteDateConflictError) {
+      return Response.json(
+        {
+          error: error.message,
+          conflictingNoteId: error.conflictingNoteId,
+        },
+        { status: 409 },
+      );
+    }
+
     const message =
       error instanceof Error ? error.message : "Failed to create calendar note.";
 
     if (message === "Invalid calendar note payload.") {
       return Response.json({ error: message }, { status: 400 });
-    }
-
-    if (message === "Calendar note already exists for this date.") {
-      return Response.json({ error: message }, { status: 409 });
     }
 
     return Response.json({ error: message }, { status: 500 });

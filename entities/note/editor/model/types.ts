@@ -1,6 +1,14 @@
 /**
  * @file entities/note/editor/model/types.ts
- * Contracts for the note editor form.
+ * Contracts for the note editor form and drawer wiring.
+ *
+ * Purpose: Shared types between the dumb form, useNoteForm, and the orchestrator.
+ * Used in: entities/note/editor/*, features/notes/note-drawer/*
+ * Used for: Form values, change meta, save status, and date-picker callback props.
+ *
+ * Step 11 props:
+ * - calendarDate: prefill formatted title on context reset (title stays editable)
+ * - onDatePick: records picker intent in orchestrator; form applies returned title
  */
 
 import type { Note } from "@/entities/note";
@@ -50,10 +58,15 @@ export interface NoteFormProps {
   /** Optional wrapper class for drawer layouts that need `flex-1` growth. */
   className?: string;
   /**
-   * When set, the title is fixed to this calendar date (read-only).
-   * Used for dated notes opened from the calendar grid or drawer day navigation.
+   * When set, pre-fills the title with the formatted calendar date on context reset.
+   * Title remains editable; save routing is owned by the drawer pre-save orchestrator.
    */
   calendarDate?: string | null;
+  /**
+   * Records picker intent in the drawer orchestrator and returns the synced title.
+   * The form applies the returned title locally — no save logic here.
+   */
+  onDatePick?: (isoDate: string) => string;
 }
 
 export interface UseNoteFormOptions {
@@ -62,7 +75,7 @@ export interface UseNoteFormOptions {
   resetKey: string;
   /** Incremented after a successful autosave to snap the dirty baseline. */
   commitKey?: number;
-  /** Fixed ISO date for calendar note title pre-fill (`YYYY-MM-DD`). */
+  /** Pre-fill ISO date for calendar note title on context reset (`YYYY-MM-DD`). */
   calendarDate?: string | null;
   onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
 }

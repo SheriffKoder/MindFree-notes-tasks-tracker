@@ -1,11 +1,15 @@
 /**
  * @file entities/note/editor/ui/note-form.tsx
  * Plain note editor — composes title row and description row.
+ *
+ * Purpose: Dumb editor shell; delegates save routing to the drawer orchestrator.
+ * Used in: features/notes/note-drawer/ui/note-drawer.tsx
+ * Used for: Title/content editing, footer meta, and date-picker callback wiring.
  */
 
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { cn } from "@/lib/utils";
 import { NOTE_FORM_CSS_VARS } from "@/entities/note/editor/lib/note-form-classes";
@@ -27,6 +31,7 @@ export function NoteForm({
   commitKey = 0,
   calendarDate = null,
   onChange,
+  onDatePick,
   saveStatus = "idle",
   showContentLastSaved = true,
   onFooterMetaChange,
@@ -41,6 +46,17 @@ export function NoteForm({
     toggleStarred,
     toggleImportant,
   } = useNoteForm({ note, resetKey, commitKey, calendarDate, onChange });
+
+  const handleDatePick = useCallback(
+    (isoDate: string) => {
+      const title = onDatePick?.(isoDate);
+
+      if (title) {
+        setTitle(title);
+      }
+    },
+    [onDatePick, setTitle],
+  );
 
   useEffect(() => {
     onFooterMetaChange?.({
@@ -58,8 +74,8 @@ export function NoteForm({
     >
       <NoteFormTitleRow
         errors={errors}
-        isTitleReadOnly={Boolean(calendarDate)}
         values={values}
+        onDatePick={onDatePick ? handleDatePick : undefined}
         onTitleChange={setTitle}
         onToggleImportant={toggleImportant}
         onToggleStarred={toggleStarred}

@@ -1,8 +1,14 @@
 /**
  * @file entities/note/server.ts
- * Server-side note read exports — repository-backed queries and SSR hydration.
+ * Server-side note barrel — queries, hydration, and mutation use-cases.
  *
- * Import from here in Server Components, route handlers, and server actions.
+ * Purpose: Single import surface for server-only note operations.
+ * Used in: app/api/notes/*, Server Components, route handlers, server actions
+ * Used for: SSR hydration, reads, and write use-cases (including date conflict errors).
+ *
+ * Mutation exports (Step 11):
+ * - updateNote, createCalendarNote, createGeneralNote, deleteNote
+ * - NoteDateConflictError
  */
 
 export {
@@ -20,3 +26,4 @@ export { updateNote } from "@/entities/note/mutations/update-note";
 export { createCalendarNote } from "@/entities/note/mutations/create-calendar-note";
 export { createGeneralNote } from "@/entities/note/mutations/create-general-note";
 export { deleteNote } from "@/entities/note/mutations/delete-note";
+export { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";

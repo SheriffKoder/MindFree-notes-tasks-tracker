@@ -4,6 +4,7 @@
  */
 
 import { deleteNote, updateNote } from "@/entities/note/server";
+import { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 interface RouteContext {
@@ -11,7 +12,7 @@ interface RouteContext {
 }
 
 /**
- * Partially updates one note (`title`, `content`, `starred`, `isImportant`).
+ * Partially updates one note (`title`, `content`, `starred`, `isImportant`, `date`).
  *
  * @param request - incoming HTTP request with JSON body
  * @param context - dynamic route params
@@ -32,6 +33,16 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     return Response.json({ note });
   } catch (error) {
+    if (error instanceof NoteDateConflictError) {
+      return Response.json(
+        {
+          error: error.message,
+          conflictingNoteId: error.conflictingNoteId,
+        },
+        { status: 409 },
+      );
+    }
+
     const message =
       error instanceof Error ? error.message : "Failed to update note.";
 

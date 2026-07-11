@@ -1,6 +1,15 @@
 /**
  * @file entities/note/editor/model/use-note-form.ts
  * Local field state, dirty tracking, and validation for the note editor.
+ *
+ * Purpose: Own form state only — no network I/O or save routing.
+ * Used in: entities/note/editor/ui/note-form.tsx
+ * Used for: Controlled fields, dirty/valid meta, and calendar title prefill on reset.
+ *
+ * Steps (on resetKey / commitKey change):
+ * 1. Seed values from the loaded note or empty defaults.
+ * 2. When calendarDate is set, prefill title via formatCalendarNoteTitle.
+ * 3. Emit onChange with isDirty/isValid meta on every field update.
  */
 
 "use client";
@@ -31,7 +40,7 @@ function noteToFormValues(
 ): NoteFormValues {
   if (calendarDate) {
     return {
-      title: formatCalendarNoteTitle(calendarDate),
+      title: note?.title ?? formatCalendarNoteTitle(calendarDate),
       content: note?.content ?? "",
       starred: note?.starred ?? false,
       isImportant: note?.isImportant ?? false,
@@ -155,13 +164,9 @@ export function useNoteForm({
 
   const setTitle = useCallback(
     (title: string) => {
-      if (calendarDate) {
-        return;
-      }
-
       updateValues({ ...values, title });
     },
-    [calendarDate, updateValues, values],
+    [updateValues, values],
   );
 
   const setContent = useCallback(

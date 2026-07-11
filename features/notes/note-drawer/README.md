@@ -124,17 +124,16 @@ views/notes/model/editor  ←  ui/note-drawer.tsx (UseNotesDrawerResult type onl
 - The entity editor does **not** import from this feature.
 - Page views import this feature's public `NoteDrawer` component.
 
-## Future additions (Steps 9–10)
+## Future additions (Step 11+)
 
 ```text
-features/notes/note-drawer/
-├── lib/
-│   └── note-mutation-rules.ts        # create / delete / PATCH routing rules
-└── model/
-    └── use-note-drawer-mutations.ts  # debounced create, PATCH, calendar delete
+features/notes/note-drawer/pre-save-orchestrator/
+├── evaluate-note-save.ts           # check-after-check pipeline
+├── use-pre-save-orchestrator.ts    # refs, debounce, TanStack calls
+└── types.ts
 ```
 
-Mutation implementations belong in `entities/note/mutations/`; this feature owns when and how they run inside the drawer island.
+Mutation implementations belong in `entities/note/mutations/`; this folder owns interpretation and when saves run.
 
 ## See also
 

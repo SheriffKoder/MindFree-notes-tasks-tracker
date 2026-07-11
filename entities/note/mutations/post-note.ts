@@ -1,6 +1,15 @@
 /**
  * @file entities/note/mutations/post-note.ts
  * Client fetchers for lazy note creation.
+ *
+ * Purpose: POST new calendar or general notes from TanStack create mutations.
+ * Used in: entities/note/tanstack/use-create-calendar-note-mutation.ts,
+ *          use-create-general-note-mutation.ts
+ * Used for: Lazy create with optional same-day replace on calendar POST.
+ *
+ * Exports:
+ * - fetchPostCalendarNote: POST /api/notes/calendar with `date` + replace flag
+ * - fetchPostGeneralNote: POST /api/notes/general (no date)
  */
 
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
@@ -20,21 +29,44 @@ export interface PostNoteResponse {
 export async function fetchPostCalendarNote(
   date: string,
   values: NoteFormValues,
+  replaceExistingOnDate?: boolean,
 ): Promise<PostNoteResponse> {
+  const body: NoteFormValues & {
+    date: string;
+    replaceExistingOnDate?: boolean;
+  } = { date, ...values };
+
+  if (replaceExistingOnDate) {
+    body.replaceExistingOnDate = true;
+  }
+
   const response = await fetch("/api/notes/calendar", {
     method: "POST",
     credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ date, ...values }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {
       error?: string;
+      conflictingNoteId?: string;
     } | null;
-    throw new Error(body?.error ?? "Failed to create calendar note.");
+    const error = new Error(
+      body?.error ?? "Failed to create calendar note.",
+    ) as Error & {
+      conflictingNoteId?: string;
+      status?: number;
+    };
+    error.status = response.status;
+
+    if (body?.conflictingNoteId) {
+      error.conflictingNoteId = body.conflictingNoteId;
+    }
+
+    throw error;
   }
 
   return response.json() as Promise<PostNoteResponse>;

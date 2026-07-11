@@ -1,6 +1,15 @@
 /**
  * @file entities/note/mutations/patch-note-in-cache.ts
  * Pure TanStack cache updaters for optimistic note PATCH writes.
+ *
+ * Purpose: Merge form snapshots into cached note rows during PATCH autosave.
+ * Used in: entities/note/tanstack/use-update-note-mutation.ts
+ * Used for: In-place patches and optimistic date moves before relocateNoteInCache.
+ *
+ * Function index:
+ * - mergeFormValuesIntoNote: apply form values + optional date override
+ * - patchCalendarNotesCache / patchGeneralNotesCache: replace one row in a bucket
+ * - resolveOwningQueryKey: calendar month key vs general notes key
  */
 
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
@@ -25,6 +34,7 @@ import {
 export function mergeFormValuesIntoNote(
   note: Note,
   values: NoteFormValues,
+  date?: string | null,
 ): Note {
   return {
     ...note,
@@ -32,6 +42,7 @@ export function mergeFormValuesIntoNote(
     content: values.content,
     starred: values.starred,
     isImportant: values.isImportant,
+    date: date !== undefined ? date : note.date,
     lastEditedAt: new Date().toISOString(),
   };
 }

@@ -1,6 +1,14 @@
 /**
  * @file entities/note/repository/note-repository.ts
  * Supabase data access for notes (scoped by RLS to the authenticated user).
+ *
+ * Purpose: Persistence layer for note reads and writes used by server use-cases.
+ * Used in: entities/note/mutations/*, entities/note/queries/*, app/api/notes/*
+ * Used for: CRUD, month queries, one-note-per-day lookup, and replace-on-date writes.
+ *
+ * Step 11 additions:
+ * - findCalendarNoteByDate: locate occupant on an ISO day (optional exclude id)
+ * - replaceNoteOnDate: delete occupant on target day, then patch the moving note
  */
 
 import { mapNoteRow } from "@/entities/note/lib/map-note-row";
@@ -92,7 +100,7 @@ export async function updateNoteById(
   const supabase = await createClient();
 
   const dbPatch: Partial<
-    Pick<NoteRow, "title" | "content" | "starred" | "is_important">
+    Pick<NoteRow, "title" | "content" | "starred" | "is_important" | "date">
   > = {};
 
   if (patch.title !== undefined) {
@@ -109,6 +117,10 @@ export async function updateNoteById(
 
   if (patch.isImportant !== undefined) {
     dbPatch.is_important = patch.isImportant;
+  }
+
+  if (patch.date !== undefined) {
+    dbPatch.date = patch.date;
   }
 
   const { data, error } = await supabase
@@ -168,6 +180,68 @@ export async function createCalendarNote(
   }
 
   return mapNoteRow(data as NoteRow);
+}
+
+/**
+ * Finds the calendar note assigned to one day, optionally excluding one row.
+ *
+ * @param date - `YYYY-MM-DD`
+ * @param excludeNoteId - row to ignore (e.g. the note being moved)
+ * @returns conflicting note, if any
+ */
+export async function findCalendarNoteByDate(
+  date: string,
+  excludeNoteId?: string,
+): Promise<Note | null> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from(NOTES_TABLE)
+    .select("*")
+    .eq("date", date);
+
+  if (excludeNoteId) {
+    query = query.neq("id", excludeNoteId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to find calendar note: ${error.message}`);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return mapNoteRow(data as NoteRow);
+}
+
+type NoteFieldPatch = Pick<
+  UpdateNoteBody,
+  "title" | "content" | "starred" | "isImportant" | "date"
+>;
+
+/**
+ * Hard-deletes any other note on `date`, then updates the target row.
+ *
+ * @param targetId - note row being assigned to `date`
+ * @param date - target calendar day
+ * @param patch - editable fields including `date`
+ * @returns updated note, or `null` when the target row is missing
+ */
+export async function replaceNoteOnDate(
+  targetId: string,
+  date: string,
+  patch: NoteFieldPatch,
+): Promise<Note | null> {
+  const conflicting = await findCalendarNoteByDate(date, targetId);
+
+  if (conflicting) {
+    await deleteNoteById(conflicting.id);
+  }
+
+  return updateNoteById(targetId, { ...patch, date });
 }
 
 /**

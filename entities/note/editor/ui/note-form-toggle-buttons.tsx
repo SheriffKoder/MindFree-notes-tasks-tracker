@@ -1,6 +1,10 @@
 /**
  * @file entities/note/editor/ui/note-form-toggle-buttons.tsx
- * Star and important toggles for the note editor title row.
+ * Star, important, and calendar date-picker toggles for the title row.
+ *
+ * Purpose: Dumb action buttons — picker records intent; orchestrator saves later.
+ * Used in: entities/note/editor/ui/note-form-title-row.tsx
+ * Used for: Star/important toggles and optional NoteDatePickerTrigger (Step 11).
  */
 
 import { Bookmark, Star } from "lucide-react";
@@ -8,11 +12,14 @@ import { Bookmark, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
+import { NoteDatePickerTrigger } from "@/entities/note/editor/ui/note-date-picker-trigger";
 
 export interface NoteFormToggleButtonsProps {
-  values: Pick<NoteFormValues, "starred" | "isImportant">;
+  values: Pick<NoteFormValues, "title" | "starred" | "isImportant">;
   onToggleStarred: () => void;
   onToggleImportant: () => void;
+  /** When set, renders the calendar picker left of the star toggle. */
+  onDatePick?: (isoDate: string) => void;
 }
 
 /**
@@ -22,9 +29,17 @@ export function NoteFormToggleButtons({
   values,
   onToggleStarred,
   onToggleImportant,
+  onDatePick,
 }: NoteFormToggleButtonsProps) {
   return (
     <div className="flex shrink-0 items-center gap-0.5">
+      {onDatePick ? (
+        <NoteDatePickerTrigger
+          currentTitle={values.title}
+          onPick={onDatePick}
+        />
+      ) : null}
+
       <Button
         aria-label={values.starred ? "Unstar note" : "Star note"}
         aria-pressed={values.starred}

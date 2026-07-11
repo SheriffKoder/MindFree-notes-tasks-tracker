@@ -1,6 +1,16 @@
 /**
  * @file entities/note/mutations/create-note.schema.ts
  * Zod contracts for POST note creation routes.
+ *
+ * Purpose: Validate lazy-create bodies for calendar and general notes.
+ * Used in: entities/note/mutations/create-calendar-note.ts, create-general-note.ts,
+ *          mutations/post-note.ts, app/api/notes/calendar|general/route.ts
+ * Used for: Calendar POST with `date` + `replaceExistingOnDate`; general POST without date.
+ *
+ * Exports:
+ * - createCalendarNoteBodySchema / CreateCalendarNoteBody
+ * - createGeneralNoteBodySchema / CreateGeneralNoteBody
+ * - createNoteResponseSchema / CreateNoteResponse
  */
 
 import { z } from "zod";
@@ -17,6 +27,7 @@ export const createCalendarNoteBodySchema = noteFormSchema.extend({
   date: z
     .string()
     .regex(ISO_DATE_PATTERN, "Date must be YYYY-MM-DD."),
+  replaceExistingOnDate: z.boolean().optional(),
 });
 
 export type CreateCalendarNoteBody = z.infer<
