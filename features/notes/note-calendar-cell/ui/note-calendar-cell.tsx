@@ -3,7 +3,7 @@
  * Note-specific body for an in-month calendar cell.
  */
 
-import { Bookmark, Star } from "lucide-react";
+import { Plus, Bookmark, Star } from "lucide-react";
 import { memo } from "react";
 
 import { cn } from "@/lib/utils";
@@ -87,7 +87,14 @@ export const NoteCalendarCell = memo(function NoteCalendarCell({
         <p className="line-clamp-3 md:line-clamp-5 whitespace-pre-line pb-4 pr-1 text-caption [color:var(--note-cell-preview)]">
           {preview}
         </p>
-      ) : null}
+      ) : (
+        <div className="flex h-full items-center justify-center pb-4">
+          <Plus
+            aria-hidden
+            className="h-3 w-3 opacity-20 [color:var(--note-cell-day-number-muted)]"
+          />
+        </div>
+      )}
     </div>
   );
 });

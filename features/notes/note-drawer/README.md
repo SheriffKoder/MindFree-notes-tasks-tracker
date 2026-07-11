@@ -70,7 +70,7 @@ features/notes/note-drawer/
 | Generic drawer shell (overlay, panel, close button) | `shared/drawer` |
 | TanStack query keys, fetchers, SSR hydration | `entities/note/client` / `entities/note/server` |
 | Page URL `month` / `view` or calendar grid highlight | `views/notes` |
-| PATCH / create mutations | `entities/note/mutations/` (Step 9–10), wired here |
+| PATCH / create / delete mutations | `entities/note/mutations/` + `entities/note/tanstack/` (Steps 9–10), wired in `features/notes/note-drawer` |
 
 ## `lib/` vs `model/` — why both?
 
@@ -128,9 +128,10 @@ views/notes/model/editor  ←  ui/note-drawer.tsx (UseNotesDrawerResult type onl
 
 ```text
 features/notes/note-drawer/
+├── lib/
+│   └── note-mutation-rules.ts        # create / delete / PATCH routing rules
 └── model/
-    ├── use-note-drawer-autosave.ts   # debounced PATCH autosave (Step 9)
-    └── use-note-drawer-mutations.ts  # lazy create — Step 10
+    └── use-note-drawer-mutations.ts  # debounced create, PATCH, calendar delete
 ```
 
 Mutation implementations belong in `entities/note/mutations/`; this feature owns when and how they run inside the drawer island.

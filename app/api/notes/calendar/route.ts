@@ -1,9 +1,12 @@
 /**
  * @file app/api/notes/calendar/route.ts
- * GET calendar notes aggregated for a month.
+ * GET calendar notes aggregated for a month; POST lazy calendar note create.
  */
 
-import { getCalendarNotesResponse } from "@/entities/note/server";
+import {
+  createCalendarNote,
+  getCalendarNotesResponse,
+} from "@/entities/note/server";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 /**
@@ -28,6 +31,40 @@ export async function GET(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to fetch calendar notes.";
+
+    return Response.json({ error: message }, { status: 500 });
+  }
+}
+
+/**
+ * Creates a calendar note for one day (lazy create from the drawer).
+ *
+ * @param request - JSON body with `date` and editable fields
+ * @returns created note payload
+ */
+export async function POST(request: Request) {
+  const userId = await requireAuthenticatedUserId();
+
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    const note = await createCalendarNote(body);
+
+    return Response.json({ note }, { status: 201 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to create calendar note.";
+
+    if (message === "Invalid calendar note payload.") {
+      return Response.json({ error: message }, { status: 400 });
+    }
+
+    if (message === "Calendar note already exists for this date.") {
+      return Response.json({ error: message }, { status: 409 });
+    }
 
     return Response.json({ error: message }, { status: 500 });
   }

@@ -13,7 +13,7 @@ import { AppDrawer } from "@/shared/drawer";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
 import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-drawer-date-navigation";
 import { useDrawerMonthPrefetch } from "@/features/notes/note-drawer/model/use-drawer-month-prefetch";
-import { useNoteDrawerAutosave } from "@/features/notes/note-drawer/model/use-note-drawer-autosave";
+import { useNoteDrawerMutations } from "@/features/notes/note-drawer/model/use-note-drawer-mutations";
 import { useResolvedDrawerNote } from "@/features/notes/note-drawer/model/use-resolved-drawer-note";
 import { NoteDrawerFooter } from "@/features/notes/note-drawer/ui/note-drawer-footer";
 import type { UseNotesDrawerResult } from "@/views/notes/model/editor/use-notes-drawer";
@@ -34,7 +34,7 @@ const INITIAL_FOOTER_META: NoteFormFooterMeta = {
  * Date navigation is independent from page URL month and page calendar highlight.
  */
 export function NoteDrawer({ drawer }: NoteDrawerProps) {
-  const { isOpen, request, setOpen } = drawer;
+  const { isOpen, request, setOpen, openEdit } = drawer;
   const [footerMeta, setFooterMeta] =
     useState<NoteFormFooterMeta>(INITIAL_FOOTER_META);
 
@@ -52,10 +52,21 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
 
   useDrawerMonthPrefetch(activeDate, isDateNavEnabled);
 
-  const { saveStatus, handleChange, commitKey } = useNoteDrawerAutosave(
+  const handleGeneralNoteCreated = useCallback(
+    (noteId: string) => {
+      openEdit(noteId);
+    },
+    [openEdit],
+  );
+
+  const { saveStatus, handleChange, commitKey } = useNoteDrawerMutations({
     note,
     isOpen,
-  );
+    request,
+    activeDate,
+    isDateNavEnabled,
+    onGeneralNoteCreated: handleGeneralNoteCreated,
+  });
 
   const resetKey = useMemo(() => {
     if (note?.id) {

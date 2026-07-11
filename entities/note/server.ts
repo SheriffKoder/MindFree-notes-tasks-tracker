@@ -17,3 +17,6 @@ export {
 } from "@/entities/note/queries/get-notes-page-initial-data";
 export { hydrateNotesPageQueries } from "@/entities/note/tanstack/hydrate-notes-page-queries";
 export { updateNote } from "@/entities/note/mutations/update-note";
+export { createCalendarNote } from "@/entities/note/mutations/create-calendar-note";
+export { createGeneralNote } from "@/entities/note/mutations/create-general-note";
+export { deleteNote } from "@/entities/note/mutations/delete-note";

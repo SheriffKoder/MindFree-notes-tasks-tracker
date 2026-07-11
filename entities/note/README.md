@@ -203,11 +203,17 @@ entities/note/editor/         Reusable form (fields, validation, local state)
 
 ```text
 entities/note/
-└── mutations/               # PATCH, create, toggle star/important
+└── mutations/               # PATCH, POST create, DELETE, cache helpers
     ├── update-note.schema.ts
+    ├── create-note.schema.ts
     ├── update-note.ts
+    ├── create-calendar-note.ts
+    ├── create-general-note.ts
+    ├── delete-note.ts
     ├── patch-note.ts
-    └── patch-note-in-cache.ts
+    ├── post-note.ts
+    ├── patch-note-in-cache.ts
+    └── note-cache-mutations.ts
 ```
 
 Add new write operations under `mutations/`; keep `queries/` for server reads and `tanstack/` for client cache.
