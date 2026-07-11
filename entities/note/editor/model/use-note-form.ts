@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { formatCalendarNoteTitle } from "@/entities/note/editor/lib/format-calendar-note-title";
 import { formatNoteLastEditedAt } from "@/entities/note/editor/lib/format-last-edited";
 import { noteFormSchema } from "@/entities/note/editor/model/note-form.schema";
 import type {
@@ -24,7 +25,19 @@ const EMPTY_VALUES: NoteFormValues = {
   isImportant: false,
 };
 
-function noteToFormValues(note: Note | null): NoteFormValues {
+function noteToFormValues(
+  note: Note | null,
+  calendarDate: string | null,
+): NoteFormValues {
+  if (calendarDate) {
+    return {
+      title: formatCalendarNoteTitle(calendarDate),
+      content: note?.content ?? "",
+      starred: note?.starred ?? false,
+      isImportant: note?.isImportant ?? false,
+    };
+  }
+
   if (!note) {
     return EMPTY_VALUES;
   }
@@ -82,10 +95,14 @@ export function useNoteForm({
   note,
   resetKey,
   commitKey = 0,
+  calendarDate = null,
   onChange,
 }: UseNoteFormOptions): UseNoteFormResult {
   const noteKey = note?.id ?? "draft";
-  const initialValues = useMemo(() => noteToFormValues(note), [noteKey, resetKey]);
+  const initialValues = useMemo(
+    () => noteToFormValues(note, calendarDate),
+    [calendarDate, noteKey, resetKey],
+  );
 
   const [baselineValues, setBaselineValues] =
     useState<NoteFormValues>(initialValues);
@@ -97,11 +114,11 @@ export function useNoteForm({
 
   // Context switch — reload fields from the resolved note or empty draft.
   useEffect(() => {
-    const nextValues = noteToFormValues(note);
+    const nextValues = noteToFormValues(note, calendarDate);
     setBaselineValues(nextValues);
     setValues(nextValues);
     setErrors({});
-  }, [noteKey, resetKey]);
+  }, [calendarDate, note, noteKey, resetKey]);
 
   // Successful autosave — snap baseline without overwriting current inputs.
   useEffect(() => {
@@ -138,9 +155,13 @@ export function useNoteForm({
 
   const setTitle = useCallback(
     (title: string) => {
+      if (calendarDate) {
+        return;
+      }
+
       updateValues({ ...values, title });
     },
-    [updateValues, values],
+    [calendarDate, updateValues, values],
   );
 
   const setContent = useCallback(

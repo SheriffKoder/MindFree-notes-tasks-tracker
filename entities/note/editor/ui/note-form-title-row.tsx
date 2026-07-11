@@ -13,6 +13,8 @@ export interface NoteFormTitleRowProps {
   onTitleChange: (title: string) => void;
   onToggleStarred: () => void;
   onToggleImportant: () => void;
+  /** When true, title is fixed (calendar date) and not editable. */
+  isTitleReadOnly?: boolean;
 }
 
 /**
@@ -24,6 +26,7 @@ export function NoteFormTitleRow({
   onTitleChange,
   onToggleStarred,
   onToggleImportant,
+  isTitleReadOnly = false,
 }: NoteFormTitleRowProps) {
   return (
     <div className="flex shrink-0 flex-col gap-1">
@@ -33,6 +36,7 @@ export function NoteFormTitleRow({
           className={PLAIN_TITLE_CLASS}
           name="title"
           placeholder="Title"
+          readOnly={isTitleReadOnly}
           type="text"
           value={values.title}
           onChange={(event) => onTitleChange(event.target.value)}

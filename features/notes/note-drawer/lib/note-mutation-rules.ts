@@ -11,9 +11,18 @@ import type { Note } from "@/entities/note";
 import type { NoteEditorRequest } from "@/views/notes/model/editor/note-editor-request";
 
 /**
- * @returns whether the form has text worth persisting (title or content).
+ * @returns whether the form has text worth persisting.
+ *
+ * Calendar notes use a fixed date title — only `content` counts for lazy create.
  */
-export function hasMeaningfulContent(values: NoteFormValues): boolean {
+export function hasMeaningfulContent(
+  values: NoteFormValues,
+  calendarDate: string | null = null,
+): boolean {
+  if (calendarDate) {
+    return Boolean(values.content.trim());
+  }
+
   return Boolean(values.title.trim() || values.content.trim());
 }
 

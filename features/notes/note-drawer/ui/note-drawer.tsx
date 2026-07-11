@@ -15,6 +15,10 @@ import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-
 import { useDrawerMonthPrefetch } from "@/features/notes/note-drawer/model/use-drawer-month-prefetch";
 import { useNoteDrawerMutations } from "@/features/notes/note-drawer/model/use-note-drawer-mutations";
 import { useResolvedDrawerNote } from "@/features/notes/note-drawer/model/use-resolved-drawer-note";
+import {
+  isCalendarDateContext,
+  resolveCalendarDate,
+} from "@/features/notes/note-drawer/lib/note-mutation-rules";
 import { NoteDrawerFooter } from "@/features/notes/note-drawer/ui/note-drawer-footer";
 import type { UseNotesDrawerResult } from "@/views/notes/model/editor/use-notes-drawer";
 
@@ -92,6 +96,14 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     return "draft";
   }, [activeDate, note?.id, request]);
 
+  const calendarDate = useMemo(() => {
+    if (!isCalendarDateContext(request, activeDate, isDateNavEnabled)) {
+      return null;
+    }
+
+    return resolveCalendarDate(activeDate, request);
+  }, [activeDate, isDateNavEnabled, request]);
+
   const handleFooterMetaChange = useCallback((meta: NoteFormFooterMeta) => {
     setFooterMeta(meta);
   }, []);
@@ -107,6 +119,7 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
         {...(swipeHandlers ?? {})}
       >
         <NoteForm
+          calendarDate={calendarDate}
           commitKey={commitKey}
           note={note}
           resetKey={resetKey}

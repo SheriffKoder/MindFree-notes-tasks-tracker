@@ -182,8 +182,11 @@ export function useNoteDrawerMutations({
       const inGeneralCreate = isGeneralCreateRequest(request);
 
       if (!note?.id) {
-        if (!hasMeaningfulContent(values) || !meta.isValid) {
-          if (!hasMeaningfulContent(values)) {
+        if (
+          !hasMeaningfulContent(values, calendarDate) ||
+          !meta.isValid
+        ) {
+          if (!hasMeaningfulContent(values, calendarDate)) {
             pendingMutationRef.current = null;
             clearDebounceTimer();
           }

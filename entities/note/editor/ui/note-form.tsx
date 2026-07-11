@@ -25,6 +25,7 @@ export function NoteForm({
   note,
   resetKey,
   commitKey = 0,
+  calendarDate = null,
   onChange,
   saveStatus = "idle",
   showContentLastSaved = true,
@@ -39,7 +40,7 @@ export function NoteForm({
     setContent,
     toggleStarred,
     toggleImportant,
-  } = useNoteForm({ note, resetKey, commitKey, onChange });
+  } = useNoteForm({ note, resetKey, commitKey, calendarDate, onChange });
 
   useEffect(() => {
     onFooterMetaChange?.({
@@ -57,6 +58,7 @@ export function NoteForm({
     >
       <NoteFormTitleRow
         errors={errors}
+        isTitleReadOnly={Boolean(calendarDate)}
         values={values}
         onTitleChange={setTitle}
         onToggleImportant={toggleImportant}

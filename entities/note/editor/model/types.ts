@@ -49,6 +49,11 @@ export interface NoteFormProps {
   onFooterMetaChange?: (meta: NoteFormFooterMeta) => void;
   /** Optional wrapper class for drawer layouts that need `flex-1` growth. */
   className?: string;
+  /**
+   * When set, the title is fixed to this calendar date (read-only).
+   * Used for dated notes opened from the calendar grid or drawer day navigation.
+   */
+  calendarDate?: string | null;
 }
 
 export interface UseNoteFormOptions {
@@ -57,6 +62,8 @@ export interface UseNoteFormOptions {
   resetKey: string;
   /** Incremented after a successful autosave to snap the dirty baseline. */
   commitKey?: number;
+  /** Fixed ISO date for calendar note title pre-fill (`YYYY-MM-DD`). */
+  calendarDate?: string | null;
   onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
 }
 
