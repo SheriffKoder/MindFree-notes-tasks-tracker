@@ -164,7 +164,7 @@ app/(app)/notes/page.tsx
   NotesHydrationSeed (parallel, non-blocking) + NotesClient
 
 views/notes/ui/notes-client.tsx
-  useNotesUrlState()             ← month/view from useSearchParams
+  useNotesUrlState()             ← month/view state + URL navigation actions
   NotesViewsSection
 
 views/notes/ui/notes-views-section.tsx

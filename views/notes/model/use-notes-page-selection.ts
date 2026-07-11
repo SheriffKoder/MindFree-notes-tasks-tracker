@@ -1,16 +1,16 @@
 /**
  * @file views/notes/model/use-notes-page-selection.ts
- * Ephemeral date selection for the Notes page (drawer prep).
+ * Ephemeral date selection for the Notes page calendar highlight.
  *
- * Replace with `useNoteDrawer` when the drawer island lands (Steps 6–8).
- * View clicks always call `selectDate` — that snaps selection (and later the
- * drawer) to the clicked day even when the drawer is already open elsewhere.
+ * View clicks always call `selectDate` — that snaps the page highlight to the
+ * clicked day even when the drawer is already open elsewhere. Drawer editor
+ * requests are owned separately by {@link useNotesDrawer}.
  */
 
 import { useCallback, useMemo, useState } from "react";
 
 export interface UseNotesPageSelectionResult {
-  /** Canonical selected ISO date — will become drawer `selectedDate`. */
+  /** Canonical selected ISO date for page-level selection state. */
   selectedDate: string | undefined;
   /**
    * Date to highlight on the page calendar when it falls inside URL `month`.
@@ -25,7 +25,7 @@ export interface UseNotesPageSelectionResult {
 }
 
 /**
- * Manages Notes page date selection until the drawer hook replaces this module.
+ * Manages Notes page calendar highlight selection.
  *
  * @param month - URL month (`YYYY-MM`) used to scope calendar grid highlight
  * @returns selection state and `selectDate` handler for view interactions

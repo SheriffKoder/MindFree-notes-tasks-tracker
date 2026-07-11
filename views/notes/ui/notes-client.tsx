@@ -5,53 +5,75 @@
 
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
-import type { Note } from "@/entities/note";
+import type { CalendarDay, Note } from "@/entities/note";
 import { AppDrawer } from "@/shared/drawer";
-import { MonthNavigator, useMonthNavigation } from "@/shared/month-navigator";
-import {
-  ViewSwitcher,
-  useViewNavigation,
-} from "@/shared/view-switcher";
+import { MonthNavigator } from "@/shared/month-navigator";
+import { ViewSwitcher } from "@/shared/view-switcher";
+import type { NoteEditorRequest } from "@/views/notes/model/note-editor-request";
+import { useNotesDrawer } from "@/views/notes/model/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
 import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
+
+function formatDrawerRequest(request: NoteEditorRequest | null): string | null {
+  if (!request) {
+    return null;
+  }
+
+  if (request.mode === "edit") {
+    return `Edit note: ${request.noteId}`;
+  }
+
+  if ("date" in request) {
+    return `Create note for: ${request.date}`;
+  }
+
+  return "Create general note";
+}
 
 /**
  * Renders the Notes page shell with month/view controls and hydrated query islands.
  */
 export function NotesClient() {
-  const { month, view } = useNotesUrlState();
-  const { onPrevious, onNext } = useMonthNavigation(month);
-  const { onViewChange, onCycleView } = useViewNavigation(view);
-  const { selectedDate, highlightedDate, selectDate } =
-    useNotesPageSelection(month);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
-  /** Opens drawer shell on calendar day click — replaced by `NoteDrawer` in Step 8. */
-  const handleDateSelect = useCallback(
-    (date: string) => {
-      selectDate(date);
-      setSelectedNote(null);
-      setDrawerOpen(true);
+  // URL state
+  const { month, view, previousMonth, nextMonth, changeView, cycleView } = useNotesUrlState();
+  // Page selection
+  const { highlightedDate, selectDate } = useNotesPageSelection(month);
+  // Drawer options
+  const drawer = useNotesDrawer();
+
+  // Handlers for view interactions
+  const handleCalendarDaySelect = useCallback(
+    (day: CalendarDay) => {
+      selectDate(day.date);
+
+      if (day.note) {
+        drawer.openEdit(day.note.id);
+        return;
+      }
+
+      drawer.openCreateForDate(day.date);
     },
-    [selectDate],
+    [drawer.openCreateForDate, drawer.openEdit, selectDate],
   );
 
-  /** Opens drawer shell on list card click — replaced by `NoteDrawer` in Step 8. */
+  // Handler for note clicks
   const handleNoteClick = useCallback(
     (note: Note) => {
       if (note.date) {
         selectDate(note.date);
       }
 
-      setSelectedNote(note);
-      setDrawerOpen(true);
+      drawer.openEdit(note.id);
     },
-    [selectDate],
+    [drawer.openEdit, selectDate],
   );
+
+  // Drawer request label
+  const drawerRequestLabel = formatDrawerRequest(drawer.request);
 
   return (
     <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-4">
@@ -70,13 +92,13 @@ export function NotesClient() {
         <MonthNavigator
           className="min-w-0 flex-1"
           month={month}
-          onPrevious={onPrevious}
-          onNext={onNext}
+          onPrevious={previousMonth}
+          onNext={nextMonth}
         />
         <ViewSwitcher
           view={view}
-          onViewChange={onViewChange}
-          onCycleView={onCycleView}
+          onViewChange={changeView}
+          onCycleView={cycleView}
         />
       </section>
 
@@ -91,7 +113,7 @@ export function NotesClient() {
             month={month}
             view={view}
             highlightedDate={highlightedDate}
-            onDateSelect={handleDateSelect}
+            onCalendarDaySelect={handleCalendarDaySelect}
             onNoteClick={handleNoteClick}
           />
         </div>
@@ -99,19 +121,15 @@ export function NotesClient() {
 
       <AppDrawer
         ariaLabel="Note editor"
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+        open={drawer.isOpen}
+        onOpenChange={drawer.setOpen}
       >
         <div className="flex flex-col gap-3">
           <p className="text-body">
             Drawer shell — note editor arrives in Steps 7–8.
           </p>
-          {selectedNote ? (
-            <p className="text-body-muted text-sm">
-              Note: {selectedNote.title || selectedNote.content || selectedNote.id}
-            </p>
-          ) : selectedDate ? (
-            <p className="text-body-muted text-sm">Selected: {selectedDate}</p>
+          {drawerRequestLabel ? (
+            <p className="text-body-muted text-sm">{drawerRequestLabel}</p>
           ) : null}
           {/* Placeholder blocks to verify scroll inside the panel */}
           {Array.from({ length: 12 }, (_, index) => (

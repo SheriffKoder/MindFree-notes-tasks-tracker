@@ -28,9 +28,9 @@ export interface NotesViewsSectionProps {
   view: NotesViewId;
   /** In-month highlight for the calendar grid (from page selection hook). */
   highlightedDate?: string;
-  /** Snaps page selection (and later the drawer) to the clicked calendar day. */
-  onDateSelect: (date: string) => void;
-  /** Opens the drawer for a list card (month or general note). */
+  /** Snaps page selection to the clicked calendar day and opens the drawer. */
+  onCalendarDaySelect: (day: CalendarDay) => void;
+  /** Opens the editor for an existing list note. */
   onNoteClick: (note: Note) => void;
 }
 
@@ -45,17 +45,35 @@ export function NotesViewsSection({
   month,
   view,
   highlightedDate,
-  onDateSelect,
+  onCalendarDaySelect,
   onNoteClick,
 }: NotesViewsSectionProps) {
+
+  // Queries
   const calendarQuery = useCalendarNotesQuery(month);
   const generalQuery = useGeneralNotesQuery();
   const { data: calendarNotes } = calendarQuery;
   const { data: generalNotes } = generalQuery;
 
+  // Prefetch adjacent calendar months
   usePrefetchAdjacentCalendarMonths(month, calendarQuery.isSuccess);
 
+  // View query state for error handling
   const viewQueryState = resolveViewQueryState(view, calendarQuery, generalQuery);
+
+  // Handler for calendar day selects
+  const handleCalendarDaySelect = useCallback(
+    (date: string) => {
+      const day = calendarNotes?.calendarDays.find(
+        (calendarDay) => calendarDay.date === date,
+      );
+
+      if (day) {
+        onCalendarDaySelect(day);
+      }
+    },
+    [calendarNotes?.calendarDays, onCalendarDaySelect],
+  );
 
   // Stable renderCell ref lets memoized NoteCalendarCell skip re-renders when day data is unchanged.
   const renderCalendarCell = useCallback(
@@ -126,7 +144,7 @@ export function NotesViewsSection({
             month={month}
             calendarDays={calendarNotes.calendarDays}
             selectedDate={highlightedDate}
-            onDaySelect={onDateSelect}
+            onDaySelect={handleCalendarDaySelect}
             renderCell={renderCalendarCell}
           />
         </div>
