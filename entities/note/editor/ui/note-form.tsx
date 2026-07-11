@@ -23,6 +23,8 @@ import { NoteFormTitleRow } from "@/entities/note/editor/ui/note-form-title-row"
  */
 export function NoteForm({
   note,
+  resetKey,
+  commitKey = 0,
   onChange,
   saveStatus = "idle",
   showContentLastSaved = true,
@@ -37,7 +39,7 @@ export function NoteForm({
     setContent,
     toggleStarred,
     toggleImportant,
-  } = useNoteForm({ note, onChange });
+  } = useNoteForm({ note, resetKey, commitKey, onChange });
 
   useEffect(() => {
     onFooterMetaChange?.({

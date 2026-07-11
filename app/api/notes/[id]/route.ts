@@ -1,0 +1,48 @@
+/**
+ * @file app/api/notes/[id]/route.ts
+ * PATCH autosave for an existing note row.
+ */
+
+import { updateNote } from "@/entities/note/server";
+import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
+
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
+/**
+ * Partially updates one note (`title`, `content`, `starred`, `isImportant`).
+ *
+ * @param request - incoming HTTP request with JSON body
+ * @param context - dynamic route params
+ * @returns updated note payload
+ */
+export async function PATCH(request: Request, context: RouteContext) {
+  const userId = await requireAuthenticatedUserId();
+
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await context.params;
+
+  try {
+    const body = await request.json();
+    const note = await updateNote(id, body);
+
+    return Response.json({ note });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to update note.";
+
+    if (message === "Note not found.") {
+      return Response.json({ error: message }, { status: 404 });
+    }
+
+    if (message === "Invalid note update payload.") {
+      return Response.json({ error: message }, { status: 400 });
+    }
+
+    return Response.json({ error: message }, { status: 500 });
+  }
+}

@@ -32,6 +32,13 @@ export interface NoteFormFooterMeta {
 export interface NoteFormProps {
   /** Existing note to edit, or `null` for lazy create / empty draft. */
   note: Note | null;
+  /**
+   * Identifies the active editor context (note id, date, or draft slot).
+   * Changing it resets local field state without reacting to cache writes.
+   */
+  resetKey: string;
+  /** Incremented after a successful autosave to snap the dirty baseline. */
+  commitKey?: number;
   /** Called when local field state changes. No network I/O in the form. */
   onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
   /** Optional save feedback from the drawer island (Step 9). */
@@ -46,6 +53,10 @@ export interface NoteFormProps {
 
 export interface UseNoteFormOptions {
   note: Note | null;
+  /** Identifies drawer/editor context — changing it resets local field state. */
+  resetKey: string;
+  /** Incremented after a successful autosave to snap the dirty baseline. */
+  commitKey?: number;
   onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
 }
 

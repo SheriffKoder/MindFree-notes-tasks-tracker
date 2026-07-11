@@ -5,6 +5,7 @@
 
 import { mapNoteRow } from "@/entities/note/lib/map-note-row";
 import { getMonthRange } from "@/entities/note/lib/parse-month";
+import type { UpdateNoteBody } from "@/entities/note/mutations/update-note.schema";
 import type { Note, NoteRow } from "@/entities/note/model/types";
 import { NOTES_TABLE } from "@/shared/config/supabase-tables";
 import { createClient } from "@/shared/lib/supabase/server";
@@ -54,4 +55,55 @@ export async function getGeneralNotes(): Promise<Note[]> {
   }
 
   return (data as NoteRow[] | null)?.map(mapNoteRow) ?? [];
+}
+
+/**
+ * Applies a partial update to one note row owned by the current user (RLS).
+ *
+ * @param id - note row id
+ * @param patch - editable fields to merge
+ * @returns updated note, or `null` when no row matches
+ */
+export async function updateNoteById(
+  id: string,
+  patch: UpdateNoteBody,
+): Promise<Note | null> {
+  const supabase = await createClient();
+
+  const dbPatch: Partial<
+    Pick<NoteRow, "title" | "content" | "starred" | "is_important">
+  > = {};
+
+  if (patch.title !== undefined) {
+    dbPatch.title = patch.title;
+  }
+
+  if (patch.content !== undefined) {
+    dbPatch.content = patch.content;
+  }
+
+  if (patch.starred !== undefined) {
+    dbPatch.starred = patch.starred;
+  }
+
+  if (patch.isImportant !== undefined) {
+    dbPatch.is_important = patch.isImportant;
+  }
+
+  const { data, error } = await supabase
+    .from(NOTES_TABLE)
+    .update(dbPatch)
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to update note: ${error.message}`);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return mapNoteRow(data as NoteRow);
 }

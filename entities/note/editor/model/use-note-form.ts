@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { formatNoteLastEditedAt } from "@/entities/note/editor/lib/format-last-edited";
 import { noteFormSchema } from "@/entities/note/editor/model/note-form.schema";
@@ -74,21 +74,43 @@ function getFieldErrors(values: NoteFormValues): NoteFormFieldErrors {
 
 /**
  * Manages controlled note editor state derived from an optional existing note.
+ *
+ * Resets fields only on `resetKey` / note id changes — not on optimistic cache
+ * updates — so autosave does not wipe in-progress typing.
  */
 export function useNoteForm({
   note,
+  resetKey,
+  commitKey = 0,
   onChange,
 }: UseNoteFormOptions): UseNoteFormResult {
-  const baselineValues = useMemo(() => noteToFormValues(note), [note]);
   const noteKey = note?.id ?? "draft";
+  const initialValues = useMemo(() => noteToFormValues(note), [noteKey, resetKey]);
 
-  const [values, setValues] = useState<NoteFormValues>(baselineValues);
+  const [baselineValues, setBaselineValues] =
+    useState<NoteFormValues>(initialValues);
+  const [values, setValues] = useState<NoteFormValues>(initialValues);
   const [errors, setErrors] = useState<NoteFormFieldErrors>({});
 
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+
+  // Context switch — reload fields from the resolved note or empty draft.
   useEffect(() => {
-    setValues(baselineValues);
+    const nextValues = noteToFormValues(note);
+    setBaselineValues(nextValues);
+    setValues(nextValues);
     setErrors({});
-  }, [baselineValues, noteKey]);
+  }, [noteKey, resetKey]);
+
+  // Successful autosave — snap baseline without overwriting current inputs.
+  useEffect(() => {
+    if (commitKey === 0) {
+      return;
+    }
+
+    setBaselineValues(valuesRef.current);
+  }, [commitKey]);
 
   const isDirty = useMemo(
     () => !valuesAreEqual(values, baselineValues),

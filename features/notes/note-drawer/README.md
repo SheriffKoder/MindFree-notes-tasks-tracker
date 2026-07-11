@@ -129,7 +129,8 @@ views/notes/model/editor  ←  ui/note-drawer.tsx (UseNotesDrawerResult type onl
 ```text
 features/notes/note-drawer/
 └── model/
-    └── use-note-drawer-mutations.ts   # debounced autosave, lazy create — wires entities/note/mutations
+    ├── use-note-drawer-autosave.ts   # debounced PATCH autosave (Step 9)
+    └── use-note-drawer-mutations.ts  # lazy create — Step 10
 ```
 
 Mutation implementations belong in `entities/note/mutations/`; this feature owns when and how they run inside the drawer island.

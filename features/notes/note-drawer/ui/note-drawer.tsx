@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { NoteForm } from "@/entities/note/editor";
 import type { NoteFormFooterMeta } from "@/entities/note/editor/model/types";
@@ -13,6 +13,7 @@ import { AppDrawer } from "@/shared/drawer";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
 import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-drawer-date-navigation";
 import { useDrawerMonthPrefetch } from "@/features/notes/note-drawer/model/use-drawer-month-prefetch";
+import { useNoteDrawerAutosave } from "@/features/notes/note-drawer/model/use-note-drawer-autosave";
 import { useResolvedDrawerNote } from "@/features/notes/note-drawer/model/use-resolved-drawer-note";
 import { NoteDrawerFooter } from "@/features/notes/note-drawer/ui/note-drawer-footer";
 import type { UseNotesDrawerResult } from "@/views/notes/model/editor/use-notes-drawer";
@@ -51,6 +52,35 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
 
   useDrawerMonthPrefetch(activeDate, isDateNavEnabled);
 
+  const { saveStatus, handleChange, commitKey } = useNoteDrawerAutosave(
+    note,
+    isOpen,
+  );
+
+  const resetKey = useMemo(() => {
+    if (note?.id) {
+      return note.id;
+    }
+
+    if (activeDate) {
+      return `date:${activeDate}`;
+    }
+
+    if (request?.mode === "create" && "general" in request) {
+      return "general-draft";
+    }
+
+    if (request?.mode === "create" && "date" in request) {
+      return `date:${request.date}`;
+    }
+
+    if (request?.mode === "edit") {
+      return `edit:${request.noteId}`;
+    }
+
+    return "draft";
+  }, [activeDate, note?.id, request]);
+
   const handleFooterMetaChange = useCallback((meta: NoteFormFooterMeta) => {
     setFooterMeta(meta);
   }, []);
@@ -66,8 +96,12 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
         {...(swipeHandlers ?? {})}
       >
         <NoteForm
+          commitKey={commitKey}
           note={note}
+          resetKey={resetKey}
+          saveStatus={saveStatus}
           showContentLastSaved={false}
+          onChange={handleChange}
           onFooterMetaChange={handleFooterMetaChange}
         />
 

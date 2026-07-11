@@ -21,6 +21,8 @@ export {
 } from "@/entities/note/tanstack/general-notes-query";
 export { prefetchCalendarMonth } from "@/entities/note/tanstack/prefetch-calendar-month";
 export { prefetchAdjacentCalendarMonths } from "@/entities/note/tanstack/prefetch-adjacent-calendar-months";
+export { useUpdateNoteMutation } from "@/entities/note/tanstack/use-update-note-mutation";
+export type { UpdateNoteMutationInput } from "@/entities/note/tanstack/use-update-note-mutation";
 export type {
   CalendarDay,
   CalendarNotesResponse,
