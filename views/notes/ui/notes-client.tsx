@@ -8,14 +8,12 @@
 import { useCallback } from "react";
 
 import type { CalendarDay, Note } from "@/entities/note";
-import { NoteForm } from "@/entities/note/editor";
-import { AppDrawer } from "@/shared/drawer";
+import { NoteDrawer } from "@/features/notes/note-drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { ViewSwitcher } from "@/shared/view-switcher";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
-import { useResolvedDrawerNote } from "@/views/notes/model/editor/use-resolved-drawer-note";
 import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
 
 /**
@@ -30,9 +28,6 @@ export function NotesClient() {
   
   // Drawer options
   const drawer = useNotesDrawer();
-  
-  // Drawer note resolver (resolves the note record for an edit-mode drawer request from TanStack cache)
-  const drawerNote = useResolvedDrawerNote(drawer.request, month);
 
   // Handlers for view interactions
   const handleCalendarDaySelect = useCallback(
@@ -105,13 +100,7 @@ export function NotesClient() {
         </div>
       </div>
 
-      <AppDrawer
-        ariaLabel="Note editor"
-        open={drawer.isOpen}
-        onOpenChange={drawer.setOpen}
-      >
-        <NoteForm note={drawerNote} />
-      </AppDrawer>
+      <NoteDrawer drawer={drawer} />
     </div>
   );
 }

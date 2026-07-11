@@ -23,6 +23,12 @@ export interface NoteFormChangeMeta {
   isValid: boolean;
 }
 
+/** Footer metadata emitted when last-saved is rendered outside the content row. */
+export interface NoteFormFooterMeta {
+  formattedLastEditedAt: string | null;
+  saveStatus: NoteSaveStatus;
+}
+
 export interface NoteFormProps {
   /** Existing note to edit, or `null` for lazy create / empty draft. */
   note: Note | null;
@@ -30,6 +36,12 @@ export interface NoteFormProps {
   onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
   /** Optional save feedback from the drawer island (Step 9). */
   saveStatus?: NoteSaveStatus;
+  /** When `false`, the content row omits the overlaid last-saved label. */
+  showContentLastSaved?: boolean;
+  /** Receives footer metadata for an external thin footer (drawer island). */
+  onFooterMetaChange?: (meta: NoteFormFooterMeta) => void;
+  /** Optional wrapper class for drawer layouts that need `flex-1` growth. */
+  className?: string;
 }
 
 export interface UseNoteFormOptions {

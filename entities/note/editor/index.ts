@@ -12,6 +12,7 @@ export {
 export type {
   NoteFormChangeMeta,
   NoteFormFieldErrors,
+  NoteFormFooterMeta,
   NoteFormProps,
   NoteFormValues,
   NoteSaveStatus,

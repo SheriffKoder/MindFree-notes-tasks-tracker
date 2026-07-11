@@ -128,23 +128,65 @@ Prefetches one month into `["calendarNotes", month]` via `queryClient.prefetchQu
 
 ### `tanstack/prefetch-adjacent-calendar-months.ts`
 
-Prefetches `shiftMonth(month, ±1)` — used by the notes page after the active month loads; reusable by the drawer (Step 8).
+Prefetches `shiftMonth(month, ±1)` — used by the notes page after the active month loads; reused by `features/notes/note-drawer` for drawer month-boundary navigation.
 
 ### `editor/`
 
-Controlled note editor for the drawer (Step 7). No network I/O — mutations land in Step 9.
+Reusable **note editor form** — the controlled input surface for editing a single note. Import from `@/entities/note/editor` in client components.
+
+**The entity editor is responsible for:**
+
+| Concern | Location |
+| ------- | -------- |
+| Field schema and validation (`title`, `content`, `starred`, `isImportant`) | `model/note-form.schema.ts` |
+| Form contracts (`NoteFormProps`, `NoteFormValues`, save status types) | `model/types.ts` |
+| Local field state, dirty tracking, validation errors | `model/use-note-form.ts` |
+| Form UI (title row, toggles, scrollable content, last-saved label) | `ui/*` |
+| Display helpers (last-edited formatting, toggle color tokens, layout classes) | `lib/*` |
+
+**The entity editor is not responsible for:**
+
+- Drawer shell, open/close, or *which* note to show
+- TanStack cache lookup or date navigation
+- Autosave / create mutations (Step 9–10 — see `mutations/` and `features/notes/note-drawer`)
+- Page URL state or calendar highlight
+
+Think of `editor/` as a **dumb, reusable form**: pass it a `Note | null`, it renders fields and reports changes. It does not know about the drawer, the page, or the cache.
 
 | File | Role |
 | ---- | ---- |
 | `model/note-form.schema.ts` | Zod validation for title, content, starred, isImportant |
-| `model/types.ts` | `NoteFormValues`, `NoteFormProps`, `NoteSaveStatus` |
+| `model/types.ts` | `NoteFormValues`, `NoteFormProps`, `NoteSaveStatus`, `NoteFormFooterMeta` |
 | `model/use-note-form.ts` | Local field state, dirty tracking, validation |
-| `ui/note-form.tsx` | Plain title row + toggles, scrollable description |
+| `ui/note-form.tsx` | Composes title row + content row |
+| `ui/note-form-title-row.tsx` | Plain title input + star/important toggles |
+| `ui/note-form-content-row.tsx` | Scrollable description textarea |
+| `ui/note-form-last-saved.tsx` | Last-edited / save-status label (overlay or inline) |
 | `lib/format-last-edited.ts` | Footer timestamp formatting |
 | `lib/note-form-style-config.ts` | Toggle and status color tokens |
+| `lib/note-form-classes.ts` | Shared Tailwind class tokens |
 | `index.ts` | Public editor exports |
 
-Import from `@/entities/note/editor` in client components.
+**Paired feature:** drawer orchestration lives in `features/notes/note-drawer/` — see that README for how the form is wired inside the drawer island.
+
+## Editor vs drawer — where does code go?
+
+```text
+views/notes/model/editor/     Page-level drawer intent (open/close, NoteEditorRequest)
+        ↓ passes drawer state
+features/notes/note-drawer/   Drawer island (shell, cache lookup, date nav, footer)
+        ↓ passes Note | null
+entities/note/editor/         Reusable form (fields, validation, local state)
+```
+
+| Question | Put it in |
+| -------- | --------- |
+| "How do I validate the title field?" | `entities/note/editor` |
+| "How do I render star / important toggles?" | `entities/note/editor` |
+| "How do I resolve the note for the active drawer date?" | `features/notes/note-drawer` |
+| "How do I swipe between calendar days in the drawer?" | `features/notes/note-drawer` |
+| "How do I open the drawer from a calendar cell click?" | `views/notes` (`useNotesDrawer`) |
+| "How do I PATCH autosave?" | `entities/note/mutations/` (Step 9) + wire in `features/notes/note-drawer` |
 
 ## Consumers
 
@@ -154,6 +196,7 @@ Import from `@/entities/note/editor` in client components.
 | `app/api/notes/calendar/route.ts` | `entities/note/server` |
 | `app/api/notes/general/route.ts` | `entities/note/server` |
 | `views/notes/*` (client) | `entities/note/client` |
+| `features/notes/note-drawer` | `entities/note/client`, `entities/note/editor` |
 | Features, cards, types | `entities/note` (types) |
 
 ## Future additions (Steps 9–10)

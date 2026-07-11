@@ -3,7 +3,10 @@
  * Row 2 — scrollable plain description with bottom-right last-saved label.
  */
 
-import { PLAIN_CONTENT_CLASS } from "@/entities/note/editor/lib/note-form-classes";
+import {
+  PLAIN_CONTENT_CLASS,
+  PLAIN_CONTENT_OVERLAY_CLASS,
+} from "@/entities/note/editor/lib/note-form-classes";
 import type { NoteSaveStatus } from "@/entities/note/editor/model/types";
 import { NoteFormLastSaved } from "@/entities/note/editor/ui/note-form-last-saved";
 
@@ -12,6 +15,7 @@ export interface NoteFormContentRowProps {
   contentError?: string;
   formattedLastEditedAt: string | null;
   saveStatus?: NoteSaveStatus;
+  showLastSaved?: boolean;
   onContentChange: (content: string) => void;
 }
 
@@ -23,14 +27,23 @@ export function NoteFormContentRow({
   contentError,
   formattedLastEditedAt,
   saveStatus = "idle",
+  showLastSaved = true,
   onContentChange,
 }: NoteFormContentRowProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-1">
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div
+        className={
+          showLastSaved
+            ? "relative flex min-h-0 flex-1 flex-col"
+            : "flex min-h-0 flex-1 flex-col"
+        }
+      >
         <textarea
           aria-invalid={Boolean(contentError)}
-          className={PLAIN_CONTENT_CLASS}
+          className={
+            showLastSaved ? PLAIN_CONTENT_OVERLAY_CLASS : PLAIN_CONTENT_CLASS
+          }
           name="content"
           placeholder="Write your note…"
           rows={12}
@@ -38,10 +51,12 @@ export function NoteFormContentRow({
           onChange={(event) => onContentChange(event.target.value)}
         />
 
-        <NoteFormLastSaved
-          formattedLastEditedAt={formattedLastEditedAt}
-          saveStatus={saveStatus}
-        />
+        {showLastSaved ? (
+          <NoteFormLastSaved
+            formattedLastEditedAt={formattedLastEditedAt}
+            saveStatus={saveStatus}
+          />
+        ) : null}
       </div>
 
       {contentError ? (

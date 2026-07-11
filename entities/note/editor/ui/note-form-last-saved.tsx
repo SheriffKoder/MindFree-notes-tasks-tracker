@@ -10,15 +10,17 @@ import type { NoteSaveStatus } from "@/entities/note/editor/model/types";
 export interface NoteFormLastSavedProps {
   formattedLastEditedAt: string | null;
   saveStatus?: NoteSaveStatus;
+  /** `overlay` anchors inside the content row; `inline` renders in a thin footer row. */
+  variant?: "overlay" | "inline";
 }
 
 /**
- * Shows transient save feedback or the last-edited timestamp in the bottom-right
- * corner of the description area.
+ * Shows transient save feedback or the last-edited timestamp.
  */
 export function NoteFormLastSaved({
   formattedLastEditedAt,
   saveStatus = "idle",
+  variant = "overlay",
 }: NoteFormLastSavedProps) {
   const saveStatusLabel = getSaveStatusLabel(saveStatus);
   const label = saveStatusLabel ?? formattedLastEditedAt ?? "New note";
@@ -26,11 +28,14 @@ export function NoteFormLastSaved({
   return (
     <p
       className={cn(
-        "pointer-events-none absolute bottom-0 right-0 text-caption",
+        "text-[11px] leading-none",
+        variant === "overlay"
+          ? "pointer-events-none absolute bottom-0 right-0"
+          : "shrink-0 text-right opacity-60",
         saveStatus === "error"
-          ? "[color:var(--note-form-save-error)]"
+          ? "[color:var(--note-form-save-error)] opacity-100"
           : saveStatus === "saved"
-            ? "[color:var(--note-form-save-success)]"
+            ? "[color:var(--note-form-save-success)] opacity-100"
             : "text-body-muted",
       )}
       role={saveStatusLabel ? "status" : undefined}
