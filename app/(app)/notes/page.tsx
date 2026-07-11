@@ -1,26 +1,52 @@
 /**
  * @file app/(app)/notes/page.tsx
- * Protected notes route — sync shell; URL params and query reads stay on the client.
+ * Protected notes route — SSR prefetch, hydration, then client URL/query islands.
  */
 
 import { Suspense } from "react";
 
-import { NotesHydrationSeed } from "@/app/(app)/notes/notes-hydration-seed";
+import { NotesHydrationBoundary } from "@/app/(app)/notes/notes-hydration-seed";
+import type { SearchParamsRecord } from "@/features/auth/model/auth-notice";
 import { NotesClient } from "@/views/notes/ui/notes-client";
 
 /**
- * Renders the Notes route. SSR hydration seeds cache in parallel with the client shell.
- * `?month=` and `?view=` toggles update client state only (no route Suspense flash).
+ * Resolves the raw month search param from the current request.
  */
-export default function NotesRoute() {
+function getMonthParam(searchParams: SearchParamsRecord) {
+  const month = searchParams.month;
+
+  return typeof month === "string" ? month : null;
+}
+
+/**
+ * Server boundary that hydrates the Notes cache before the client shell mounts.
+ */
+async function NotesPageContent({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParamsRecord>;
+}) {
+  const resolvedSearchParams = await searchParams;
+
   return (
-    <>
-      <Suspense fallback={null}>
-        <NotesHydrationSeed />
-      </Suspense>
-      <Suspense fallback={null}>
-        <NotesClient />
-      </Suspense>
-    </>
+    <NotesHydrationBoundary monthParam={getMonthParam(resolvedSearchParams)}>
+      <NotesClient />
+    </NotesHydrationBoundary>
+  );
+}
+
+/**
+ * Renders the Notes route. Initial data is prefetched on the server; `?month=` and
+ * `?view=` toggles update client state only after hydration (no route Suspense flash).
+ */
+export default function NotesRoute({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParamsRecord>;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <NotesPageContent searchParams={searchParams} />
+    </Suspense>
   );
 }

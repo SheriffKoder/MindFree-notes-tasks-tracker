@@ -16,6 +16,7 @@ export async function fetchCalendarNotes(
 ): Promise<CalendarNotesResponse> {
   const response = await fetch(
     `/api/notes/calendar?month=${encodeURIComponent(month)}`,
+    { credentials: "same-origin" },
   );
 
   if (!response.ok) {
@@ -35,6 +36,7 @@ export function calendarNotesQueryOptions(month: string) {
   return queryOptions({
     queryKey: calendarNotesQueryKey(month),
     queryFn: () => fetchCalendarNotes(month),
+    retry: 1,
   });
 }
 

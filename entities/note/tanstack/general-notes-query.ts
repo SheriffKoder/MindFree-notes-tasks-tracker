@@ -12,7 +12,9 @@ import { generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
  * Fetches all general notes from the API route.
  */
 export async function fetchGeneralNotes(): Promise<GeneralNotesResponse> {
-  const response = await fetch("/api/notes/general");
+  const response = await fetch("/api/notes/general", {
+    credentials: "same-origin",
+  });
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {
@@ -31,6 +33,7 @@ export function generalNotesQueryOptions() {
   return queryOptions({
     queryKey: generalNotesQueryKey,
     queryFn: fetchGeneralNotes,
+    retry: 1,
   });
 }
 
