@@ -20,12 +20,6 @@ export interface NoteCalendarCellProps {
 }
 
 function getNotePreview(note: Note): string | undefined {
-  const title = note.title.trim();
-
-  if (title) {
-    return title;
-  }
-
   const content = note.content.trim();
 
   return content || undefined;
@@ -46,7 +40,7 @@ export const NoteCalendarCell = memo(function NoteCalendarCell({
     <div
       style={NOTE_CALENDAR_CELL_CSS_VARS}
       className={cn(
-        "relative h-20 md:h-24 w-full bg-[var(--note-cell-bg-default)] p-1 transition-colors duration-200 hover:bg-[var(--note-cell-hover-light)] dark:hover:bg-[var(--note-cell-hover-dark)] md:min-h-20",
+        "relative h-20 md:h-24 w-full max-w-full min-w-0 overflow-hidden bg-[var(--note-cell-bg-default)] p-1 transition-colors duration-200 hover:bg-[var(--note-cell-hover-light)] dark:hover:bg-[var(--note-cell-hover-dark)] md:min-h-20",
         isSelected &&
           "bg-[var(--note-cell-bg-selected)] ring-2 ring-inset ring-[var(--note-cell-border-selected)]",
       )}
@@ -84,7 +78,7 @@ export const NoteCalendarCell = memo(function NoteCalendarCell({
       </span>
 
       {preview ? (
-        <p className="line-clamp-3 md:line-clamp-5 whitespace-pre-line pb-4 pr-1 text-caption [color:var(--note-cell-preview)]">
+        <p className="line-clamp-3 md:line-clamp-5 min-w-0 w-full max-w-full overflow-hidden [overflow-wrap:anywhere] whitespace-pre-wrap pb-4 pr-7 text-caption [color:var(--note-cell-preview)]">
           {preview}
         </p>
       ) : (
