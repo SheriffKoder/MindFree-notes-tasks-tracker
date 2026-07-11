@@ -21,8 +21,6 @@ interface CreateLoginSubmitHandlerOptions {
   setError: UseFormSetError<LoginSchema>;
   /** Setter for the inline server error message rendered by the form. */
   setServerErrorMessage: Dispatch<SetStateAction<string | null>>;
-  /** React transition starter used to keep the submit responsive. */
-  startTransition: (callback: () => void) => void;
 }
 
 /**
@@ -36,9 +34,8 @@ export function createLoginSubmitHandler({
   clearErrors,
   setError,
   setServerErrorMessage,
-  startTransition,
 }: CreateLoginSubmitHandlerOptions) {
-  return function submitLoginForm(values: LoginSchema) {
+  return async function submitLoginForm(values: LoginSchema) {
     // Convert the validated values into FormData for the server action.
     const formData = new FormData();
     formData.set("email", values.email);
@@ -49,20 +46,15 @@ export function createLoginSubmitHandler({
     clearErrors("root");
     setServerErrorMessage(null);
 
-    // Run the server action inside a transition to keep the UI responsive.
-    startTransition(function startLoginTransition() {
-      void (async function runLoginAction() {
-        const result = await login(formData);
+    const result = await login(formData);
 
-        // Push the server failure back into both local and RHF state.
-        if (result.errorMessage) {
-          setServerErrorMessage(result.errorMessage);
-          setError("root", {
-            type: "server",
-            message: result.errorMessage,
-          });
-        }
-      })();
-    });
+    // Push the server failure back into both local and RHF state.
+    if (result.errorMessage) {
+      setServerErrorMessage(result.errorMessage);
+      setError("root", {
+        type: "server",
+        message: result.errorMessage,
+      });
+    }
   };
 }

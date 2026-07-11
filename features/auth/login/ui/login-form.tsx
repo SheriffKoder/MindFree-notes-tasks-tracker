@@ -20,7 +20,9 @@ import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleSignInButton } from "@/features/auth/google-sign-in";
+import { submitLoginForm } from "@/features/auth/login/model/login-action";
 import { useLoginForm } from "@/features/auth/login/model/use-login-form";
+import { DemoLoginButton } from "@/features/auth/login/ui/demo-login-button";
 import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
 
 /**
@@ -63,7 +65,15 @@ export function LoginForm({ nextPath = "/", notice = null }: LoginFormProps) {
       <CardContent className="flex flex-col gap-5">
         {notice ? <AuthNoticeBanner notice={notice} /> : null}
 
-        <form className="flex flex-col gap-5" noValidate onSubmit={onSubmit}>
+        <form
+          action={submitLoginForm}
+          className="flex flex-col gap-5"
+          method="post"
+          noValidate
+          onSubmit={onSubmit}
+        >
+          <input name="next" type="hidden" value={nextPath} />
+
           <div className="flex flex-col gap-2">
             <Label htmlFor="login-email">Email</Label>
             <Input
@@ -108,6 +118,8 @@ export function LoginForm({ nextPath = "/", notice = null }: LoginFormProps) {
         ) : null}
 
         <div className="flex flex-col gap-4 pt-1 ">
+          <DemoLoginButton nextPath={nextPath} />
+
           <GoogleSignInButton
             errorRedirectPath="/login"
             nextPath={nextPath}

@@ -6,7 +6,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { createLoginSubmitHandler } from "@/features/auth/login/model/login-submit-handler";
@@ -27,9 +27,6 @@ interface UseLoginFormOptions {
  * @returns RHF bindings, pending state, and inline server error state
  */
 export function useLoginForm({ nextPath = "/" }: UseLoginFormOptions) {
-  // Track the in-flight server action state for the submit button.
-  const [isPending, startTransition] = useTransition();
-
   // Render server-side auth failures inline above the secondary actions.
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(
     null,
@@ -39,7 +36,7 @@ export function useLoginForm({ nextPath = "/" }: UseLoginFormOptions) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setError,
     clearErrors,
   } = useForm<LoginSchema>({
@@ -56,7 +53,6 @@ export function useLoginForm({ nextPath = "/" }: UseLoginFormOptions) {
     clearErrors,
     setError,
     setServerErrorMessage,
-    startTransition,
   });
 
   // Connect the extracted submit handler to RHF.
@@ -65,7 +61,7 @@ export function useLoginForm({ nextPath = "/" }: UseLoginFormOptions) {
   // Return the form API consumed by the login UI shell.
   return {
     errors,
-    isPending,
+    isPending: isSubmitting,
     onSubmit,
     register,
     serverErrorMessage,

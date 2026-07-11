@@ -68,3 +68,12 @@ export async function login(formData: FormData): Promise<LoginActionState> {
   // Send the user to the originally requested protected route, if any.
   redirect(redirectPath);
 }
+
+/**
+ * Form-action entry point for native and progressive-enhancement submits.
+ *
+ * @param formData - submitted login form data
+ */
+export async function submitLoginForm(formData: FormData): Promise<void> {
+  await login(formData);
+}
