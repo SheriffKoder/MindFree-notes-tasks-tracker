@@ -1,5 +1,5 @@
 /**
- * @file views/notes/model/use-notes-drawer.ts
+ * @file views/notes/model/editor/use-notes-drawer.ts
  * Notes drawer UI state — open/close and the current editor request.
  *
  * Presentation-only: does not fetch notes or create rows. The drawer shell and
@@ -13,7 +13,7 @@ import { useCallback, useState } from "react";
 import type {
   NoteEditorRequest,
   NotesDrawerState,
-} from "@/views/notes/model/note-editor-request";
+} from "@/views/notes/model/editor/note-editor-request";
 
 export interface UseNotesDrawerResult {
   isOpen: boolean;

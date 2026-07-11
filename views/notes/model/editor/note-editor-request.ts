@@ -1,5 +1,5 @@
 /**
- * @file views/notes/model/note-editor-request.ts
+ * @file views/notes/model/editor/note-editor-request.ts
  * Describes what the Notes editor should do when the drawer opens.
  *
  * Notes are not created until the user types or saves — requests only describe intent.

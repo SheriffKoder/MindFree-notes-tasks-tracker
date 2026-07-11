@@ -8,42 +8,31 @@
 import { useCallback } from "react";
 
 import type { CalendarDay, Note } from "@/entities/note";
+import { NoteForm } from "@/entities/note/editor";
 import { AppDrawer } from "@/shared/drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { ViewSwitcher } from "@/shared/view-switcher";
-import type { NoteEditorRequest } from "@/views/notes/model/note-editor-request";
-import { useNotesDrawer } from "@/views/notes/model/use-notes-drawer";
+import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
+import { useResolvedDrawerNote } from "@/views/notes/model/editor/use-resolved-drawer-note";
 import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
-
-function formatDrawerRequest(request: NoteEditorRequest | null): string | null {
-  if (!request) {
-    return null;
-  }
-
-  if (request.mode === "edit") {
-    return `Edit note: ${request.noteId}`;
-  }
-
-  if ("date" in request) {
-    return `Create note for: ${request.date}`;
-  }
-
-  return "Create general note";
-}
 
 /**
  * Renders the Notes page shell with month/view controls and hydrated query islands.
  */
 export function NotesClient() {
-
   // URL state
   const { month, view, previousMonth, nextMonth, changeView, cycleView } = useNotesUrlState();
+  
   // Page selection
   const { highlightedDate, selectDate } = useNotesPageSelection(month);
+  
   // Drawer options
   const drawer = useNotesDrawer();
+  
+  // Drawer note resolver (resolves the note record for an edit-mode drawer request from TanStack cache)
+  const drawerNote = useResolvedDrawerNote(drawer.request, month);
 
   // Handlers for view interactions
   const handleCalendarDaySelect = useCallback(
@@ -72,16 +61,13 @@ export function NotesClient() {
     [drawer.openEdit, selectDate],
   );
 
-  // Drawer request label
-  const drawerRequestLabel = formatDrawerRequest(drawer.request);
-
   return (
     <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-4">
       <section className="flex shrink-0 flex-col gap-2">
         <h2 className="text-h2">Notes</h2>
         <p className="text-body-muted">
           Browse calendar notes by month. Click a day or list card to open the
-          drawer shell.
+          note editor.
         </p>
       </section>
 
@@ -124,20 +110,7 @@ export function NotesClient() {
         open={drawer.isOpen}
         onOpenChange={drawer.setOpen}
       >
-        <div className="flex flex-col gap-3">
-          <p className="text-body">
-            Drawer shell — note editor arrives in Steps 7–8.
-          </p>
-          {drawerRequestLabel ? (
-            <p className="text-body-muted text-sm">{drawerRequestLabel}</p>
-          ) : null}
-          {/* Placeholder blocks to verify scroll inside the panel */}
-          {Array.from({ length: 12 }, (_, index) => (
-            <p key={index} className="text-body-muted text-sm">
-              Scroll test line {index + 1}
-            </p>
-          ))}
-        </div>
+        <NoteForm note={drawerNote} />
       </AppDrawer>
     </div>
   );

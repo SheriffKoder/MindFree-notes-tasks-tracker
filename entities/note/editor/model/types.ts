@@ -1,0 +1,50 @@
+/**
+ * @file entities/note/editor/model/types.ts
+ * Contracts for the note editor form.
+ */
+
+import type { Note } from "@/entities/note";
+import type { NoteFormSchema } from "@/entities/note/editor/model/note-form.schema";
+
+/** Editable note fields managed by the drawer form. */
+export type NoteFormValues = NoteFormSchema;
+
+/** Field-level validation messages keyed by form field. */
+export type NoteFormFieldErrors = Partial<
+  Record<keyof NoteFormValues, string>
+>;
+
+/** Autosave feedback surfaced beside the editor (wired in Step 9). */
+export type NoteSaveStatus = "idle" | "saving" | "saved" | "error";
+
+/** Metadata emitted with each controlled change. */
+export interface NoteFormChangeMeta {
+  isDirty: boolean;
+  isValid: boolean;
+}
+
+export interface NoteFormProps {
+  /** Existing note to edit, or `null` for lazy create / empty draft. */
+  note: Note | null;
+  /** Called when local field state changes. No network I/O in the form. */
+  onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
+  /** Optional save feedback from the drawer island (Step 9). */
+  saveStatus?: NoteSaveStatus;
+}
+
+export interface UseNoteFormOptions {
+  note: Note | null;
+  onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
+}
+
+export interface UseNoteFormResult {
+  values: NoteFormValues;
+  errors: NoteFormFieldErrors;
+  isDirty: boolean;
+  isValid: boolean;
+  formattedLastEditedAt: string | null;
+  setTitle: (title: string) => void;
+  setContent: (content: string) => void;
+  toggleStarred: () => void;
+  toggleImportant: () => void;
+}

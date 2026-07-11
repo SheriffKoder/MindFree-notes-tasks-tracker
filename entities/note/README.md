@@ -24,7 +24,7 @@ entities/note/
 ├── transform/               # Domain shaping after fetch
 ├── queries/                 # Server read use-cases
 ├── tanstack/                # Client cache layer (keys, fetchers, hooks, hydrate)
-└── editor/                  # Note form (Step 7 — not yet added)
+└── editor/                  # Note form (schema, hook, UI)
 ```
 
 ## Dependency direction
@@ -130,6 +130,22 @@ Prefetches one month into `["calendarNotes", month]` via `queryClient.prefetchQu
 
 Prefetches `shiftMonth(month, ±1)` — used by the notes page after the active month loads; reusable by the drawer (Step 8).
 
+### `editor/`
+
+Controlled note editor for the drawer (Step 7). No network I/O — mutations land in Step 9.
+
+| File | Role |
+| ---- | ---- |
+| `model/note-form.schema.ts` | Zod validation for title, content, starred, isImportant |
+| `model/types.ts` | `NoteFormValues`, `NoteFormProps`, `NoteSaveStatus` |
+| `model/use-note-form.ts` | Local field state, dirty tracking, validation |
+| `ui/note-form.tsx` | Plain title row + toggles, scrollable description |
+| `lib/format-last-edited.ts` | Footer timestamp formatting |
+| `lib/note-form-style-config.ts` | Toggle and status color tokens |
+| `index.ts` | Public editor exports |
+
+Import from `@/entities/note/editor` in client components.
+
 ## Consumers
 
 | Consumer | Imports |
@@ -140,16 +156,13 @@ Prefetches `shiftMonth(month, ±1)` — used by the notes page after the active 
 | `views/notes/*` (client) | `entities/note/client` |
 | Features, cards, types | `entities/note` (types) |
 
-## Future additions (Steps 7–10)
+## Future additions (Steps 9–10)
 
 ```text
 entities/note/
-├── mutations/               # PATCH, create, toggle star/important
-│   ├── update-note.ts
-│   └── create-calendar-note.ts
-└── editor/                  # Form schema + UI
-    ├── model/
-    └── ui/
+└── mutations/               # PATCH, create, toggle star/important
+    ├── update-note.ts
+    └── create-calendar-note.ts
 ```
 
 Add new write operations under `mutations/`; keep `queries/` for server reads and `tanstack/` for client cache.
