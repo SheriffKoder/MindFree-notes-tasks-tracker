@@ -105,6 +105,7 @@ export function useNoteForm({
   resetKey,
   commitKey = 0,
   calendarDate = null,
+  remoteSyncKey = 0,
   onChange,
 }: UseNoteFormOptions): UseNoteFormResult {
   const noteKey = note?.id ?? "draft";
@@ -127,7 +128,20 @@ export function useNoteForm({
     setBaselineValues(nextValues);
     setValues(nextValues);
     setErrors({});
-  }, [calendarDate, note, noteKey, resetKey]);
+  }, [calendarDate, noteKey, resetKey]);
+
+  /////////////////////////////////
+  // Remote sync — server wins when parent bumps remoteSyncKey (idle, not dirty).
+  useEffect(() => {
+    if (remoteSyncKey === 0) {
+      return;
+    }
+
+    const nextValues = noteToFormValues(note, calendarDate);
+    setBaselineValues(nextValues);
+    setValues(nextValues);
+    setErrors({});
+  }, [calendarDate, note, noteKey, remoteSyncKey]);
 
   // Successful autosave — snap baseline without overwriting current inputs.
   useEffect(() => {

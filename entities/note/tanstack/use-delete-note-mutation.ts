@@ -11,6 +11,10 @@ import { fetchDeleteNote } from "@/entities/note/mutations/delete-note-client";
 import { removeCalendarNoteFromCache } from "@/entities/note/mutations/note-cache-mutations";
 import { resolveOwningQueryKey } from "@/entities/note/mutations/patch-note-in-cache";
 import type { CalendarNotesResponse, Note } from "@/entities/note/model/types";
+import {
+  clearNoteMutationPending,
+  markNoteMutationPending,
+} from "@/entities/note/tanstack/note-mutation-pending";
 
 export interface DeleteNoteMutationInput {
   /** Existing note row to delete. */
@@ -34,6 +38,8 @@ export function useDeleteNoteMutation() {
       return note;
     },
     onMutate: async ({ note }) => {
+      markNoteMutationPending(note.id);
+
       const queryKey = resolveOwningQueryKey(note);
 
       await queryClient.cancelQueries({ queryKey });
@@ -48,6 +54,9 @@ export function useDeleteNoteMutation() {
       }
 
       return { previousData, queryKey } satisfies DeleteNoteMutationContext;
+    },
+    onSettled: (_data, _error, variables) => {
+      clearNoteMutationPending(variables.note.id);
     },
     onError: (_error, _variables, context) => {
       if (!context) {

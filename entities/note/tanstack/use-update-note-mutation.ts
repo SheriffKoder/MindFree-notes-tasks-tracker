@@ -32,6 +32,10 @@ import type {
   Note,
 } from "@/entities/note/model/types";
 import { generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
+import {
+  clearNoteMutationPending,
+  markNoteMutationPending,
+} from "@/entities/note/tanstack/note-mutation-pending";
 
 export interface UpdateNoteMutationInput {
   /** Existing note row being edited. */
@@ -125,6 +129,8 @@ export function useUpdateNoteMutation() {
       return response.note;
     },
     onMutate: async ({ note, values, date }) => {
+      markNoteMutationPending(note.id);
+
       const datePatch = resolveDatePatch(note, date);
       const previousSnapshots = snapshotOwningCaches(
         queryClient,
@@ -160,6 +166,9 @@ export function useUpdateNoteMutation() {
       }
 
       return { previousSnapshots } satisfies UpdateNoteMutationContext;
+    },
+    onSettled: (_data, _error, variables) => {
+      clearNoteMutationPending(variables.note.id);
     },
     onError: (_error, _variables, context) => {
       if (!context) {

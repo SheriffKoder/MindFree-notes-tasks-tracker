@@ -74,4 +74,6 @@ export interface UsePreSaveOrchestratorResult {
   resolveDismiss: () => void;
   /** Step 2 — records picker intent; returns formatted title for the form. */
   applyPickedDate: (isoDate: string) => string;
+  /** Re-run pipeline after remote cache sync — conflict/nav only, no schedule. */
+  reevaluateFromCache: () => void;
 }

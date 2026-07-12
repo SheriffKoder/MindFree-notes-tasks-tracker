@@ -13,6 +13,7 @@ import { AppDrawer } from "@/shared/drawer";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
 import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-drawer-date-navigation";
 import { useDrawerMonthPrefetch } from "@/features/notes/note-drawer/model/use-drawer-month-prefetch";
+import { useNoteDrawerRealtimeSync } from "@/features/notes/note-drawer/model/use-note-drawer-realtime-sync";
 import { useResolvedDrawerNote } from "@/features/notes/note-drawer/model/use-resolved-drawer-note";
 import {
   resolveOpeningCalendarDate,
@@ -63,6 +64,7 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     conflict,
     resolveReplace,
     resolveDismiss,
+    reevaluateFromCache,
   } = usePreSaveOrchestrator({
     note,
     isOpen,
@@ -118,6 +120,16 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     setFooterMeta(meta);
   }, []);
 
+  const noteId = note?.id ?? null;
+  const { remoteSyncKey, handleChangeWithDirty } =
+    useNoteDrawerRealtimeSync({
+      isOpen,
+      noteId,
+      resetKey,
+      onChange: handleChange,
+      reevaluateFromCache,
+    });
+
   const handleDatePick = useCallback(
     (isoDate: string) => applyPickedDate(isoDate),
     [applyPickedDate],
@@ -137,10 +149,11 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
           calendarDate={prefillCalendarDate}
           commitKey={commitKey}
           note={note}
+          remoteSyncKey={remoteSyncKey}
           resetKey={resetKey}
           saveStatus={saveStatus}
           showContentLastSaved={false}
-          onChange={handleChange}
+          onChange={handleChangeWithDirty}
           onDatePick={handleDatePick}
           onFooterMetaChange={handleFooterMetaChange}
         />

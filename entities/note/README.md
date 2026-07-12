@@ -2,6 +2,8 @@
 
 Business logic for calendar, general, and quick notes. Use the correct entry point for your runtime — not every file imports from the same barrel.
 
+**Where to look by responsibility:** [`RESPONSIBILITIES.md`](./RESPONSIBILITIES.md)
+
 ## Entry points
 
 | File | Use in | Exports |

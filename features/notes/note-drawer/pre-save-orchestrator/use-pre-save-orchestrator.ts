@@ -103,6 +103,11 @@ export function usePreSaveOrchestrator({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastEvaluationRef = useRef<EvaluateNoteSaveResult | null>(null);
+  const lastFormValuesRef = useRef<NoteFormValues | null>(null);
+  const lastFormMetaRef = useRef<NoteFormChangeMeta>({
+    isDirty: false,
+    isValid: true,
+  });
 
   const clearDebounceTimer = useCallback(() => {
     if (debounceTimerRef.current) {
@@ -298,6 +303,9 @@ export function usePreSaveOrchestrator({
 
   const handleChange = useCallback(
     (values: NoteFormValues, meta: NoteFormChangeMeta) => {
+      lastFormValuesRef.current = values;
+      lastFormMetaRef.current = meta;
+
       /////////////////////////////////
       // 1. Evaluate form change through the pre-save pipeline
       const result = evaluate(values, meta);
@@ -380,6 +388,19 @@ export function usePreSaveOrchestrator({
     return formatCalendarNoteTitle(isoDate);
   }, []);
 
+  const reevaluateFromCache = useCallback(() => {
+    const values = lastFormValuesRef.current;
+    const meta = lastFormMetaRef.current;
+
+    if (!values) {
+      return;
+    }
+
+    /////////////////////////////////
+    // Remote cache changed — refresh conflict/nav/saving gates only.
+    evaluate(values, meta);
+  }, [evaluate]);
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -418,5 +439,6 @@ export function usePreSaveOrchestrator({
     resolveReplace,
     resolveDismiss,
     applyPickedDate,
+    reevaluateFromCache,
   };
 }

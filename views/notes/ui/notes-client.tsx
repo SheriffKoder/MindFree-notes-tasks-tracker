@@ -8,7 +8,9 @@
 import { useCallback } from "react";
 
 import type { CalendarDay, Note } from "@/entities/note";
+import { useNotesRealtimeSync } from "@/entities/note/client";
 import { NoteDrawer } from "@/features/notes/note-drawer";
+import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { ViewSwitcher } from "@/shared/view-switcher";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
@@ -28,6 +30,10 @@ export function NotesClient() {
   
   // Drawer options
   const drawer = useNotesDrawer();
+
+  useNotesRealtimeSync({
+    onNoteChange: notifyNoteDrawerRealtime,
+  });
 
   // Handlers for view interactions
   const handleCalendarDaySelect = useCallback(

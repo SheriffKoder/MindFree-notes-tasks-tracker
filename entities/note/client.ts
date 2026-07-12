@@ -29,6 +29,11 @@ export { useCreateGeneralNoteMutation } from "@/entities/note/tanstack/use-creat
 export type { CreateGeneralNoteMutationInput } from "@/entities/note/tanstack/use-create-general-note-mutation";
 export { useDeleteNoteMutation } from "@/entities/note/tanstack/use-delete-note-mutation";
 export type { DeleteNoteMutationInput } from "@/entities/note/tanstack/use-delete-note-mutation";
+export { useNotesRealtimeSync } from "@/entities/note/tanstack/use-notes-realtime-sync";
+export type {
+  RealtimeNoteChangePayload,
+  UseNotesRealtimeSyncOptions,
+} from "@/entities/note/tanstack/use-notes-realtime-sync";
 export type {
   CalendarDay,
   CalendarNotesResponse,

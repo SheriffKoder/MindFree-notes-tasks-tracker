@@ -67,6 +67,8 @@ export interface NoteFormProps {
    * The form applies the returned title locally — no save logic here.
    */
   onDatePick?: (isoDate: string) => string;
+  /** Bumped when idle open drawer may accept a remote server revision into fields. */
+  remoteSyncKey?: number;
 }
 
 export interface UseNoteFormOptions {
@@ -77,6 +79,8 @@ export interface UseNoteFormOptions {
   commitKey?: number;
   /** Pre-fill ISO date for calendar note title on context reset (`YYYY-MM-DD`). */
   calendarDate?: string | null;
+  /** Bumped when remote sync is allowed to pull server fields into the form. */
+  remoteSyncKey?: number;
   onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
 }
 
