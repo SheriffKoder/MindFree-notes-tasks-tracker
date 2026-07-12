@@ -1,9 +1,8 @@
 /**
  * @file app/(app)/notes/notes-hydration-seed.tsx
- * SSR seed for the Notes TanStack cache — wraps client islands after prefetch.
+ * SSR seed for the Notes TanStack cache — non-blocking sibling of NotesClient.
  */
 
-import type { ReactNode } from "react";
 import { connection } from "next/server";
 
 import {
@@ -13,28 +12,15 @@ import {
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**
- * Props for the Notes hydration boundary.
+ * Merges initial note payloads into the app QueryClient without blocking the UI shell.
  */
-interface NotesHydrationBoundaryProps {
-  /** Raw `month` search param from the request URL. */
-  monthParam: string | null | undefined;
-  /** Client islands that read from the hydrated TanStack cache. */
-  children: ReactNode;
-}
-
-/**
- * Prefetches Notes queries on the server, then hydrates before children mount.
- */
-export async function NotesHydrationBoundary({
-  monthParam,
-  children,
-}: NotesHydrationBoundaryProps) {
+export async function NotesHydrationSeed() {
   // Satisfy Next.js dynamic route rules before time-based month defaults run.
   await connection();
 
-  const initialData = await getNotesPageInitialData(monthParam);
+  const initialData = await getNotesPageInitialData(null);
   const queryClient = getQueryClient();
   const dehydratedState = hydrateNotesPageQueries(queryClient, initialData);
 
-  return <QueryHydration state={dehydratedState}>{children}</QueryHydration>;
+  return <QueryHydration state={dehydratedState}>{null}</QueryHydration>;
 }
