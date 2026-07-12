@@ -3,10 +3,11 @@
  * Mobile list card (bottom border only).
  */
 
-import { CalendarDays, FileText, Star } from "lucide-react";
+import { CalendarDays, FileText } from "lucide-react";
 import type { Note } from "@/entities/note";
 import { getNoteCardInteractionProps } from "@/features/notes/note-list-card/lib/card-interaction-props";
 import { NOTE_LIST_CARD_CSS_VARS } from "@/features/notes/note-list-card/lib/card-style-config";
+import { NoteListCardStatusIcons } from "@/features/notes/note-list-card/ui/note-list-card-status-icons";
 
 export interface NoteListCardMobileProps {
   note: Note;
@@ -34,14 +35,8 @@ export function NoteListCardMobile({
       className="relative flex h-40 cursor-pointer flex-col justify-between rounded-xl border-b border-[var(--color-border)] bg-[var(--note-card-bg-default)] px-4 py-3 transition-colors duration-200 hover:bg-[var(--note-card-hover-light)] dark:hover:bg-[var(--note-card-hover-dark)]"
       {...getNoteCardInteractionProps(onClick)}
     >
-      {note.starred ? (
-        <Star
-          className="absolute right-1 top-3 h-4 w-4 [color:var(--note-card-star)]"
-          fill="currentColor"
-          aria-hidden
-        />
-      ) : null}
-      <div className="pr-6">
+      <NoteListCardStatusIcons className="right-1 top-3" note={note} />
+      <div className="pr-10">
         <p className="line-clamp-2 text-sm font-medium">{note.content || "(empty note)"}</p>
       </div>
       <div className="flex items-center justify-between gap-3">

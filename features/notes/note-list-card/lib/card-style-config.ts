@@ -20,7 +20,9 @@ export const NOTE_LIST_CARD_STYLE_CONFIG = {
       "var(--color-accent)",
     importantAccent:
       "color-mix(in_srgb,var(--color-success)_65%,var(--color-fg-muted))",
+    importantIcon: "var(--color-cal-important)",
     star: "var(--color-accent)",
+    iconInactive: "var(--color-fg-muted)",
   },
 } as const;
 
@@ -33,5 +35,7 @@ export const NOTE_LIST_CARD_CSS_VARS: CSSProperties = {
   "--note-card-hover-dark": NOTE_LIST_CARD_STYLE_CONFIG.colors.hoverBackgroundDark,
   "--note-card-reserved": NOTE_LIST_CARD_STYLE_CONFIG.colors.reserved,
   "--note-card-important-accent": NOTE_LIST_CARD_STYLE_CONFIG.colors.importantAccent,
+  "--note-cell-important-icon": NOTE_LIST_CARD_STYLE_CONFIG.colors.importantIcon,
   "--note-card-star": NOTE_LIST_CARD_STYLE_CONFIG.colors.star,
+  "--note-card-icon-inactive": NOTE_LIST_CARD_STYLE_CONFIG.colors.iconInactive,
 } as CSSProperties;

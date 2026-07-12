@@ -3,10 +3,11 @@
  * Desktop list card (bordered body + overlay timestamp).
  */
 
-import { CalendarDays, FileText, Star } from "lucide-react";
+import { CalendarDays, FileText } from "lucide-react";
 import type { Note } from "@/entities/note";
 import { getNoteCardInteractionProps } from "@/features/notes/note-list-card/lib/card-interaction-props";
 import { NOTE_LIST_CARD_CSS_VARS } from "@/features/notes/note-list-card/lib/card-style-config";
+import { NoteListCardStatusIcons } from "@/features/notes/note-list-card/ui/note-list-card-status-icons";
 
 export interface NoteListCardDesktopProps {
   note: Note;
@@ -36,14 +37,8 @@ export function NoteListCardDesktop({
       {...getNoteCardInteractionProps(onClick)}
     >
       <div className="relative flex-1 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--note-card-bg-default)] p-3 transition-colors duration-200 group-hover:border-[color-mix(in_srgb,var(--color-accent)_30%,var(--color-border))] group-hover:bg-[var(--note-card-hover-light)] dark:group-hover:bg-[var(--note-card-hover-dark)]">
-        {note.starred ? (
-          <Star
-            className="absolute right-2 top-2 h-4 w-4 [color:var(--note-card-star)]"
-            fill="currentColor"
-            aria-hidden
-          />
-        ) : null}
-        <p className="line-clamp-5 pr-6 text-sm font-medium">{note.content || "(empty note)"}</p>
+        <NoteListCardStatusIcons className="right-2 top-2" note={note} />
+        <p className="line-clamp-5 pr-10 text-sm font-medium">{note.content || "(empty note)"}</p>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--color-surface)] to-transparent px-3 pb-2 pt-6 text-right">
           <p className={lastEditedClass}>{formattedLastEditedAt}</p>
         </div>
