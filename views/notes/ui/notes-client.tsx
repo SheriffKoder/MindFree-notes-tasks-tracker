@@ -5,13 +5,20 @@
 
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import type { CalendarDay, Note } from "@/entities/note";
 import { useNotesRealtimeSync } from "@/entities/note/client";
+import { createNotesOfflineSyncAdapter } from "@/entities/note/offline/notes-offline-storage";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { MonthNavigator } from "@/shared/month-navigator";
+import {
+  OfflineBanner,
+  useAuthUserId,
+  useOfflineSync,
+} from "@/shared/offline-queue";
 import { ViewSwitcher } from "@/shared/view-switcher";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
@@ -22,6 +29,15 @@ import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
  * Renders the Notes page shell with month/view controls and hydrated query islands.
  */
 export function NotesClient() {
+
+  // Offline sync
+  const queryClient = useQueryClient();
+  const userId = useAuthUserId();
+  const notesOfflineAdapter = useMemo(
+    () => createNotesOfflineSyncAdapter(queryClient),
+    [queryClient],
+  );
+
   // URL state
   const { month, view, previousMonth, nextMonth, changeView, cycleView } = useNotesUrlState();
   
@@ -34,6 +50,9 @@ export function NotesClient() {
   useNotesRealtimeSync({
     onNoteChange: notifyNoteDrawerRealtime,
   });
+
+  // Offline sync
+  useOfflineSync(userId, [notesOfflineAdapter]);
 
   // Handlers for view interactions
   const handleCalendarDaySelect = useCallback(
@@ -64,6 +83,7 @@ export function NotesClient() {
 
   return (
     <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-4">
+      <OfflineBanner />
       <section className="flex shrink-0 flex-col gap-2">
         <h2 className="text-h2">Notes</h2>
         <p className="text-body-muted">

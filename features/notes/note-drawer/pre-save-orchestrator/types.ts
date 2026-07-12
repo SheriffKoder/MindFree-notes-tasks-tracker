@@ -59,6 +59,8 @@ export interface UsePreSaveOrchestratorOptions {
   request: NoteEditorRequest | null;
   activeDate: string | null;
   isDateNavEnabled: boolean;
+  /** Signed-in user — scopes offline writes in localStorage. */
+  userId: string | null;
   /** Switches general create intent to edit mode after the first row exists. */
   onGeneralNoteCreated: (noteId: string) => void;
 }

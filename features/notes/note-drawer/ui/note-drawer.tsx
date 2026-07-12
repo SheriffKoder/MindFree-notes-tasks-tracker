@@ -10,6 +10,7 @@ import { useCallback, useMemo, useState } from "react";
 import { NoteForm } from "@/entities/note/editor";
 import type { NoteFormFooterMeta } from "@/entities/note/editor/model/types";
 import { AppDrawer } from "@/shared/drawer";
+import { useAuthUserId } from "@/shared/offline-queue";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
 import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-drawer-date-navigation";
 import { useDrawerMonthPrefetch } from "@/features/notes/note-drawer/model/use-drawer-month-prefetch";
@@ -39,6 +40,7 @@ const INITIAL_FOOTER_META: NoteFormFooterMeta = {
  */
 export function NoteDrawer({ drawer }: NoteDrawerProps) {
   const { isOpen, request, setOpen, openEdit } = drawer;
+  const userId = useAuthUserId();
   const [footerMeta, setFooterMeta] =
     useState<NoteFormFooterMeta>(INITIAL_FOOTER_META);
 
@@ -71,6 +73,7 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     request,
     activeDate,
     isDateNavEnabled,
+    userId,
     onGeneralNoteCreated: handleGeneralNoteCreated,
   });
 

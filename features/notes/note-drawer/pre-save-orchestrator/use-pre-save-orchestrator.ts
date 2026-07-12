@@ -35,7 +35,9 @@ import type {
 } from "@/entities/note/editor/model/types";
 import { formatCalendarNoteTitle } from "@/entities/note/editor/lib/format-calendar-note-title";
 import type { Note } from "@/entities/note";
+import { saveNoteOfflinePending } from "@/entities/note/offline/notes-offline-storage";
 import { findNoteOnDateInCache } from "@/features/notes/note-drawer/lib/find-note-in-cache";
+import { isOnline } from "@/shared/offline-queue";
 import {
   evaluateNoteSave,
   resolveOpeningCalendarDate,
@@ -81,6 +83,7 @@ export function usePreSaveOrchestrator({
   request,
   activeDate,
   isDateNavEnabled,
+  userId,
   onGeneralNoteCreated,
 }: UsePreSaveOrchestratorOptions): UsePreSaveOrchestratorResult {
   const queryClient = useQueryClient();
@@ -150,6 +153,60 @@ export function usePreSaveOrchestrator({
     pendingMutationRef.current = null;
     setSaveStatus("saving");
 
+    /////////////////////////////////
+    // Offline — persist locally, keep optimistic cache, skip network
+    if (!isOnline()) {
+      if (!userId) {
+        markSaveError();
+        return;
+      }
+
+      switch (pending.kind) {
+        case "patch":
+          saveNoteOfflinePending(userId, queryClient, {
+            kind: "patch",
+            note: pending.note,
+            values: pending.values,
+            date: pending.date,
+            replaceExistingOnDate: pending.replaceExistingOnDate,
+          });
+          break;
+        case "create-calendar":
+          saveNoteOfflinePending(userId, queryClient, {
+            kind: "create-calendar",
+            values: pending.values,
+            date: pending.date,
+            replaceExistingOnDate: pending.replaceExistingOnDate,
+          });
+          break;
+        case "create-general":
+          saveNoteOfflinePending(userId, queryClient, {
+            kind: "create-general",
+            values: pending.values,
+          });
+          break;
+        case "delete":
+          saveNoteOfflinePending(userId, queryClient, {
+            kind: "delete",
+            note: pending.note,
+            values: {
+              title: pending.note.title,
+              content: pending.note.content,
+              starred: pending.note.starred,
+              isImportant: pending.note.isImportant,
+            },
+          });
+          break;
+      }
+
+      if (pending.kind === "create-general") {
+        onGeneralNoteCreated("optimistic-general");
+      }
+
+      markSaveSuccess();
+      return;
+    }
+
     const mutationOptions = {
       onSuccess: () => {
         markSaveSuccess();
@@ -208,6 +265,8 @@ export function usePreSaveOrchestrator({
     markSaveSuccess,
     onGeneralNoteCreated,
     patchNote,
+    queryClient,
+    userId,
   ]);
 
   const scheduleMutation = useCallback(
