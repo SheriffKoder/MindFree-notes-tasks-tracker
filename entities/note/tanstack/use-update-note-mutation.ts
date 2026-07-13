@@ -10,7 +10,7 @@
  * 1. Resolve whether `date` differs from the loaded note (date patch).
  * 2. Snapshot affected cache buckets before writing.
  * 3. On date patch: relocateNoteInCache; else patch owning calendar/general bucket.
- * 4. On error: restore snapshots; on success: reconcile with server note.
+ * 4. On error: restore snapshots; on success: reconcile only when server is newer than cache.
  */
 
 "use client";
@@ -18,6 +18,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
+import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
 import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
 import { relocateNoteInCache } from "@/entities/note/mutations/note-cache-mutations";
 import {
@@ -31,6 +32,7 @@ import type {
   GeneralNotesResponse,
   Note,
 } from "@/entities/note/model/types";
+import { isRemoteNoteNewer } from "@/entities/note/tanstack/apply-realtime-note-change";
 import { generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
 import {
   clearNoteMutationPending,
@@ -180,6 +182,14 @@ export function useUpdateNoteMutation() {
       }
     },
     onSuccess: (serverNote, { note, date }) => {
+      /////////////////////////////////
+      // Skip stale responses — optimistic cache may already hold a newer edit.
+      const cached = findNoteByIdInCache(queryClient, note.id);
+
+      if (!isRemoteNoteNewer(serverNote, cached)) {
+        return;
+      }
+
       const datePatch = resolveDatePatch(note, date);
 
       if (datePatch !== undefined || note.date !== serverNote.date) {
