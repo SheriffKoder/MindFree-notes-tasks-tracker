@@ -11,20 +11,18 @@ import { fetchDeleteNote } from "@/entities/note/mutations/delete-note-client";
 import {
   buildOptimisticCalendarNote,
   buildOptimisticGeneralNote,
-  upsertCalendarNoteInCache,
-  upsertGeneralNoteInCache,
+  buildOptimisticQuickNote,
 } from "@/entities/note/mutations/note-cache-mutations";
 import { mergeFormValuesIntoNote } from "@/entities/note/mutations/patch-note-in-cache";
-import {
-  synchronizeNoteCaches,
-} from "@/entities/note/mutations/synchronize-note-caches";
 import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
 import {
   fetchPostCalendarNote,
   fetchPostGeneralNote,
+  fetchPostQuickNote,
 } from "@/entities/note/mutations/post-note";
-import type { CalendarNotesResponse, GeneralNotesResponse, Note } from "@/entities/note/model/types";
-import { calendarNotesQueryKey, generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
+import { synchronizeNoteCaches } from "@/entities/note/mutations/synchronize-note-caches";
+import type { HomeNotesResponse, Note } from "@/entities/note/model/types";
+import { homeNotesQueryKey } from "@/entities/note/tanstack/query-keys";
 import type { OfflineEntityAdapter } from "@/shared/offline-queue";
 import {
   removeOfflineWrite,
@@ -32,12 +30,17 @@ import {
 } from "@/shared/offline-queue";
 import type { OfflineWrite } from "@/shared/offline-queue";
 
+import { noteChangeFromOfflineFlush } from "./note-change-from-offline";
+
 export const NOTE_OFFLINE_ENTITY = "note";
+
+export const NOTE_OFFLINE_QUICK_KEY = "note:quick";
 
 export type NoteOfflineOperation =
   | "patch"
   | "create-calendar"
   | "create-general"
+  | "create-quick"
   | "delete";
 
 export interface NoteOfflinePayload {
@@ -86,6 +89,8 @@ export function buildNoteOfflineKey(input: NoteOfflinePendingInput): string {
       return `note:calendar:${input.date ?? "unknown"}`;
     case "create-general":
       return "note:general:draft";
+    case "create-quick":
+      return NOTE_OFFLINE_QUICK_KEY;
   }
 }
 
@@ -116,6 +121,7 @@ function resolvePendingFromPayload(
     kind: payload.operation,
     values: payload.values,
     date: payload.date,
+    isQuick: payload.isQuick,
     replaceExistingOnDate: payload.replaceExistingOnDate,
   };
 }
@@ -184,26 +190,32 @@ export function applyNoteOfflinePending(
         return;
       }
 
-      const month = date.slice(0, 7);
-      const queryKey = calendarNotesQueryKey(month);
       const optimisticNote = buildOptimisticCalendarNote(date, input.values);
 
-      queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-        current
-          ? upsertCalendarNoteInCache(current, optimisticNote, {
-              replaceSameDate: true,
-            })
-          : current,
-      );
+      synchronizeNoteCaches(queryClient, {
+        type: "create",
+        note: optimisticNote,
+      });
 
       return;
     }
     case "create-general": {
       const optimisticNote = buildOptimisticGeneralNote(input.values);
 
-      queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-        current ? upsertGeneralNoteInCache(current, optimisticNote) : current,
-      );
+      synchronizeNoteCaches(queryClient, {
+        type: "create",
+        note: optimisticNote,
+      });
+
+      return;
+    }
+    case "create-quick": {
+      const optimisticNote = buildOptimisticQuickNote(input.values);
+
+      synchronizeNoteCaches(queryClient, {
+        type: "create",
+        note: optimisticNote,
+      });
 
       return;
     }
@@ -236,6 +248,14 @@ function resolveCachedNoteForPayload(
     return findNoteByIdInCache(queryClient, "optimistic-general");
   }
 
+  if (payload.operation === "create-quick") {
+    return (
+      findNoteByIdInCache(queryClient, "optimistic-quick") ??
+      queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey)?.quickNote ??
+      null
+    );
+  }
+
   return null;
 }
 
@@ -251,6 +271,16 @@ function shouldApplyOfflinePayload(
     return cached !== null && payload.savedAt > cached.lastEditedAt;
   }
 
+  if (payload.operation === "create-quick") {
+    const cached = resolveCachedNoteForPayload(queryClient, payload);
+
+    if (!cached) {
+      return true;
+    }
+
+    return payload.savedAt > cached.lastEditedAt;
+  }
+
   const cached = resolveCachedNoteForPayload(queryClient, payload);
 
   if (!cached) {
@@ -258,23 +288,6 @@ function shouldApplyOfflinePayload(
   }
 
   return payload.savedAt > cached.lastEditedAt;
-}
-
-function reconcileServerNote(
-  queryClient: QueryClient,
-  previousNote: Note | null,
-  serverNote: Note,
-): void {
-  if (previousNote) {
-    synchronizeNoteCaches(queryClient, {
-      type: "update",
-      previous: previousNote,
-      next: serverNote,
-    });
-    return;
-  }
-
-  synchronizeNoteCaches(queryClient, { type: "create", note: serverNote });
 }
 
 async function executeNoteOfflinePayload(
@@ -311,6 +324,10 @@ async function executeNoteOfflinePayload(
     }
     case "create-general": {
       const response = await fetchPostGeneralNote(payload.values);
+      return response.note;
+    }
+    case "create-quick": {
+      const response = await fetchPostQuickNote(payload.values);
       return response.note;
     }
     case "delete": {
@@ -369,9 +386,13 @@ export function createNotesOfflineSyncAdapter(
         try {
           const previous = resolveCachedNoteForPayload(queryClient, payload);
           const serverNote = await executeNoteOfflinePayload(payload);
+          const change = noteChangeFromOfflineFlush(queryClient, payload, {
+            previous,
+            serverNote,
+          });
 
-          if (serverNote) {
-            reconcileServerNote(queryClient, previous, serverNote);
+          if (change) {
+            synchronizeNoteCaches(queryClient, change);
           }
 
           removeOfflineWrite(write.userId, write.key);

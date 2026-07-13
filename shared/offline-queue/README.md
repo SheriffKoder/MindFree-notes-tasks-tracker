@@ -10,7 +10,7 @@ Works for any entity — notes today; tasks/reminders add their own transformer 
 | ---- | ---- |
 | `lib/offline-store.ts` | `isOnline`, user-scoped `localStorage` read/write/remove |
 | `hooks/use-online-status.ts` | `navigator.onLine` + `online`/`offline` listener |
-| `hooks/use-offline-sync.ts` | Page hook — merge on load, flush on reconnect/focus |
+| `hooks/use-offline-sync.ts` | Page hook — merge on load, merge on cross-tab `storage`, flush on reconnect/focus |
 | `ui/offline-banner.tsx` | Quiet top-right indicator while offline |
 
 Entity-specific logic lives outside this folder (e.g. `entities/note/offline/notes-offline-storage.ts`).
@@ -29,6 +29,10 @@ LOAD (page)
   → getOfflineWrites(userId, entity)
   → for each item: if local.savedAt > server.lastEditedAt → patch TanStack cache
 
+CROSS-TAB (offline)
+  Tab A saves → localStorage updated
+  Tab B hears `storage` event → mergeAll() → patch TanStack cache (no polling)
+
 RECONNECT
   online or window focus
   → flush each stored write via entity adapter
@@ -41,6 +45,8 @@ RECONNECT
 localStorage["offline-writes:{userId}"] = {
   "note:abc-id": { userId, entity, key, payload, savedAt },
   "note:calendar:2026-07-12": { ... },
+  "note:general:draft": { ... },
+  "note:quick": { ... },
 }
 ```
 

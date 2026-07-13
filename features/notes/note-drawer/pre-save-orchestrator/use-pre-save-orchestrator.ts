@@ -37,10 +37,6 @@ import type {
 import { formatCalendarNoteTitle } from "@/entities/note/editor/lib/format-calendar-note-title";
 import type { Note } from "@/entities/note";
 import { saveNoteOfflinePending } from "@/entities/note/offline/notes-offline-storage";
-import {
-  buildOptimisticQuickNote,
-  upsertHomeNoteInCache,
-} from "@/entities/note/mutations/note-cache-mutations";
 import { findNoteOnDateInCache } from "@/features/notes/note-drawer/lib/find-note-in-cache";
 import { isOnline } from "@/shared/offline-queue";
 import {
@@ -196,10 +192,10 @@ export function usePreSaveOrchestrator({
           });
           break;
         case "create-quick":
-          upsertHomeNoteInCache(
-            queryClient,
-            buildOptimisticQuickNote(pending.values),
-          );
+          saveNoteOfflinePending(userId, queryClient, {
+            kind: "create-quick",
+            values: pending.values,
+          });
           break;
         case "delete":
           saveNoteOfflinePending(userId, queryClient, {
