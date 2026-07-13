@@ -37,6 +37,8 @@ export function NoteForm({
   showContentLastSaved = true,
   onFooterMetaChange,
   onDelete,
+  isQuickNote = false,
+  onSetQuick,
   className,
 }: NoteFormProps) {
   const {
@@ -76,8 +78,10 @@ export function NoteForm({
     >
       <NoteFormTitleRow
         errors={errors}
+        isQuickNote={isQuickNote}
         values={values}
         onDatePick={onDatePick ? handleDatePick : undefined}
+        onSetQuick={onSetQuick}
         selectedDate={note?.date ?? calendarDate}
         onDelete={onDelete}
         onTitleChange={setTitle}

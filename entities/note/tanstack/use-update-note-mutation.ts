@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
 import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
-import { relocateNoteInCache, patchHomeNotesCache, upsertGeneralNoteInCache } from "@/entities/note/mutations/note-cache-mutations";
+import { relocateNoteInCache, patchHomeNotesCache, upsertGeneralNoteInCache, removeCalendarNoteFromCache, removeGeneralNoteFromCache } from "@/entities/note/mutations/note-cache-mutations";
 import {
   mergeFormValuesIntoNote,
   patchCalendarNotesCache,
@@ -75,6 +75,26 @@ function resolveDatePatch(
   }
 
   return date;
+}
+
+function removeNoteFromOwnerCaches(
+  queryClient: ReturnType<typeof useQueryClient>,
+  note: Note,
+): void {
+  if (note.date) {
+    const queryKey = resolveOwningQueryKey(note);
+
+    queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
+      current ? removeCalendarNoteFromCache(current, note.id) : current,
+    );
+    return;
+  }
+
+  if (!note.isQuick) {
+    queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
+      current ? removeGeneralNoteFromCache(current, note.id) : current,
+    );
+  }
 }
 
 function applyOwnerCacheUpdate(
@@ -187,15 +207,30 @@ export function useUpdateNoteMutation() {
         datePatch,
       );
       const optimisticNote = mergeFormValuesIntoNote(note, values, {
-        date: datePatch ?? date ?? note.date,
+        date:
+          isQuick === true
+            ? null
+            : datePatch !== undefined
+              ? datePatch
+              : date !== undefined
+                ? date
+                : note.date,
         isQuick,
       });
 
       const queryKey = resolveOwningQueryKey(note);
       await queryClient.cancelQueries({ queryKey });
 
-      applyOwnerCacheUpdate(queryClient, note, optimisticNote, datePatch);
-      patchHomeNotesCache(queryClient, note, optimisticNote);
+      if (isQuick === true && !note.isQuick) {
+        removeNoteFromOwnerCaches(queryClient, note);
+        patchHomeNotesCache(queryClient, note, optimisticNote);
+      } else if (datePatch !== undefined) {
+        relocateNoteInCache(queryClient, note, optimisticNote);
+        patchHomeNotesCache(queryClient, note, optimisticNote);
+      } else {
+        applyOwnerCacheUpdate(queryClient, note, optimisticNote, datePatch);
+        patchHomeNotesCache(queryClient, note, optimisticNote);
+      }
 
       return { previousSnapshots } satisfies UpdateNoteMutationContext;
     },
@@ -221,6 +256,12 @@ export function useUpdateNoteMutation() {
       }
 
       const datePatch = resolveDatePatch(note, date);
+
+      if (serverNote.isQuick && !note.isQuick) {
+        removeNoteFromOwnerCaches(queryClient, note);
+        patchHomeNotesCache(queryClient, note, serverNote);
+        return;
+      }
 
       applyOwnerCacheUpdate(queryClient, note, serverNote, datePatch);
       patchHomeNotesCache(queryClient, note, serverNote);

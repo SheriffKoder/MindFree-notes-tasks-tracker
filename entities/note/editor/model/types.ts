@@ -71,6 +71,10 @@ export interface NoteFormProps {
   remoteSyncKey?: number;
   /** When set, renders a delete control on the title row (persisted notes only). */
   onDelete?: () => void;
+  /** Hides star/important toggles for the home quick-note slot. */
+  isQuickNote?: boolean;
+  /** Promotes a persisted note into the home quick slot (house-plus). */
+  onSetQuick?: () => void;
 }
 
 export interface UseNoteFormOptions {

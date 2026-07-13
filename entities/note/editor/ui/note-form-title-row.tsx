@@ -23,6 +23,10 @@ export interface NoteFormTitleRowProps {
   selectedDate?: string | null;
   /** When set, shows a delete control on the title row. */
   onDelete?: () => void;
+  /** Hides star/important for the home quick-note slot. */
+  isQuickNote?: boolean;
+  /** When set, shows house-plus to promote into the quick slot. */
+  onSetQuick?: () => void;
 }
 
 /**
@@ -37,6 +41,8 @@ export function NoteFormTitleRow({
   onDatePick,
   selectedDate,
   onDelete,
+  isQuickNote,
+  onSetQuick,
 }: NoteFormTitleRowProps) {
   return (
     <div className="flex shrink-0 flex-col gap-1">
@@ -52,8 +58,10 @@ export function NoteFormTitleRow({
         />
 
         <NoteFormToggleButtons
+          isQuickNote={isQuickNote}
           values={values}
           onDatePick={onDatePick}
+          onSetQuick={onSetQuick}
           selectedDate={selectedDate}
           onDelete={onDelete}
           onToggleImportant={onToggleImportant}

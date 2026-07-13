@@ -200,6 +200,14 @@ function applyQuickSlotRules(
 ): NoteSavePayload {
   const { note, request } = input;
 
+  if (input.promoteToQuick && note && !note.isQuick) {
+    return applyQuickNoteInvariants({
+      ...payload,
+      starred: false,
+      isImportant: false,
+    });
+  }
+
   if (note?.isQuick) {
     if (shouldGraduateQuickNote(input.values, date)) {
       return {

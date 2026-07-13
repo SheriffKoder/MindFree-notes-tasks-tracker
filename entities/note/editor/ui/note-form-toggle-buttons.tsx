@@ -7,7 +7,7 @@
  * Used for: Star/important toggles and optional NoteDatePickerTrigger (Step 11).
  */
 
-import { Bookmark, Star, Trash2 } from "lucide-react";
+import { Bookmark, HousePlus, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,10 @@ export interface NoteFormToggleButtonsProps {
   selectedDate?: string | null;
   /** When set, renders a delete control after the bookmark toggle. */
   onDelete?: () => void;
+  /** Hides star/important toggles for the home quick-note slot. */
+  isQuickNote?: boolean;
+  /** When set, shows house-plus to promote this note into the quick slot. */
+  onSetQuick?: () => void;
 }
 
 /**
@@ -36,6 +40,8 @@ export function NoteFormToggleButtons({
   onDatePick,
   selectedDate,
   onDelete,
+  isQuickNote = false,
+  onSetQuick,
 }: NoteFormToggleButtonsProps) {
   return (
     <div className="flex shrink-0 items-center gap-0.5">
@@ -47,45 +53,63 @@ export function NoteFormToggleButtons({
         />
       ) : null}
 
-      <Button
-        aria-label={values.starred ? "Unstar note" : "Star note"}
-        aria-pressed={values.starred}
-        className="shrink-0"
-        size="icon"
-        type="button"
-        variant="ghost"
-        onClick={onToggleStarred}
-      >
-        <Star
-          className={cn(
-            "h-4 w-4",
-            values.starred
-              ? "fill-current [color:var(--note-form-star-active)]"
-              : "[color:var(--note-form-star-inactive)]",
-          )}
-        />
-      </Button>
+      {onSetQuick ? (
+        <Button
+          aria-label="Set as home quick note"
+          className="shrink-0"
+          size="icon"
+          title="Set as home quick note"
+          type="button"
+          variant="ghost"
+          onClick={onSetQuick}
+        >
+          <HousePlus className="h-4 w-4 [color:var(--note-form-star-inactive)]" />
+        </Button>
+      ) : null}
 
-      <Button
-        aria-label={
-          values.isImportant ? "Unmark as important" : "Mark as important"
-        }
-        aria-pressed={values.isImportant}
-        className="shrink-0"
-        size="icon"
-        type="button"
-        variant="ghost"
-        onClick={onToggleImportant}
-      >
-        <Bookmark
-          className={cn(
-            "h-4 w-4",
-            values.isImportant
-              ? "fill-current [color:var(--note-form-important-active)]"
-              : "[color:var(--note-form-important-inactive)]",
-          )}
-        />
-      </Button>
+      {!isQuickNote ? (
+        <>
+          <Button
+            aria-label={values.starred ? "Unstar note" : "Star note"}
+            aria-pressed={values.starred}
+            className="shrink-0"
+            size="icon"
+            type="button"
+            variant="ghost"
+            onClick={onToggleStarred}
+          >
+            <Star
+              className={cn(
+                "h-4 w-4",
+                values.starred
+                  ? "fill-current [color:var(--note-form-star-active)]"
+                  : "[color:var(--note-form-star-inactive)]",
+              )}
+            />
+          </Button>
+
+          <Button
+            aria-label={
+              values.isImportant ? "Unmark as important" : "Mark as important"
+            }
+            aria-pressed={values.isImportant}
+            className="shrink-0"
+            size="icon"
+            type="button"
+            variant="ghost"
+            onClick={onToggleImportant}
+          >
+            <Bookmark
+              className={cn(
+                "h-4 w-4",
+                values.isImportant
+                  ? "fill-current [color:var(--note-form-important-active)]"
+                  : "[color:var(--note-form-important-inactive)]",
+              )}
+            />
+          </Button>
+        </>
+      ) : null}
 
       {onDelete ? (
         <Button

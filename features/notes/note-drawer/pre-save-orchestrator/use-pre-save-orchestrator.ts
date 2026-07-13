@@ -376,7 +376,11 @@ export function usePreSaveOrchestrator({
   );
 
   const evaluate = useCallback(
-    (values: NoteFormValues, meta: NoteFormChangeMeta) => {
+    (
+      values: NoteFormValues,
+      meta: NoteFormChangeMeta,
+      options?: { promoteToQuick?: boolean },
+    ) => {
       /////////////////////////////////
       // Run pure pipeline — no side effects beyond syncing drawer UI state
       const result = evaluateNoteSave({
@@ -388,6 +392,7 @@ export function usePreSaveOrchestrator({
         isDateNavEnabled,
         lastPickedDate: lastPickedDateRef.current,
         replaceConfirmed: replaceConfirmedRef.current,
+        promoteToQuick: options?.promoteToQuick,
         findNoteOnDate,
       });
 
@@ -501,6 +506,38 @@ export function usePreSaveOrchestrator({
     evaluate(values, meta);
   }, [evaluate]);
 
+  const promoteToQuick = useCallback(() => {
+    if (!note?.id || note.isQuick) {
+      return;
+    }
+
+    const values = lastFormValuesRef.current;
+
+    if (!values) {
+      return;
+    }
+
+    clearDebounceTimer();
+    lastPickedDateRef.current = null;
+
+    const result = evaluate(values, { isDirty: true, isValid: true }, {
+      promoteToQuick: true,
+    });
+
+    if (!result.isSavingEnabled || result.action !== "patch") {
+      return;
+    }
+
+    scheduleFromEvaluation(result);
+    runPendingMutation();
+  }, [
+    clearDebounceTimer,
+    evaluate,
+    note,
+    runPendingMutation,
+    scheduleFromEvaluation,
+  ]);
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -540,5 +577,6 @@ export function usePreSaveOrchestrator({
     resolveDismiss,
     applyPickedDate,
     reevaluateFromCache,
+    promoteToQuick,
   };
 }

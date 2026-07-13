@@ -43,6 +43,8 @@ export interface EvaluateNoteSaveInput {
   lastPickedDate: string | null;
   /** User confirmed Replace on a same-day conflict (Step 4+). */
   replaceConfirmed: boolean;
+  /** Explicit promote-to-quick from the house-plus control. */
+  promoteToQuick?: boolean;
   /** Cache adapter — returns another note on the day, if any. */
   findNoteOnDate: (date: string, excludeId?: string) => Note | null;
 }
@@ -83,4 +85,6 @@ export interface UsePreSaveOrchestratorResult {
   applyPickedDate: (isoDate: string) => string;
   /** Re-run pipeline after remote cache sync — conflict/nav only, no schedule. */
   reevaluateFromCache: () => void;
+  /** Promotes the open note into the home quick slot (house-plus control). */
+  promoteToQuick: () => void;
 }

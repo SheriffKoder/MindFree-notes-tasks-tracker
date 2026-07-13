@@ -54,6 +54,15 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
   );
   const note = useResolvedDrawerNote(request, activeDate, isDateNavEnabled);
 
+  const isQuickNoteContext = useMemo(
+    () =>
+      Boolean(note?.isQuick) ||
+      (request?.mode === "create" && "quick" in request),
+    [note?.isQuick, request],
+  );
+
+  const canPromoteToQuick = Boolean(note?.id && !note.isQuick);
+
   const handleGeneralNoteCreated = useCallback(
     (noteId: string) => {
       openEdit(noteId);
@@ -78,6 +87,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     resolveReplace,
     resolveDismiss,
     reevaluateFromCache,
+    promoteToQuick,
   } = usePreSaveOrchestrator({
     note,
     isOpen,
@@ -194,6 +204,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
         <NoteForm
           calendarDate={prefillCalendarDate}
           commitKey={commitKey}
+          isQuickNote={isQuickNoteContext}
           note={note}
           remoteSyncKey={remoteSyncKey}
           resetKey={resetKey}
@@ -203,6 +214,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
           onDatePick={handleDatePick}
           onDelete={note?.id ? handleDelete : undefined}
           onFooterMetaChange={handleFooterMetaChange}
+          onSetQuick={canPromoteToQuick ? promoteToQuick : undefined}
         />
 
         <NoteDrawerFooter
