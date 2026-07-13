@@ -20,7 +20,7 @@ import type { InMonthDay, MonthCalendarProps } from "@/shared/calendar/model/typ
 const frameClassName =
   "flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]";
 const headerCellClassName =
-  "flex min-h-8 min-w-0 items-center justify-center border-r border-[var(--color-border)] px-1 py-2 text-center text-caption [color:var(--color-fg-muted)] last:border-r-0";
+  "flex min-h-8 min-w-0 items-center justify-center border-r border-[var(--color-border)] px-1 py-2 text-center text-caption [color:var(--color-fg-muted)] last:border-r-0 md:min-h-10 md:px-2 md:py-2.5 md:text-sm";
 /**
  * Equal columns + equal rows that share leftover height — cell bodies stretch,
  * independent of note preview length.

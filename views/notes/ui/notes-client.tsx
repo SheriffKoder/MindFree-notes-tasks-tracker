@@ -82,7 +82,7 @@ export function NotesClient() {
   );
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-4">
+    <div className="mx-auto flex h-full w-full flex-col gap-4">
       <OfflineBanner />
       <section className="flex shrink-0 flex-col gap-2">
         <h2 className="text-h2">Notes</h2>
@@ -94,7 +94,7 @@ export function NotesClient() {
 
       <section
         aria-label="Notes controls"
-        className="flex shrink-0 flex-row items-stretch gap-3"
+        className="flex shrink-0 flex-row items-center justify-between gap-3"
       >
         <MonthNavigator
           className="min-w-0 flex-1"

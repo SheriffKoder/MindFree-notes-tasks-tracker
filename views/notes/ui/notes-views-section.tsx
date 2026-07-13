@@ -138,13 +138,13 @@ export function NotesViewsSection({
   return (
     <section
       className={
-        view === "calendar" ? "flex h-full min-h-0 flex-col" : undefined
+        view === "calendar" ? "flex h-full min-h-[600px] flex-col" : undefined
       }
     >
       {view === "calendar" && calendarNotes ? (
-        <div className="h-full min-h-0 w-full max-w-full overflow-x-auto">
+        <div className="h-full min-h-[600px] w-full overflow-x-auto">
           <MonthCalendar
-            className="h-full min-h-0 w-full min-w-[42rem] md:min-w-0"
+            className="h-full min-h-[600px] w-full min-w-[42rem] md:min-w-0"
             month={month}
             calendarDays={calendarNotes.calendarDays}
             selectedDate={highlightedDate}
