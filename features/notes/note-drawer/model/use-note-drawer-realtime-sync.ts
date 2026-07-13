@@ -86,6 +86,7 @@ export function useNoteDrawerRealtimeSync({
         openedAtRef.current = Date.now();
         lastLocalEditAtRef.current = null;
         setIsFormDirty(false);
+        setRemoteSyncKey(0);
       }
     },
     [isOpen, resetKey],

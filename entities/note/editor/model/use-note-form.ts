@@ -122,6 +122,12 @@ export function useNoteForm({
   const valuesRef = useRef(values);
   valuesRef.current = values;
 
+  const noteRef = useRef(note);
+  noteRef.current = note;
+
+  const calendarDateRef = useRef(calendarDate);
+  calendarDateRef.current = calendarDate;
+
   // Context switch — reload fields from the resolved note or empty draft.
   useEffect(() => {
     const nextValues = noteToFormValues(note, calendarDate);
@@ -131,17 +137,20 @@ export function useNoteForm({
   }, [calendarDate, noteKey, resetKey]);
 
   /////////////////////////////////
-  // Remote sync — server wins when parent bumps remoteSyncKey (idle, not dirty).
+  // Remote sync — pull cached note fields only when remoteSyncKey bumps (not on every cache write).
   useEffect(() => {
     if (remoteSyncKey === 0) {
       return;
     }
 
-    const nextValues = noteToFormValues(note, calendarDate);
+    const nextValues = noteToFormValues(
+      noteRef.current,
+      calendarDateRef.current,
+    );
     setBaselineValues(nextValues);
     setValues(nextValues);
     setErrors({});
-  }, [calendarDate, note, noteKey, remoteSyncKey]);
+  }, [remoteSyncKey]);
 
   // Successful autosave — snap baseline without overwriting current inputs.
   useEffect(() => {
