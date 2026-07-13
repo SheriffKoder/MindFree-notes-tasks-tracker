@@ -36,6 +36,7 @@ export function NoteForm({
   saveStatus = "idle",
   showContentLastSaved = true,
   onFooterMetaChange,
+  onDelete,
   className,
 }: NoteFormProps) {
   const {
@@ -77,6 +78,7 @@ export function NoteForm({
         errors={errors}
         values={values}
         onDatePick={onDatePick ? handleDatePick : undefined}
+        onDelete={onDelete}
         onTitleChange={setTitle}
         onToggleImportant={toggleImportant}
         onToggleStarred={toggleStarred}

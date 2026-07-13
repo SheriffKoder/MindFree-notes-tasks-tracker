@@ -41,7 +41,7 @@ export function OfflineBanner({
       aria-live="polite"
       aria-label="Offline. Changes will save when you reconnect."
       className={cn(
-        "fixed right-4 top-4 z-[60] flex w-fit items-center gap-1.5 text-sm text-[var(--color-fg-muted)]",
+        "fixed right-4 top-4 z-[100] flex w-fit items-center gap-1.5 text-sm text-[var(--color-accent)]",
         className,
       )}
     >
