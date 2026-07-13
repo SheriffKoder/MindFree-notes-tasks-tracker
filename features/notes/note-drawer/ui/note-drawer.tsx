@@ -61,6 +61,13 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     [openEdit],
   );
 
+  const handleQuickNoteCreated = useCallback(
+    (noteId: string) => {
+      openEdit(noteId);
+    },
+    [openEdit],
+  );
+
   const {
     saveStatus,
     handleChange,
@@ -79,6 +86,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     isDateNavEnabled,
     userId,
     onGeneralNoteCreated: handleGeneralNoteCreated,
+    onQuickNoteCreated: handleQuickNoteCreated,
   });
 
   const { goToPreviousDay, goToNextDay, swipeHandlers } =

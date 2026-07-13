@@ -25,6 +25,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useCreateCalendarNoteMutation,
   useCreateGeneralNoteMutation,
+  useCreateQuickNoteMutation,
   useDeleteNoteMutation,
   useUpdateNoteMutation,
 } from "@/entities/note/client";
@@ -36,6 +37,10 @@ import type {
 import { formatCalendarNoteTitle } from "@/entities/note/editor/lib/format-calendar-note-title";
 import type { Note } from "@/entities/note";
 import { saveNoteOfflinePending } from "@/entities/note/offline/notes-offline-storage";
+import {
+  buildOptimisticQuickNote,
+  upsertHomeNoteInCache,
+} from "@/entities/note/mutations/note-cache-mutations";
 import { findNoteOnDateInCache } from "@/features/notes/note-drawer/lib/find-note-in-cache";
 import { isOnline } from "@/shared/offline-queue";
 import {
@@ -67,6 +72,7 @@ type PendingMutation =
       replaceExistingOnDate: boolean;
     }
   | { kind: "create-general"; values: NoteFormValues }
+  | { kind: "create-quick"; values: NoteFormValues }
   | { kind: "delete"; note: Note };
 
 function formValuesFromPayload(payload: NoteSavePayload): NoteFormValues {
@@ -85,11 +91,13 @@ export function usePreSaveOrchestrator({
   isDateNavEnabled,
   userId,
   onGeneralNoteCreated,
+  onQuickNoteCreated,
 }: UsePreSaveOrchestratorOptions): UsePreSaveOrchestratorResult {
   const queryClient = useQueryClient();
   const { mutate: patchNote } = useUpdateNoteMutation();
   const { mutate: createCalendarNote } = useCreateCalendarNoteMutation();
   const { mutate: createGeneralNote } = useCreateGeneralNoteMutation();
+  const { mutate: createQuickNote } = useCreateQuickNoteMutation();
   const { mutate: deleteNote } = useDeleteNoteMutation();
 
   const [saveStatus, setSaveStatus] = useState<NoteSaveStatus>("idle");
@@ -185,6 +193,12 @@ export function usePreSaveOrchestrator({
             values: pending.values,
           });
           break;
+        case "create-quick":
+          upsertHomeNoteInCache(
+            queryClient,
+            buildOptimisticQuickNote(pending.values),
+          );
+          break;
         case "delete":
           saveNoteOfflinePending(userId, queryClient, {
             kind: "delete",
@@ -201,6 +215,10 @@ export function usePreSaveOrchestrator({
 
       if (pending.kind === "create-general") {
         onGeneralNoteCreated("optimistic-general");
+      }
+
+      if (pending.kind === "create-quick") {
+        onQuickNoteCreated("optimistic-quick");
       }
 
       markSaveSuccess();
@@ -254,16 +272,32 @@ export function usePreSaveOrchestrator({
           },
         );
         return;
+      case "create-quick":
+        createQuickNote(
+          { values: pending.values },
+          {
+            onSuccess: (serverNote) => {
+              markSaveSuccess();
+              onQuickNoteCreated(serverNote.id);
+            },
+            onError: () => {
+              markSaveError();
+            },
+          },
+        );
+        return;
       case "delete":
         deleteNote({ note: pending.note }, mutationOptions);
     }
   }, [
     createCalendarNote,
     createGeneralNote,
+    createQuickNote,
     deleteNote,
     markSaveError,
     markSaveSuccess,
     onGeneralNoteCreated,
+    onQuickNoteCreated,
     patchNote,
     queryClient,
     userId,
@@ -318,6 +352,9 @@ export function usePreSaveOrchestrator({
         }
         case "create-general":
           scheduleMutation({ kind: "create-general", values });
+          return;
+        case "create-quick":
+          scheduleMutation({ kind: "create-quick", values });
           return;
         case "delete":
           if (!note) {

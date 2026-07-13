@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
 import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
-import { relocateNoteInCache } from "@/entities/note/mutations/note-cache-mutations";
+import { relocateNoteInCache, patchHomeNotesCache } from "@/entities/note/mutations/note-cache-mutations";
 import {
   mergeFormValuesIntoNote,
   patchCalendarNotesCache,
@@ -30,10 +30,11 @@ import {
 import type {
   CalendarNotesResponse,
   GeneralNotesResponse,
+  HomeNotesResponse,
   Note,
 } from "@/entities/note/model/types";
 import { isRemoteNoteNewer } from "@/entities/note/tanstack/apply-realtime-note-change";
-import { generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
+import { generalNotesQueryKey, homeNotesQueryKey } from "@/entities/note/tanstack/query-keys";
 import {
   clearNoteMutationPending,
   markNoteMutationPending,
@@ -52,7 +53,7 @@ export interface UpdateNoteMutationInput {
 
 interface CacheSnapshot {
   queryKey: readonly unknown[];
-  data: CalendarNotesResponse | GeneralNotesResponse | undefined;
+  data: CalendarNotesResponse | GeneralNotesResponse | HomeNotesResponse | undefined;
 }
 
 interface UpdateNoteMutationContext {
@@ -94,6 +95,11 @@ function snapshotOwningCaches(
       data: queryClient.getQueryData<GeneralNotesResponse>(generalNotesQueryKey),
     });
 
+    snapshots.push({
+      queryKey: homeNotesQueryKey,
+      data: queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey),
+    });
+
     return snapshots;
   }
 
@@ -105,6 +111,10 @@ function snapshotOwningCaches(
       data: queryClient.getQueryData<
         CalendarNotesResponse | GeneralNotesResponse
       >(queryKey),
+    },
+    {
+      queryKey: homeNotesQueryKey,
+      data: queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey),
     },
   ];
 }
@@ -147,6 +157,7 @@ export function useUpdateNoteMutation() {
 
       if (datePatch !== undefined) {
         relocateNoteInCache(queryClient, note, optimisticNote);
+        patchHomeNotesCache(queryClient, note, optimisticNote);
       } else if (note.date) {
         const queryKey = resolveOwningQueryKey(note);
 
@@ -156,7 +167,7 @@ export function useUpdateNoteMutation() {
             ? patchCalendarNotesCache(current, optimisticNote)
             : current,
         );
-      } else {
+      } else if (!note.isQuick) {
         const queryKey = resolveOwningQueryKey(note);
 
         await queryClient.cancelQueries({ queryKey });
@@ -166,6 +177,8 @@ export function useUpdateNoteMutation() {
             : current,
         );
       }
+
+      patchHomeNotesCache(queryClient, note, optimisticNote);
 
       return { previousSnapshots } satisfies UpdateNoteMutationContext;
     },
@@ -194,6 +207,7 @@ export function useUpdateNoteMutation() {
 
       if (datePatch !== undefined || note.date !== serverNote.date) {
         relocateNoteInCache(queryClient, note, serverNote);
+        patchHomeNotesCache(queryClient, note, serverNote);
         return;
       }
 
@@ -203,11 +217,13 @@ export function useUpdateNoteMutation() {
         queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
           current ? patchCalendarNotesCache(current, serverNote) : current,
         );
-      } else {
+      } else if (!note.isQuick) {
         queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
           current ? patchGeneralNotesCache(current, serverNote) : current,
         );
       }
+
+      patchHomeNotesCache(queryClient, note, serverNote);
     },
   });
 }

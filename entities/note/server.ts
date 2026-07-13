@@ -29,5 +29,6 @@ export { hydrateHomeNotesQueries } from "@/entities/note/tanstack/hydrate-home-n
 export { updateNote } from "@/entities/note/mutations/update-note";
 export { createCalendarNote } from "@/entities/note/mutations/create-calendar-note";
 export { createGeneralNote } from "@/entities/note/mutations/create-general-note";
+export { createQuickNote } from "@/entities/note/mutations/create-quick-note";
 export { deleteNote } from "@/entities/note/mutations/delete-note";
 export { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";

@@ -17,11 +17,13 @@ import type { QueryClient } from "@tanstack/react-query";
 import type {
   CalendarNotesResponse,
   GeneralNotesResponse,
+  HomeNotesResponse,
   Note,
 } from "@/entities/note/model/types";
 import {
   calendarNotesQueryKey,
   generalNotesQueryKey,
+  homeNotesQueryKey,
 } from "@/entities/note/tanstack/query-keys";
 import { aggregateMonthNotes } from "@/entities/note/transform/aggregate-month-notes";
 
@@ -122,6 +124,148 @@ export function upsertGeneralNoteInCache(
   );
 
   return { generalNotes };
+}
+
+/** Max starred rows kept in the home read cache (matches repository fetch cap). */
+export const HOME_STARRED_CACHE_LIMIT = 20;
+
+function sortStarredNotesByLastEdited(notes: Note[]): Note[] {
+  return [...notes].sort((left, right) =>
+    right.lastEditedAt.localeCompare(left.lastEditedAt),
+  );
+}
+
+/**
+ * Applies an update to the home read cache from a previous → next note transition.
+ *
+ * @param data - cached home payload
+ * @param previous - note row before the write
+ * @param next - optimistic or server-confirmed note after the write
+ */
+export function applyHomeNoteUpdate(
+  data: HomeNotesResponse,
+  previous: Note,
+  next: Note,
+): HomeNotesResponse {
+  let quickNote = data.quickNote;
+  let starredNotes = data.starredNotes;
+
+  if (next.isQuick) {
+    quickNote = next;
+  } else if (quickNote?.id === previous.id || quickNote?.id === next.id) {
+    quickNote = null;
+  }
+
+  starredNotes = starredNotes.filter(
+    (entry) => entry.id !== previous.id && entry.id !== next.id,
+  );
+
+  if (next.starred && !next.isQuick) {
+    starredNotes = sortStarredNotesByLastEdited([next, ...starredNotes]).slice(
+      0,
+      HOME_STARRED_CACHE_LIMIT,
+    );
+  }
+
+  return { quickNote, starredNotes };
+}
+
+/**
+ * Applies a create write to the home read cache.
+ *
+ * @param data - cached home payload
+ * @param note - created note row
+ */
+export function applyHomeNoteCreate(
+  data: HomeNotesResponse,
+  note: Note,
+): HomeNotesResponse {
+  if (note.isQuick) {
+    return { ...data, quickNote: note };
+  }
+
+  let starredNotes = data.starredNotes.filter((entry) => entry.id !== note.id);
+
+  if (note.starred) {
+    starredNotes = sortStarredNotesByLastEdited([note, ...starredNotes]).slice(
+      0,
+      HOME_STARRED_CACHE_LIMIT,
+    );
+  }
+
+  return { quickNote: data.quickNote, starredNotes };
+}
+
+/**
+ * Removes one note from the home quick slot and starred carousel.
+ *
+ * @param data - cached home payload
+ * @param noteId - row id to remove
+ */
+export function applyHomeNoteDelete(
+  data: HomeNotesResponse,
+  noteId: string,
+): HomeNotesResponse {
+  return {
+    quickNote: data.quickNote?.id === noteId ? null : data.quickNote,
+    starredNotes: data.starredNotes.filter((note) => note.id !== noteId),
+  };
+}
+
+/**
+ * Writes a home note update into the TanStack cache.
+ */
+export function patchHomeNotesCache(
+  queryClient: QueryClient,
+  previous: Note,
+  next: Note,
+): void {
+  queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
+    const base = current ?? { quickNote: null, starredNotes: [] };
+    return applyHomeNoteUpdate(base, previous, next);
+  });
+}
+
+/**
+ * Writes a home note create into the TanStack cache.
+ */
+export function upsertHomeNoteInCache(queryClient: QueryClient, note: Note): void {
+  queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
+    const base = current ?? { quickNote: null, starredNotes: [] };
+    return applyHomeNoteCreate(base, note);
+  });
+}
+
+/**
+ * Removes one note from the home TanStack cache.
+ */
+export function removeHomeNoteFromCacheQuery(
+  queryClient: QueryClient,
+  noteId: string,
+): void {
+  queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
+    if (!current) {
+      return current;
+    }
+
+    return applyHomeNoteDelete(current, noteId);
+  });
+}
+
+/**
+ * Builds an optimistic quick note before the server assigns an id.
+ */
+export function buildOptimisticQuickNote(values: NoteFormValues): Note {
+  return {
+    id: "optimistic-quick",
+    date: null,
+    title: values.title,
+    content: values.content,
+    starred: values.starred,
+    isImportant: values.isImportant,
+    isQuick: true,
+    lastEditedAt: new Date().toISOString(),
+  };
 }
 
 /**

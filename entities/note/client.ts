@@ -33,6 +33,8 @@ export { useCreateCalendarNoteMutation } from "@/entities/note/tanstack/use-crea
 export type { CreateCalendarNoteMutationInput } from "@/entities/note/tanstack/use-create-calendar-note-mutation";
 export { useCreateGeneralNoteMutation } from "@/entities/note/tanstack/use-create-general-note-mutation";
 export type { CreateGeneralNoteMutationInput } from "@/entities/note/tanstack/use-create-general-note-mutation";
+export { useCreateQuickNoteMutation } from "@/entities/note/tanstack/use-create-quick-note-mutation";
+export type { CreateQuickNoteMutationInput } from "@/entities/note/tanstack/use-create-quick-note-mutation";
 export { useDeleteNoteMutation } from "@/entities/note/tanstack/use-delete-note-mutation";
 export type { DeleteNoteMutationInput } from "@/entities/note/tanstack/use-delete-note-mutation";
 export { useNotesRealtimeSync } from "@/entities/note/tanstack/use-notes-realtime-sync";

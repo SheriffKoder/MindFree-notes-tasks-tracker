@@ -99,3 +99,31 @@ export async function fetchPostGeneralNote(
 
   return response.json() as Promise<PostNoteResponse>;
 }
+
+/**
+ * Creates a quick note (`date IS NULL`, `is_quick = true`).
+ *
+ * @param values - editable form snapshot
+ * @returns server-confirmed note
+ */
+export async function fetchPostQuickNote(
+  values: NoteFormValues,
+): Promise<PostNoteResponse> {
+  const response = await fetch("/api/notes/home", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(values),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(body?.error ?? "Failed to create quick note.");
+  }
+
+  return response.json() as Promise<PostNoteResponse>;
+}

@@ -11,6 +11,7 @@ import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import {
   buildOptimisticGeneralNote,
   upsertGeneralNoteInCache,
+  upsertHomeNoteInCache,
 } from "@/entities/note/mutations/note-cache-mutations";
 import { fetchPostGeneralNote } from "@/entities/note/mutations/post-note";
 import type { GeneralNotesResponse } from "@/entities/note/model/types";
@@ -67,6 +68,10 @@ export function useCreateGeneralNoteMutation() {
         (current) =>
           current ? upsertGeneralNoteInCache(current, serverNote) : current,
       );
+
+      if (serverNote.starred) {
+        upsertHomeNoteInCache(queryClient, serverNote);
+      }
     },
   });
 }

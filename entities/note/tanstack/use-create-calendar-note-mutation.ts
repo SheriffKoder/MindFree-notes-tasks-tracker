@@ -20,6 +20,7 @@ import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import {
   buildOptimisticCalendarNote,
   upsertCalendarNoteInCache,
+  upsertHomeNoteInCache,
 } from "@/entities/note/mutations/note-cache-mutations";
 import { fetchPostCalendarNote } from "@/entities/note/mutations/post-note";
 import type { CalendarNotesResponse, Note } from "@/entities/note/model/types";
@@ -96,6 +97,10 @@ export function useCreateCalendarNoteMutation() {
             })
           : current,
       );
+
+      if (serverNote.starred) {
+        upsertHomeNoteInCache(queryClient, serverNote);
+      }
     },
   });
 }

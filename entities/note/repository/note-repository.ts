@@ -328,6 +328,39 @@ export async function createGeneralNote(
 }
 
 /**
+ * Inserts a quick note (`date IS NULL`, `is_quick = true`).
+ *
+ * @param payload - quick note fields
+ * @returns created note
+ */
+export async function createQuickNote(
+  payload: CreateGeneralNoteBody,
+): Promise<Note> {
+  const userId = await getAuthenticatedUserId();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from(NOTES_TABLE)
+    .insert({
+      user_id: userId,
+      date: null,
+      title: payload.title,
+      content: payload.content,
+      starred: payload.starred,
+      is_important: payload.isImportant,
+      is_quick: true,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create quick note: ${error.message}`);
+  }
+
+  return mapNoteRow(data as NoteRow);
+}
+
+/**
  * Deletes one note row owned by the current user (RLS).
  *
  * @param id - note row id

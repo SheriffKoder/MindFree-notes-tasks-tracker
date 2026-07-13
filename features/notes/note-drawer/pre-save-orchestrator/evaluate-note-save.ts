@@ -64,6 +64,15 @@ export function isGeneralCreateRequest(
 }
 
 /**
+ * @returns whether the drawer is in quick-note lazy-create mode.
+ */
+export function isQuickCreateRequest(
+  request: NoteEditorRequest | null,
+): boolean {
+  return request?.mode === "create" && "quick" in request;
+}
+
+/**
  * @returns whether calendar date create/edit routing applies.
  */
 export function isCalendarDateContext(
@@ -187,6 +196,10 @@ function decideAction(
 
     if (isGeneralCreateRequest(request)) {
       return "create-general";
+    }
+
+    if (isQuickCreateRequest(request)) {
+      return "create-quick";
     }
 
     return "noop";

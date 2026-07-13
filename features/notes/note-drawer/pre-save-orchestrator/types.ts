@@ -21,6 +21,7 @@ export type NoteSaveAction =
   | "patch"
   | "create-calendar"
   | "create-general"
+  | "create-quick"
   | "delete"
   | "noop";
 
@@ -63,6 +64,8 @@ export interface UsePreSaveOrchestratorOptions {
   userId: string | null;
   /** Switches general create intent to edit mode after the first row exists. */
   onGeneralNoteCreated: (noteId: string) => void;
+  /** Switches quick create intent to edit mode after the first row exists. */
+  onQuickNoteCreated: (noteId: string) => void;
 }
 
 export interface UsePreSaveOrchestratorResult {
