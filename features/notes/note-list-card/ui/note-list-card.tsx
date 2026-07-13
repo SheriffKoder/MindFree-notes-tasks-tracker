@@ -19,8 +19,9 @@ export interface NoteListCardProps {
    * Card chrome variant.
    * - `responsive` — mobile card below `md`, desktop card at `md+` (default)
    * - `mobile` / `desktop` — force one variant at all breakpoints
+   * - `home` — desktop chrome with shorter height on small screens (Home strip)
    */
-  variant?: "responsive" | "mobile" | "desktop";
+  variant?: "responsive" | "mobile" | "desktop" | "home";
 }
 
 function formatLastEditedAt(value: string): string {
@@ -54,19 +55,20 @@ export const NoteListCard = memo(function NoteListCard({
         note={note}
         reserved={reserved}
         reservedKind={reservedKind}
-        formattedLastEditedAt={formattedLastEditedAt}
         onClick={onClick}
       />
     );
   }
 
-  if (variant === "desktop") {
+  if (variant === "desktop" || variant === "home") {
     return (
       <NoteListCardDesktop
         note={note}
         reserved={reserved}
         reservedKind={reservedKind}
         formattedLastEditedAt={formattedLastEditedAt}
+        homeLayout={variant === "home"}
+        compactOnMobile={variant === "home"}
         onClick={onClick}
       />
     );
@@ -79,7 +81,6 @@ export const NoteListCard = memo(function NoteListCard({
           note={note}
           reserved={reserved}
           reservedKind={reservedKind}
-          formattedLastEditedAt={formattedLastEditedAt}
           onClick={onClick}
         />
       </div>

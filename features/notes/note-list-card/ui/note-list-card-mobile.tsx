@@ -13,7 +13,6 @@ export interface NoteListCardMobileProps {
   note: Note;
   reserved?: string;
   reservedKind?: "date" | "file";
-  formattedLastEditedAt: string;
   onClick?: () => void;
 }
 
@@ -21,13 +20,11 @@ export function NoteListCardMobile({
   note,
   reserved,
   reservedKind,
-  formattedLastEditedAt,
   onClick,
 }: NoteListCardMobileProps) {
   const reservedClass = note.isImportant
     ? "text-caption [color:var(--note-card-important-accent)]"
     : "text-caption [color:var(--note-card-reserved)]";
-  const lastEditedClass = "text-caption [color:var(--color-fg-muted)]";
 
   return (
     <article
@@ -35,11 +32,10 @@ export function NoteListCardMobile({
       className="relative flex h-40 cursor-pointer flex-col justify-between rounded-xl border-b border-[var(--color-border)] bg-[var(--note-card-bg-default)] px-4 py-3 transition-colors duration-200 hover:bg-[var(--note-card-hover-light)] dark:hover:bg-[var(--note-card-hover-dark)]"
       {...getNoteCardInteractionProps(onClick)}
     >
-      <NoteListCardStatusIcons className="right-1 top-3" note={note} />
-      <div className="pr-10">
+      <div>
         <p className="line-clamp-2 text-sm font-medium">{note.content || "(empty note)"}</p>
       </div>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-end justify-between gap-3">
         <p className={reservedClass}>
           {reserved ? (
             <span className="inline-flex items-center gap-1">
@@ -54,7 +50,7 @@ export function NoteListCardMobile({
             ""
           )}
         </p>
-        <p className={lastEditedClass}>{formattedLastEditedAt}</p>
+        <NoteListCardStatusIcons layout="inline" note={note} />
       </div>
     </article>
   );

@@ -16,6 +16,10 @@ import { NoteListCard } from "@/features/notes/note-list-card";
 import { QueryStatePanel } from "@/shared/react-query";
 import { getReservedMeta } from "@/views/notes/lib/reserved-meta";
 
+/** Home strip card shell — narrower on phone, full width at md+. */
+const HOME_STRIP_CARD_SHELL_CLASS =
+  "w-[min(220px,30vw)] shrink-0 md:w-[min(280px,70vw)]";
+
 export interface HomeNotesStripProps {
   /** Opens the drawer for an existing note. */
   onNoteClick: (note: Note) => void;
@@ -37,15 +41,12 @@ export function HomeNotesStrip({
       const reserved = getReservedMeta("home", note);
 
       return (
-        <div
-          key={note.id}
-          className="w-[min(280px,70vw)] shrink-0"
-        >
+        <div key={note.id} className={HOME_STRIP_CARD_SHELL_CLASS}>
           <NoteListCard
             note={note}
             reserved={reserved.value}
             reservedKind={reserved.kind}
-            variant="desktop"
+            variant="home"
             onClick={() => onNoteClick(note)}
           />
         </div>
@@ -74,19 +75,19 @@ export function HomeNotesStrip({
   return (
     <div className="-mx-1 overflow-x-auto px-1 pb-1">
       <div className="flex flex-row gap-3">
-        <div className="w-[min(280px,70vw)] shrink-0">
+        <div className={HOME_STRIP_CARD_SHELL_CLASS}>
           {quickNote ? (
             <NoteListCard
               note={quickNote}
               reserved={quickReserved?.value}
               reservedKind={quickReserved?.kind}
-              variant="desktop"
+              variant="home"
               onClick={() => onNoteClick(quickNote)}
             />
           ) : (
             <button
               aria-label="Create quick note"
-              className="group flex h-56 w-full cursor-pointer flex-col text-left"
+              className="group flex h-40 w-full cursor-pointer flex-col text-left md:h-56"
               type="button"
               onClick={onQuickPlaceholderClick}
             >
