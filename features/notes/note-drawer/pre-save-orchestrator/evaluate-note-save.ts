@@ -164,6 +164,60 @@ function normalizePayload(
   };
 }
 
+/**
+ * Quick notes never keep a calendar date or title — content-only slot.
+ */
+function applyQuickNoteInvariants(payload: NoteSavePayload): NoteSavePayload {
+  return {
+    ...payload,
+    title: "",
+    date: null,
+    isQuick: true,
+  };
+}
+
+/**
+ * @returns whether an existing quick note should leave the home quick slot.
+ */
+function shouldGraduateQuickNote(
+  values: NoteFormValues,
+  date: string | null,
+): boolean {
+  if (date) {
+    return true;
+  }
+
+  return Boolean(values.title.trim());
+}
+
+/**
+ * Applies quick-slot promotion/graduation rules after date resolution.
+ */
+function applyQuickSlotRules(
+  payload: NoteSavePayload,
+  input: EvaluateNoteSaveInput,
+  date: string | null,
+): NoteSavePayload {
+  const { note, request } = input;
+
+  if (note?.isQuick) {
+    if (shouldGraduateQuickNote(input.values, date)) {
+      return {
+        ...payload,
+        isQuick: false,
+      };
+    }
+
+    return applyQuickNoteInvariants(payload);
+  }
+
+  if (isQuickCreateRequest(request)) {
+    return applyQuickNoteInvariants(payload);
+  }
+
+  return payload;
+}
+
 function findConflict(
   findNoteOnDate: EvaluateNoteSaveInput["findNoteOnDate"],
   date: string,
@@ -199,6 +253,10 @@ function decideAction(
     }
 
     if (isQuickCreateRequest(request)) {
+      if (input.values.title.trim()) {
+        return "create-general";
+      }
+
       return "create-quick";
     }
 
@@ -243,7 +301,11 @@ export function evaluateNoteSave(
 
   /////////////////////////////////
   // 2. Normalize payload — calendar notes always use the formatted date title
-  const payload = normalizePayload(input.values, date);
+  const payload = applyQuickSlotRules(
+    normalizePayload(input.values, date),
+    input,
+    date,
+  );
   const effectiveDateNavEnabled = date !== null;
 
   /////////////////////////////////

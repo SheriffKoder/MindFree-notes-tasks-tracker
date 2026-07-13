@@ -26,8 +26,10 @@ export type NoteSaveAction =
   | "noop";
 
 export interface NoteSavePayload extends NoteFormValues {
-  /** `YYYY-MM-DD` for calendar notes; `null` for general. */
+  /** `YYYY-MM-DD` for calendar notes; `null` for general/quick. */
   date: string | null;
+  /** Set when graduating from or promoting to the home quick-note slot. */
+  isQuick?: boolean;
 }
 
 export interface EvaluateNoteSaveInput {

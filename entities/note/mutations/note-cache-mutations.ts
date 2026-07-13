@@ -259,7 +259,7 @@ export function buildOptimisticQuickNote(values: NoteFormValues): Note {
   return {
     id: "optimistic-quick",
     date: null,
-    title: values.title,
+    title: "",
     content: values.content,
     starred: values.starred,
     isImportant: values.isImportant,

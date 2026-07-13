@@ -63,6 +63,7 @@ type PendingMutation =
       note: Note;
       values: NoteFormValues;
       date: string | null;
+      isQuick?: boolean;
       replaceExistingOnDate: boolean;
     }
   | {
@@ -76,7 +77,7 @@ type PendingMutation =
   | { kind: "delete"; note: Note };
 
 function formValuesFromPayload(payload: NoteSavePayload): NoteFormValues {
-  const { date: _date, ...values } = payload;
+  const { date: _date, isQuick: _isQuick, ...values } = payload;
   return values;
 }
 
@@ -176,6 +177,7 @@ export function usePreSaveOrchestrator({
             note: pending.note,
             values: pending.values,
             date: pending.date,
+            isQuick: pending.isQuick,
             replaceExistingOnDate: pending.replaceExistingOnDate,
           });
           break;
@@ -243,6 +245,7 @@ export function usePreSaveOrchestrator({
             note: pending.note,
             values: pending.values,
             date: pending.date,
+            isQuick: pending.isQuick,
             replaceExistingOnDate: pending.replaceExistingOnDate,
           },
           mutationOptions,
@@ -332,6 +335,7 @@ export function usePreSaveOrchestrator({
             note,
             values,
             date: result.payload.date,
+            isQuick: result.payload.isQuick,
             replaceExistingOnDate: result.replaceExistingOnDate,
           });
           return;

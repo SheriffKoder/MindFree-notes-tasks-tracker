@@ -31,14 +31,20 @@ export async function fetchPatchNote(
   values: NoteFormValues,
   date?: string | null,
   replaceExistingOnDate?: boolean,
+  isQuick?: boolean,
 ): Promise<PatchNoteResponse> {
   const body: NoteFormValues & {
     date?: string | null;
+    isQuick?: boolean;
     replaceExistingOnDate?: boolean;
   } = { ...values };
 
   if (date !== undefined) {
     body.date = date;
+  }
+
+  if (isQuick !== undefined) {
+    body.isQuick = isQuick;
   }
 
   if (replaceExistingOnDate) {

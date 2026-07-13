@@ -57,6 +57,7 @@ export interface NoteOfflinePayload {
   noteId: string | null;
   date: string | null;
   values: NoteFormValues;
+  isQuick?: boolean;
   replaceExistingOnDate: boolean;
   savedAt: string;
 }
@@ -66,6 +67,7 @@ export interface NoteOfflinePendingInput {
   note?: Note;
   values: NoteFormValues;
   date?: string | null;
+  isQuick?: boolean;
   replaceExistingOnDate?: boolean;
 }
 
@@ -117,6 +119,7 @@ function resolvePendingFromPayload(
       note,
       values: payload.values,
       date: payload.date,
+      isQuick: payload.isQuick,
       replaceExistingOnDate: payload.replaceExistingOnDate,
     };
   }
@@ -148,6 +151,7 @@ export function toNoteOfflineWrite(
       noteId: input.note?.id ?? null,
       date: input.date ?? input.note?.date ?? null,
       values: input.values,
+      isQuick: input.isQuick,
       replaceExistingOnDate: input.replaceExistingOnDate ?? false,
       savedAt,
     },
@@ -171,7 +175,10 @@ export function applyNoteOfflinePending(
       const optimisticNote = mergeFormValuesIntoNote(
         input.note,
         input.values,
-        datePatch ?? input.note.date,
+        {
+          date: datePatch ?? input.date ?? input.note.date,
+          isQuick: input.isQuick,
+        },
       );
 
       if (datePatch !== undefined) {
@@ -180,20 +187,24 @@ export function applyNoteOfflinePending(
         return;
       }
 
-      const queryKey = resolveOwningQueryKey(input.note);
-
       if (input.note.date) {
+        const queryKey = resolveOwningQueryKey(input.note);
+
         queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
           current
             ? patchCalendarNotesCache(current, optimisticNote)
             : current,
         );
-      } else if (!input.note.isQuick) {
-        queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
-          current
-            ? patchGeneralNotesCache(current, optimisticNote)
-            : current,
-        );
+      } else if (!optimisticNote.isQuick) {
+        queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) => {
+          if (!current) {
+            return current;
+          }
+
+          return input.note!.isQuick
+            ? upsertGeneralNoteInCache(current, optimisticNote)
+            : patchGeneralNotesCache(current, optimisticNote);
+        });
       }
 
       patchHomeNotesCache(queryClient, input.note, optimisticNote);
@@ -352,6 +363,7 @@ async function executeNoteOfflinePayload(
         payload.values,
         payload.date,
         payload.replaceExistingOnDate,
+        payload.isQuick,
       );
 
       return response.note;

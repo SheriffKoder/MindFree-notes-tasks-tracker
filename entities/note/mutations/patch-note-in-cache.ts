@@ -34,7 +34,10 @@ import {
 export function mergeFormValuesIntoNote(
   note: Note,
   values: NoteFormValues,
-  date?: string | null,
+  options?: {
+    date?: string | null;
+    isQuick?: boolean;
+  },
 ): Note {
   return {
     ...note,
@@ -42,7 +45,8 @@ export function mergeFormValuesIntoNote(
     content: values.content,
     starred: values.starred,
     isImportant: values.isImportant,
-    date: date !== undefined ? date : note.date,
+    date: options?.date !== undefined ? options.date : note.date,
+    isQuick: options?.isQuick !== undefined ? options.isQuick : note.isQuick,
     lastEditedAt: new Date().toISOString(),
   };
 }

@@ -28,6 +28,7 @@ export const updateNoteBodySchema = noteFormSchema.partial().extend({
     .regex(ISO_DATE_PATTERN, "Date must be YYYY-MM-DD.")
     .nullable()
     .optional(),
+  isQuick: z.boolean().optional(),
   replaceExistingOnDate: z.boolean().optional(),
 });
 

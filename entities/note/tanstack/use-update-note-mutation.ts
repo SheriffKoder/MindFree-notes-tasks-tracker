@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
 import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
-import { relocateNoteInCache, patchHomeNotesCache } from "@/entities/note/mutations/note-cache-mutations";
+import { relocateNoteInCache, patchHomeNotesCache, upsertGeneralNoteInCache } from "@/entities/note/mutations/note-cache-mutations";
 import {
   mergeFormValuesIntoNote,
   patchCalendarNotesCache,
@@ -49,6 +49,8 @@ export interface UpdateNoteMutationInput {
   date?: string | null;
   /** When true, server deletes the other note on the target day first. */
   replaceExistingOnDate?: boolean;
+  /** Clears or sets the home quick-note slot flag. */
+  isQuick?: boolean;
 }
 
 interface CacheSnapshot {
@@ -73,6 +75,39 @@ function resolveDatePatch(
   }
 
   return date;
+}
+
+function applyOwnerCacheUpdate(
+  queryClient: ReturnType<typeof useQueryClient>,
+  previousNote: Note,
+  updatedNote: Note,
+  datePatch: string | null | undefined,
+): void {
+  if (datePatch !== undefined) {
+    relocateNoteInCache(queryClient, previousNote, updatedNote);
+    return;
+  }
+
+  if (updatedNote.date) {
+    const queryKey = resolveOwningQueryKey(updatedNote);
+
+    queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
+      current ? patchCalendarNotesCache(current, updatedNote) : current,
+    );
+    return;
+  }
+
+  if (!updatedNote.isQuick) {
+    queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) => {
+      if (!current) {
+        return current;
+      }
+
+      return previousNote.isQuick
+        ? upsertGeneralNoteInCache(current, updatedNote)
+        : patchGeneralNotesCache(current, updatedNote);
+    });
+  }
 }
 
 function snapshotOwningCaches(
@@ -131,16 +166,18 @@ export function useUpdateNoteMutation() {
       values,
       date,
       replaceExistingOnDate,
+      isQuick,
     }: UpdateNoteMutationInput) => {
       const response = await fetchPatchNote(
         note.id,
         values,
         resolveDatePatch(note, date),
         replaceExistingOnDate,
+        isQuick,
       );
       return response.note;
     },
-    onMutate: async ({ note, values, date }) => {
+    onMutate: async ({ note, values, date, isQuick }) => {
       markNoteMutationPending(note.id);
 
       const datePatch = resolveDatePatch(note, date);
@@ -149,35 +186,15 @@ export function useUpdateNoteMutation() {
         note,
         datePatch,
       );
-      const optimisticNote = mergeFormValuesIntoNote(
-        note,
-        values,
-        datePatch ?? note.date,
-      );
+      const optimisticNote = mergeFormValuesIntoNote(note, values, {
+        date: datePatch ?? date ?? note.date,
+        isQuick,
+      });
 
-      if (datePatch !== undefined) {
-        relocateNoteInCache(queryClient, note, optimisticNote);
-        patchHomeNotesCache(queryClient, note, optimisticNote);
-      } else if (note.date) {
-        const queryKey = resolveOwningQueryKey(note);
+      const queryKey = resolveOwningQueryKey(note);
+      await queryClient.cancelQueries({ queryKey });
 
-        await queryClient.cancelQueries({ queryKey });
-        queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-          current
-            ? patchCalendarNotesCache(current, optimisticNote)
-            : current,
-        );
-      } else if (!note.isQuick) {
-        const queryKey = resolveOwningQueryKey(note);
-
-        await queryClient.cancelQueries({ queryKey });
-        queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
-          current
-            ? patchGeneralNotesCache(current, optimisticNote)
-            : current,
-        );
-      }
-
+      applyOwnerCacheUpdate(queryClient, note, optimisticNote, datePatch);
       patchHomeNotesCache(queryClient, note, optimisticNote);
 
       return { previousSnapshots } satisfies UpdateNoteMutationContext;
@@ -205,24 +222,7 @@ export function useUpdateNoteMutation() {
 
       const datePatch = resolveDatePatch(note, date);
 
-      if (datePatch !== undefined || note.date !== serverNote.date) {
-        relocateNoteInCache(queryClient, note, serverNote);
-        patchHomeNotesCache(queryClient, note, serverNote);
-        return;
-      }
-
-      const queryKey = resolveOwningQueryKey(note);
-
-      if (note.date) {
-        queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-          current ? patchCalendarNotesCache(current, serverNote) : current,
-        );
-      } else if (!note.isQuick) {
-        queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
-          current ? patchGeneralNotesCache(current, serverNote) : current,
-        );
-      }
-
+      applyOwnerCacheUpdate(queryClient, note, serverNote, datePatch);
       patchHomeNotesCache(queryClient, note, serverNote);
     },
   });

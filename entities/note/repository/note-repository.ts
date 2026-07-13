@@ -150,7 +150,10 @@ export async function updateNoteById(
   const supabase = await createClient();
 
   const dbPatch: Partial<
-    Pick<NoteRow, "title" | "content" | "starred" | "is_important" | "date">
+    Pick<
+      NoteRow,
+      "title" | "content" | "starred" | "is_important" | "date" | "is_quick"
+    >
   > = {};
 
   if (patch.title !== undefined) {
@@ -171,6 +174,10 @@ export async function updateNoteById(
 
   if (patch.date !== undefined) {
     dbPatch.date = patch.date;
+  }
+
+  if (patch.isQuick !== undefined) {
+    dbPatch.is_quick = patch.isQuick;
   }
 
   const { data, error } = await supabase
@@ -344,7 +351,7 @@ export async function createQuickNote(
     .insert({
       user_id: userId,
       date: null,
-      title: payload.title,
+      title: "",
       content: payload.content,
       starred: payload.starred,
       is_important: payload.isImportant,
