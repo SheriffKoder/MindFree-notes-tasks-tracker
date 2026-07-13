@@ -24,10 +24,15 @@ export interface WeekInMonthGroup<T> {
  * Result of grouping list items by week in a month.
  */
 export interface GroupByWeekInMonthResult<T> {
-  /** Weeks that contain at least one item, in chronological order. */
+  /** Weeks in chronological order (may include empty weeks when requested). */
   weeks: WeekInMonthGroup<T>[];
   /** Items without a valid in-month date (rendered without a week header). */
   ungrouped: T[];
+}
+
+export interface GroupByWeekInMonthOptions {
+  /** When `true`, emits every week overlapping the month, not only weeks with items. */
+  includeEmptyWeeks?: boolean;
 }
 
 function parseIsoDate(isoDate: string): Date {
@@ -83,6 +88,62 @@ function clipDate(date: Date, min: Date, max: Date): Date {
   return date;
 }
 
+function sortItemsByDate<T>(
+  items: T[],
+  getDate: (item: T) => string | null | undefined,
+): T[] {
+  return [...items].sort((left, right) => {
+    const leftDate = getDate(left) ?? "";
+    const rightDate = getDate(right) ?? "";
+
+    return leftDate.localeCompare(rightDate);
+  });
+}
+
+function buildWeeksInMonth<T>(
+  weekMap: Map<string, { monday: Date; items: T[] }>,
+  monthStart: Date,
+  monthEnd: Date,
+  getDate: (item: T) => string | null | undefined,
+  includeEmptyWeeks: boolean,
+): WeekInMonthGroup<T>[] {
+  if (!includeEmptyWeeks) {
+    return [...weekMap.entries()]
+      .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+      .map(([, { monday, items: weekItems }], index) => {
+        const sunday = getIsoWeekSunday(monday);
+
+        return {
+          weekNumber: index + 1,
+          rangeStart: toIsoDate(clipDate(monday, monthStart, monthEnd)),
+          rangeEnd: toIsoDate(clipDate(sunday, monthStart, monthEnd)),
+          items: sortItemsByDate(weekItems, getDate),
+        };
+      });
+  }
+
+  const weeks: WeekInMonthGroup<T>[] = [];
+  let monday = getIsoWeekMonday(monthStart);
+
+  while (monday <= monthEnd) {
+    const sunday = getIsoWeekSunday(monday);
+    const weekKey = toIsoDate(monday);
+    const bucket = weekMap.get(weekKey);
+
+    weeks.push({
+      weekNumber: weeks.length + 1,
+      rangeStart: toIsoDate(clipDate(monday, monthStart, monthEnd)),
+      rangeEnd: toIsoDate(clipDate(sunday, monthStart, monthEnd)),
+      items: bucket ? sortItemsByDate(bucket.items, getDate) : [],
+    });
+
+    monday = new Date(monday);
+    monday.setDate(monday.getDate() + 7);
+  }
+
+  return weeks;
+}
+
 /**
  * Reads an ISO date string from an item using a property key.
  *
@@ -125,7 +186,9 @@ export function groupItemsByWeekInMonth<T>(
   items: T[],
   month: string,
   dateKey: string,
+  options: GroupByWeekInMonthOptions = {},
 ): GroupByWeekInMonthResult<T> {
+  const { includeEmptyWeeks = false } = options;
   if (!MONTH_KEY_PATTERN.test(month)) {
     return { weeks: [], ungrouped: items };
   }
@@ -161,23 +224,13 @@ export function groupItemsByWeekInMonth<T>(
     }
   }
 
-  const weeks = [...weekMap.entries()]
-    .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
-    .map(([, { monday, items: weekItems }], index) => {
-      const sunday = getIsoWeekSunday(monday);
-
-      return {
-        weekNumber: index + 1,
-        rangeStart: toIsoDate(clipDate(monday, monthStart, monthEnd)),
-        rangeEnd: toIsoDate(clipDate(sunday, monthStart, monthEnd)),
-        items: [...weekItems].sort((left, right) => {
-          const leftDate = getDate(left) ?? "";
-          const rightDate = getDate(right) ?? "";
-
-          return leftDate.localeCompare(rightDate);
-        }),
-      };
-    });
+  const weeks = buildWeeksInMonth(
+    weekMap,
+    monthStart,
+    monthEnd,
+    getDate,
+    includeEmptyWeeks,
+  );
 
   return { weeks, ungrouped };
 }

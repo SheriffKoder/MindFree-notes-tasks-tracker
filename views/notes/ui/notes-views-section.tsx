@@ -93,6 +93,17 @@ export function NotesViewsSection({
     [month],
   );
 
+  const sidebarMonthNotesWeekGrouping = useMemo(
+    () => ({
+      month,
+      dateKey: "date" as const,
+      defaultOpen: "current-week" as const,
+      includeEmptyWeeks: true,
+      emptyWeekText: "No notes this week",
+    }),
+    [month],
+  );
+
   // Stable renderItem refs let memoized NoteListCard skip re-renders when note data is unchanged.
   const renderMonthNote = useCallback(
     (note: Note) => {
@@ -103,6 +114,7 @@ export function NotesViewsSection({
           note={note}
           reserved={reserved.value}
           reservedKind={reserved.kind}
+          variant="mobile"
           onClick={() => onNoteClick(note)}
         />
       );
@@ -142,7 +154,8 @@ export function NotesViewsSection({
       }
     >
       {view === "calendar" && calendarNotes ? (
-        <div className="h-full min-h-[600px] w-full overflow-x-auto">
+      <div className="flex h-full min-h-0 flex-row gap-4">
+        <div className="h-full min-h-0 min-w-0 flex-1 overflow-x-auto">
           <MonthCalendar
             className="h-full min-h-[600px] w-full min-w-[42rem] md:min-w-0"
             month={month}
@@ -152,10 +165,24 @@ export function NotesViewsSection({
             renderCell={renderCalendarCell}
           />
         </div>
+
+        <div className="hidden h-full min-h-0 w-[30vw] max-w-[400px] shrink-0 flex-col overflow-hidden xl:flex">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4">
+            <ListView
+              layout="list"
+              items={calendarNotes.monthNotes}
+              getKey={getNoteKey}
+              weekGrouping={sidebarMonthNotesWeekGrouping}
+              renderItem={renderMonthNote}
+            />
+          </div>
+        </div>
+      </div>
       ) : null}
 
       {view === "month-notes" && calendarNotes ? (
         <ListView
+          layout="list"
           items={calendarNotes.monthNotes}
           getKey={getNoteKey}
           weekGrouping={monthNotesWeekGrouping}

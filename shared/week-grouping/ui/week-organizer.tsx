@@ -26,11 +26,20 @@ export function WeekOrganizer<T>({
   renderItem,
   getKey,
 }: WeekOrganizerProps<T>) {
-  const { month, dateKey, defaultOpen = true } = weekGrouping;
+  const {
+    month,
+    dateKey,
+    defaultOpen = true,
+    includeEmptyWeeks = false,
+    emptyWeekText = "No notes this week",
+  } = weekGrouping;
 
   const { weeks, ungrouped } = useMemo(
-    () => groupItemsByWeekInMonth(items, month, dateKey),
-    [dateKey, items, month],
+    () =>
+      groupItemsByWeekInMonth(items, month, dateKey, {
+        includeEmptyWeeks,
+      }),
+    [dateKey, includeEmptyWeeks, items, month],
   );
 
   return (
@@ -41,6 +50,7 @@ export function WeekOrganizer<T>({
           week={week}
           weekIndex={weekIndex}
           defaultOpen={defaultOpen}
+          emptyWeekText={emptyWeekText}
           getKey={getKey}
           renderItem={renderItem}
         />

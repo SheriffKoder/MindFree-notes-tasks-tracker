@@ -15,6 +15,12 @@ export interface NoteListCardProps {
   reservedKind?: "date" | "file";
   /** Opens the note drawer when the card is clicked. */
   onClick?: () => void;
+  /**
+   * Card chrome variant.
+   * - `responsive` — mobile card below `md`, desktop card at `md+` (default)
+   * - `mobile` / `desktop` — force one variant at all breakpoints
+   */
+  variant?: "responsive" | "mobile" | "desktop";
 }
 
 function formatLastEditedAt(value: string): string {
@@ -38,8 +44,33 @@ export const NoteListCard = memo(function NoteListCard({
   reserved,
   reservedKind,
   onClick,
+  variant = "responsive",
 }: NoteListCardProps) {
   const formattedLastEditedAt = formatLastEditedAt(note.lastEditedAt);
+
+  if (variant === "mobile") {
+    return (
+      <NoteListCardMobile
+        note={note}
+        reserved={reserved}
+        reservedKind={reservedKind}
+        formattedLastEditedAt={formattedLastEditedAt}
+        onClick={onClick}
+      />
+    );
+  }
+
+  if (variant === "desktop") {
+    return (
+      <NoteListCardDesktop
+        note={note}
+        reserved={reserved}
+        reservedKind={reservedKind}
+        formattedLastEditedAt={formattedLastEditedAt}
+        onClick={onClick}
+      />
+    );
+  }
 
   return (
     <>

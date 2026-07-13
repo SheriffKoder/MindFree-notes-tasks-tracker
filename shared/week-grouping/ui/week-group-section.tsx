@@ -9,11 +9,13 @@ import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { formatWeekRangeLabel } from "@/shared/week-grouping/lib/format-week-date-label";
 import type { WeekInMonthGroup } from "@/shared/week-grouping/lib/group-by-week-in-month";
+import { resolveWeekSectionOpen } from "@/shared/week-grouping/lib/week-open-state";
 
 export interface WeekGroupSectionProps<T> {
   week: WeekInMonthGroup<T>;
   weekIndex: number;
-  defaultOpen: boolean;
+  defaultOpen: boolean | "current-week";
+  emptyWeekText: string;
   getKey: (item: T) => string;
   renderItem: (item: T) => ReactNode;
 }
@@ -25,16 +27,19 @@ export function WeekGroupSection<T>({
   week,
   weekIndex,
   defaultOpen,
+  emptyWeekText,
   getKey,
   renderItem,
 }: WeekGroupSectionProps<T>) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(() =>
+    resolveWeekSectionOpen(defaultOpen, week.rangeStart, week.rangeEnd),
+  );
 
   return (
     <details
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="group"
+      className="group/week"
     >
       <summary
         className={cn(
@@ -46,14 +51,20 @@ export function WeekGroupSection<T>({
           W{week.weekNumber}: {formatWeekRangeLabel(week.rangeStart, week.rangeEnd)}
         </span>
         <ChevronDown
-          className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180"
+          className="h-4 w-4 shrink-0 transition-transform duration-200 group-open/week:rotate-180"
           aria-hidden
         />
       </summary>
       <div className="flex flex-col gap-3 pb-1 pt-3">
-        {week.items.map((item) => (
-          <div key={getKey(item)}>{renderItem(item)}</div>
-        ))}
+        {week.items.length > 0 ? (
+          week.items.map((item) => (
+            <div key={getKey(item)}>{renderItem(item)}</div>
+          ))
+        ) : (
+          <p className="px-1 text-caption [color:var(--color-fg-muted)]">
+            {emptyWeekText}
+          </p>
+        )}
       </div>
     </details>
   );

@@ -11,6 +11,7 @@ export {
 export {
   groupItemsByWeekInMonth,
   resolveItemDateByKey,
+  type GroupByWeekInMonthOptions,
   type GroupByWeekInMonthResult,
   type WeekInMonthGroup,
 } from "@/shared/week-grouping/lib/group-by-week-in-month";

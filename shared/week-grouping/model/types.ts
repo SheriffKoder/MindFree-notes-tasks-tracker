@@ -11,6 +11,14 @@ export interface WeekGroupingConfig {
   month: string;
   /** Item property key holding the ISO date (`YYYY-MM-DD`), e.g. `"date"`. */
   dateKey: string;
-  /** Whether week sections start expanded. Default `true`. */
-  defaultOpen?: boolean;
+  /**
+   * Whether week sections start expanded.
+   * Use `'current-week'` to open only the week that contains today.
+   * @default true
+   */
+  defaultOpen?: boolean | "current-week";
+  /** When `true`, renders every week in the month, including weeks with no items. */
+  includeEmptyWeeks?: boolean;
+  /** Copy shown when a week has no items. @default "No notes this week" */
+  emptyWeekText?: string;
 }

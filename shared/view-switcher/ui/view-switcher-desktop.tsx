@@ -52,6 +52,7 @@ export function ViewSwitcherDesktop({
             type="button"
             variant={isActive ? "secondary" : "ghost"}
             size="icon"
+            className={definition.id === "month-notes" ? "xl:hidden" : undefined}
             role="tab"
             aria-selected={isActive}
             aria-label={definition.title}
