@@ -20,8 +20,8 @@ import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import {
   buildOptimisticCalendarNote,
   upsertCalendarNoteInCache,
-  upsertHomeNoteInCache,
 } from "@/entities/note/mutations/note-cache-mutations";
+import { synchronizeNoteCaches } from "@/entities/note/mutations/synchronize-note-caches";
 import { fetchPostCalendarNote } from "@/entities/note/mutations/post-note";
 import type { CalendarNotesResponse, Note } from "@/entities/note/model/types";
 import { calendarNotesQueryKey } from "@/entities/note/tanstack/query-keys";
@@ -99,7 +99,7 @@ export function useCreateCalendarNoteMutation() {
       );
 
       if (serverNote.starred) {
-        upsertHomeNoteInCache(queryClient, serverNote);
+        synchronizeNoteCaches(queryClient, { type: "create", note: serverNote });
       }
     },
   });

@@ -20,11 +20,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
 import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
-import { relocateNoteInCache, patchHomeNotesCache, upsertGeneralNoteInCache, removeCalendarNoteFromCache, removeGeneralNoteFromCache } from "@/entities/note/mutations/note-cache-mutations";
+import { synchronizeNoteCaches } from "@/entities/note/mutations/synchronize-note-caches";
 import {
   mergeFormValuesIntoNote,
-  patchCalendarNotesCache,
-  patchGeneralNotesCache,
   resolveOwningQueryKey,
 } from "@/entities/note/mutations/patch-note-in-cache";
 import type {
@@ -77,59 +75,6 @@ function resolveDatePatch(
   return date;
 }
 
-function removeNoteFromOwnerCaches(
-  queryClient: ReturnType<typeof useQueryClient>,
-  note: Note,
-): void {
-  if (note.date) {
-    const queryKey = resolveOwningQueryKey(note);
-
-    queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-      current ? removeCalendarNoteFromCache(current, note.id) : current,
-    );
-    return;
-  }
-
-  if (!note.isQuick) {
-    queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-      current ? removeGeneralNoteFromCache(current, note.id) : current,
-    );
-  }
-}
-
-function applyOwnerCacheUpdate(
-  queryClient: ReturnType<typeof useQueryClient>,
-  previousNote: Note,
-  updatedNote: Note,
-  datePatch: string | null | undefined,
-): void {
-  if (datePatch !== undefined) {
-    relocateNoteInCache(queryClient, previousNote, updatedNote);
-    return;
-  }
-
-  if (updatedNote.date) {
-    const queryKey = resolveOwningQueryKey(updatedNote);
-
-    queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-      current ? patchCalendarNotesCache(current, updatedNote) : current,
-    );
-    return;
-  }
-
-  if (!updatedNote.isQuick) {
-    queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) => {
-      if (!current) {
-        return current;
-      }
-
-      return previousNote.isQuick
-        ? upsertGeneralNoteInCache(current, updatedNote)
-        : patchGeneralNotesCache(current, updatedNote);
-    });
-  }
-}
-
 function snapshotOwningCaches(
   queryClient: ReturnType<typeof useQueryClient>,
   note: Note,
@@ -174,6 +119,26 @@ function snapshotOwningCaches(
   ];
 }
 
+function buildOptimisticNote(
+  note: Note,
+  values: NoteFormValues,
+  date: string | null | undefined,
+  datePatch: string | null | undefined,
+  isQuick: boolean | undefined,
+): Note {
+  return mergeFormValuesIntoNote(note, values, {
+    date:
+      isQuick === true
+        ? null
+        : datePatch !== undefined
+          ? datePatch
+          : date !== undefined
+            ? date
+            : note.date,
+    isQuick,
+  });
+}
+
 /**
  * PATCH autosave mutation — optimistically updates the owning read cache only.
  */
@@ -206,31 +171,22 @@ export function useUpdateNoteMutation() {
         note,
         datePatch,
       );
-      const optimisticNote = mergeFormValuesIntoNote(note, values, {
-        date:
-          isQuick === true
-            ? null
-            : datePatch !== undefined
-              ? datePatch
-              : date !== undefined
-                ? date
-                : note.date,
+      const optimisticNote = buildOptimisticNote(
+        note,
+        values,
+        date,
+        datePatch,
         isQuick,
-      });
+      );
 
       const queryKey = resolveOwningQueryKey(note);
       await queryClient.cancelQueries({ queryKey });
 
-      if (isQuick === true && !note.isQuick) {
-        removeNoteFromOwnerCaches(queryClient, note);
-        patchHomeNotesCache(queryClient, note, optimisticNote);
-      } else if (datePatch !== undefined) {
-        relocateNoteInCache(queryClient, note, optimisticNote);
-        patchHomeNotesCache(queryClient, note, optimisticNote);
-      } else {
-        applyOwnerCacheUpdate(queryClient, note, optimisticNote, datePatch);
-        patchHomeNotesCache(queryClient, note, optimisticNote);
-      }
+      synchronizeNoteCaches(queryClient, {
+        type: "update",
+        previous: note,
+        next: optimisticNote,
+      });
 
       return { previousSnapshots } satisfies UpdateNoteMutationContext;
     },
@@ -246,7 +202,7 @@ export function useUpdateNoteMutation() {
         queryClient.setQueryData(snapshot.queryKey, snapshot.data);
       }
     },
-    onSuccess: (serverNote, { note, date }) => {
+    onSuccess: (serverNote, { note }) => {
       /////////////////////////////////
       // Skip stale responses — optimistic cache may already hold a newer edit.
       const cached = findNoteByIdInCache(queryClient, note.id);
@@ -255,16 +211,11 @@ export function useUpdateNoteMutation() {
         return;
       }
 
-      const datePatch = resolveDatePatch(note, date);
-
-      if (serverNote.isQuick && !note.isQuick) {
-        removeNoteFromOwnerCaches(queryClient, note);
-        patchHomeNotesCache(queryClient, note, serverNote);
-        return;
-      }
-
-      applyOwnerCacheUpdate(queryClient, note, serverNote, datePatch);
-      patchHomeNotesCache(queryClient, note, serverNote);
+      synchronizeNoteCaches(queryClient, {
+        type: "update",
+        previous: note,
+        next: serverNote,
+      });
     },
   });
 }

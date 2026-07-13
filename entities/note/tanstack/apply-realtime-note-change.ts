@@ -8,29 +8,14 @@
  */
 
 import { mapNoteRow } from "@/entities/note/lib/map-note-row";
-import {
-  patchHomeNotesCache,
-  relocateNoteInCache,
-  removeCalendarNoteFromCache,
-  removeGeneralNoteFromCache,
-  removeHomeNoteFromCacheQuery,
-  upsertCalendarNoteInCache,
-  upsertGeneralNoteInCache,
-  upsertHomeNoteInCache,
-} from "@/entities/note/mutations/note-cache-mutations";
-import type { Note, NoteRow } from "@/entities/note/model/types";
 import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
 import {
-  calendarNotesQueryKey,
-  generalNotesQueryKey,
-} from "@/entities/note/tanstack/query-keys";
+  synchronizeNoteCaches,
+  upsertNoteInOwnerCaches,
+} from "@/entities/note/mutations/synchronize-note-caches";
+import type { Note, NoteRow } from "@/entities/note/model/types";
 import { isNoteMutationPending } from "@/entities/note/tanstack/note-mutation-pending";
 import type { QueryClient } from "@tanstack/react-query";
-
-import type {
-  CalendarNotesResponse,
-  GeneralNotesResponse,
-} from "@/entities/note/model/types";
 
 export type RealtimeNoteChangeEvent = "INSERT" | "UPDATE" | "DELETE";
 
@@ -58,27 +43,6 @@ function mapRealtimeRow(row: Record<string, unknown>): Note {
   return mapNoteRow(row as unknown as NoteRow);
 }
 
-function removeNoteFromOwnerCaches(queryClient: QueryClient, noteId: string): void {
-  const calendarQueries = queryClient.getQueriesData<CalendarNotesResponse>({
-    queryKey: ["calendarNotes"],
-  });
-
-  for (const [queryKey] of calendarQueries) {
-    queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-      current ? removeCalendarNoteFromCache(current, noteId) : current,
-    );
-  }
-
-  queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-    current ? removeGeneralNoteFromCache(current, noteId) : current,
-  );
-}
-
-function removeNoteFromAllCaches(queryClient: QueryClient, noteId: string): void {
-  removeNoteFromOwnerCaches(queryClient, noteId);
-  removeHomeNoteFromCacheQuery(queryClient, noteId);
-}
-
 /**
  * Patches TanStack caches from one realtime postgres_changes payload.
  */
@@ -100,7 +64,19 @@ export function applyRealtimeNoteChange(
       return { applied: false, note: oldNote, event };
     }
 
-    removeNoteFromAllCaches(queryClient, noteId);
+    synchronizeNoteCaches(queryClient, {
+      type: "delete",
+      note: oldNote ?? {
+        id: noteId,
+        date: null,
+        title: "",
+        content: "",
+        starred: false,
+        isImportant: false,
+        isQuick: false,
+        lastEditedAt: "",
+      },
+    });
 
     return { applied: true, note: oldNote, event };
   }
@@ -125,67 +101,17 @@ export function applyRealtimeNoteChange(
     cached ??
     (oldRecord && event === "UPDATE" ? mapRealtimeRow(oldRecord) : null);
 
-  if (note.isQuick) {
-    removeNoteFromOwnerCaches(queryClient, note.id);
-
-    if (previous) {
-      patchHomeNotesCache(queryClient, previous, note);
-    } else {
-      upsertHomeNoteInCache(queryClient, note);
-    }
-
-    return { applied: true, note, event };
-  }
-
   if (event === "INSERT") {
-    upsertHomeNoteInCache(queryClient, note);
-  } else if (previous) {
-    patchHomeNotesCache(queryClient, previous, note);
-  }
-
-  const previousDate = previous?.date ?? null;
-  const dateChanged =
-    event === "UPDATE" &&
-    previous !== null &&
-    previousDate !== note.date;
-
-  if (dateChanged && previous) {
-    relocateNoteInCache(queryClient, previous, note);
-
+    synchronizeNoteCaches(queryClient, { type: "create", note });
     return { applied: true, note, event };
   }
 
-  if (note.date) {
-    const month = note.date.slice(0, 7);
-    const queryKey = calendarNotesQueryKey(month);
-
-    queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) => {
-      if (!current) {
-        return current;
-      }
-
-      return upsertCalendarNoteInCache(current, note, {
-        replaceSameDate: true,
-      });
-    });
-
-    if (previous?.date && previous.date !== note.date) {
-      const oldMonth = previous.date.slice(0, 7);
-      const oldKey = calendarNotesQueryKey(oldMonth);
-
-      queryClient.setQueryData<CalendarNotesResponse>(oldKey, (current) =>
-        current ? removeCalendarNoteFromCache(current, note.id) : current,
-      );
-    }
-
+  if (previous) {
+    synchronizeNoteCaches(queryClient, { type: "update", previous, next: note });
     return { applied: true, note, event };
   }
 
-  removeNoteFromOwnerCaches(queryClient, note.id);
-
-  queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-    current ? upsertGeneralNoteInCache(current, note) : current,
-  );
+  upsertNoteInOwnerCaches(queryClient, note);
 
   return { applied: true, note, event };
 }

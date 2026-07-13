@@ -8,14 +8,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { fetchDeleteNote } from "@/entities/note/mutations/delete-note-client";
-import {
-  patchHomeNotesCache,
-  relocateNoteInCache,
-  removeCalendarNoteFromCache,
-  removeGeneralNoteFromCache,
-  removeHomeNoteFromCacheQuery,
-  upsertHomeNoteInCache,
-} from "@/entities/note/mutations/note-cache-mutations";
+import { synchronizeNoteCaches } from "@/entities/note/mutations/synchronize-note-caches";
 import { resolveOwningQueryKey } from "@/entities/note/mutations/patch-note-in-cache";
 import type {
   CalendarNotesResponse,
@@ -66,19 +59,7 @@ export function useDeleteNoteMutation() {
       const previousHomeData =
         queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
 
-      if (note.date) {
-        queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-          current ? removeCalendarNoteFromCache(current, note.id) : current,
-        );
-      } else if (!note.isQuick) {
-        queryClient.setQueryData<GeneralNotesResponse>(
-          generalNotesQueryKey,
-          (current) =>
-            current ? removeGeneralNoteFromCache(current, note.id) : current,
-        );
-      }
-
-      removeHomeNoteFromCacheQuery(queryClient, note.id);
+      synchronizeNoteCaches(queryClient, { type: "delete", note });
 
       return {
         previousCalendarData,

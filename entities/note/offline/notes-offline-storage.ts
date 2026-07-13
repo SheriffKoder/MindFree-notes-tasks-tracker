@@ -11,31 +11,19 @@ import { fetchDeleteNote } from "@/entities/note/mutations/delete-note-client";
 import {
   buildOptimisticCalendarNote,
   buildOptimisticGeneralNote,
-  patchHomeNotesCache,
-  relocateNoteInCache,
-  removeCalendarNoteFromCache,
-  removeGeneralNoteFromCache,
-  removeHomeNoteFromCacheQuery,
   upsertCalendarNoteInCache,
   upsertGeneralNoteInCache,
-  upsertHomeNoteInCache,
 } from "@/entities/note/mutations/note-cache-mutations";
+import { mergeFormValuesIntoNote } from "@/entities/note/mutations/patch-note-in-cache";
 import {
-  mergeFormValuesIntoNote,
-  patchCalendarNotesCache,
-  patchGeneralNotesCache,
-  resolveOwningQueryKey,
-} from "@/entities/note/mutations/patch-note-in-cache";
+  synchronizeNoteCaches,
+} from "@/entities/note/mutations/synchronize-note-caches";
 import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
 import {
   fetchPostCalendarNote,
   fetchPostGeneralNote,
 } from "@/entities/note/mutations/post-note";
-import type {
-  CalendarNotesResponse,
-  GeneralNotesResponse,
-  Note,
-} from "@/entities/note/model/types";
+import type { CalendarNotesResponse, GeneralNotesResponse, Note } from "@/entities/note/model/types";
 import { calendarNotesQueryKey, generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
 import type { OfflineEntityAdapter } from "@/shared/offline-queue";
 import {
@@ -181,33 +169,11 @@ export function applyNoteOfflinePending(
         },
       );
 
-      if (datePatch !== undefined) {
-        relocateNoteInCache(queryClient, input.note, optimisticNote);
-        patchHomeNotesCache(queryClient, input.note, optimisticNote);
-        return;
-      }
-
-      if (input.note.date) {
-        const queryKey = resolveOwningQueryKey(input.note);
-
-        queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-          current
-            ? patchCalendarNotesCache(current, optimisticNote)
-            : current,
-        );
-      } else if (!optimisticNote.isQuick) {
-        queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) => {
-          if (!current) {
-            return current;
-          }
-
-          return input.note!.isQuick
-            ? upsertGeneralNoteInCache(current, optimisticNote)
-            : patchGeneralNotesCache(current, optimisticNote);
-        });
-      }
-
-      patchHomeNotesCache(queryClient, input.note, optimisticNote);
+      synchronizeNoteCaches(queryClient, {
+        type: "update",
+        previous: input.note,
+        next: optimisticNote,
+      });
 
       return;
     }
@@ -246,25 +212,7 @@ export function applyNoteOfflinePending(
         return;
       }
 
-      if (input.note.date) {
-        const queryKey = resolveOwningQueryKey(input.note);
-
-        queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-          current
-            ? removeCalendarNoteFromCache(current, input.note!.id)
-            : current,
-        );
-      } else if (!input.note.isQuick) {
-        const queryKey = resolveOwningQueryKey(input.note);
-
-        queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
-          current
-            ? removeGeneralNoteFromCache(current, input.note!.id)
-            : current,
-        );
-      }
-
-      removeHomeNoteFromCacheQuery(queryClient, input.note.id);
+      synchronizeNoteCaches(queryClient, { type: "delete", note: input.note });
     }
   }
 }
@@ -317,36 +265,16 @@ function reconcileServerNote(
   previousNote: Note | null,
   serverNote: Note,
 ): void {
-  if (previousNote && previousNote.date !== serverNote.date) {
-    relocateNoteInCache(queryClient, previousNote, serverNote);
-    patchHomeNotesCache(queryClient, previousNote, serverNote);
-    return;
-  }
-
-  const queryKey = serverNote.date
-    ? calendarNotesQueryKey(serverNote.date.slice(0, 7))
-    : resolveOwningQueryKey(serverNote);
-
-  if (serverNote.date) {
-    queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
-      current
-        ? upsertCalendarNoteInCache(current, serverNote, {
-            replaceSameDate: true,
-          })
-        : current,
-    );
-  } else if (!serverNote.isQuick) {
-    queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
-      current ? upsertGeneralNoteInCache(current, serverNote) : current,
-    );
-  }
-
   if (previousNote) {
-    patchHomeNotesCache(queryClient, previousNote, serverNote);
+    synchronizeNoteCaches(queryClient, {
+      type: "update",
+      previous: previousNote,
+      next: serverNote,
+    });
     return;
   }
 
-  upsertHomeNoteInCache(queryClient, serverNote);
+  synchronizeNoteCaches(queryClient, { type: "create", note: serverNote });
 }
 
 async function executeNoteOfflinePayload(

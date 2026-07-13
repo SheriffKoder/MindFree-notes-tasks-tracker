@@ -11,8 +11,8 @@ import type { NoteFormValues } from "@/entities/note/editor/model/types";
 import {
   buildOptimisticGeneralNote,
   upsertGeneralNoteInCache,
-  upsertHomeNoteInCache,
 } from "@/entities/note/mutations/note-cache-mutations";
+import { synchronizeNoteCaches } from "@/entities/note/mutations/synchronize-note-caches";
 import { fetchPostGeneralNote } from "@/entities/note/mutations/post-note";
 import type { GeneralNotesResponse } from "@/entities/note/model/types";
 import { generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
@@ -70,7 +70,7 @@ export function useCreateGeneralNoteMutation() {
       );
 
       if (serverNote.starred) {
-        upsertHomeNoteInCache(queryClient, serverNote);
+        synchronizeNoteCaches(queryClient, { type: "create", note: serverNote });
       }
     },
   });

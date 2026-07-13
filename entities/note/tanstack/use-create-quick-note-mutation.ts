@@ -8,10 +8,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
-import {
-  buildOptimisticQuickNote,
-  upsertHomeNoteInCache,
-} from "@/entities/note/mutations/note-cache-mutations";
+import { buildOptimisticQuickNote } from "@/entities/note/mutations/note-cache-mutations";
+import { synchronizeNoteCaches } from "@/entities/note/mutations/synchronize-note-caches";
 import { fetchPostQuickNote } from "@/entities/note/mutations/post-note";
 import type { HomeNotesResponse } from "@/entities/note/model/types";
 import { homeNotesQueryKey } from "@/entities/note/tanstack/query-keys";
@@ -46,7 +44,10 @@ export function useCreateQuickNoteMutation() {
         queryClient.getQueryData<HomeNotesResponse>(queryKey);
       const optimisticNote = buildOptimisticQuickNote(values);
 
-      upsertHomeNoteInCache(queryClient, optimisticNote);
+      synchronizeNoteCaches(queryClient, {
+        type: "create",
+        note: optimisticNote,
+      });
 
       return { previousData, queryKey } satisfies CreateQuickNoteMutationContext;
     },
@@ -58,7 +59,7 @@ export function useCreateQuickNoteMutation() {
       queryClient.setQueryData(context.queryKey, context.previousData);
     },
     onSuccess: (serverNote) => {
-      upsertHomeNoteInCache(queryClient, serverNote);
+      synchronizeNoteCaches(queryClient, { type: "create", note: serverNote });
     },
   });
 }
