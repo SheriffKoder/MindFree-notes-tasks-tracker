@@ -42,6 +42,10 @@ export function useDrawerActiveDate(
       return false;
     }
 
+    if (request.mode === "create" && "quick" in request) {
+      return false;
+    }
+
     if (request.mode === "create" && "date" in request) {
       return true;
     }

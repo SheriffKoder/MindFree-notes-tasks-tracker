@@ -14,6 +14,7 @@ import {
 import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { LogoutButton } from "@/features/auth/logout";
 import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
+import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
 
 /**
  * Props for the protected home dashboard.
@@ -54,19 +55,15 @@ export function HomeView({ notice = null }: HomeViewProps) {
 
       <div className="flex min-h-0 flex-1 flex-row gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <Card className="app-card">
-            <CardHeader className="flex flex-col gap-2">
-              <CardTitle className="text-h3">Starred Notes</CardTitle>
-              <CardDescription className="text-body-muted">
-                Horizontal note cards and a quick-note default entry belong here.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <section>
+            <div className="flex flex-col mb-2">
+              <h2 className="text-h3">Starred Notes</h2>
               <p className="text-body-muted">
-                Start by loading recent starred daily notes and the pinned quick note.
+                Horizontal note cards and a quick-note default entry belong here.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+            <HomeNotesSection />
+          </section>
 
           <Card className="app-card">
             <CardHeader className="flex flex-col gap-2">

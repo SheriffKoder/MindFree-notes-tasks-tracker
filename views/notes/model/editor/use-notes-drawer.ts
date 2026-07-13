@@ -24,6 +24,8 @@ export interface UseNotesDrawerResult {
   openCreateForDate: (date: string) => void;
   /** Opens a lazy create flow for a new general note. */
   openCreateGeneral: () => void;
+  /** Opens a lazy create flow for the home quick-note slot. */
+  openCreateQuick: () => void;
   /** Closes the drawer without clearing the last request. */
   close: () => void;
   /** Maps to `AppDrawer` `onOpenChange` — closes when `open === false`. */
@@ -62,6 +64,13 @@ export function useNotesDrawer(): UseNotesDrawerResult {
     });
   }, []);
 
+  const openCreateQuick = useCallback(() => {
+    setState({
+      isOpen: true,
+      request: { mode: "create", quick: true },
+    });
+  }, []);
+
   const close = useCallback(() => {
     setState((previous) => ({ ...previous, isOpen: false }));
   }, []);
@@ -81,6 +90,7 @@ export function useNotesDrawer(): UseNotesDrawerResult {
     openEdit,
     openCreateForDate,
     openCreateGeneral,
+    openCreateQuick,
     close,
     setOpen,
   };

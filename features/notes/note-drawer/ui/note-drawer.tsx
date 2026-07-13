@@ -103,6 +103,10 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
       return "general-draft";
     }
 
+    if (request?.mode === "create" && "quick" in request) {
+      return "quick-draft";
+    }
+
     if (request?.mode === "create" && "date" in request) {
       return `date:${request.date}`;
     }

@@ -8,11 +8,13 @@ import type { QueryClient } from "@tanstack/react-query";
 import type {
   CalendarNotesResponse,
   GeneralNotesResponse,
+  HomeNotesResponse,
   Note,
 } from "@/entities/note/model/types";
 import {
   calendarNotesQueryKey,
   generalNotesQueryKey,
+  homeNotesQueryKey,
 } from "@/entities/note/tanstack/query-keys";
 
 /**
@@ -31,6 +33,18 @@ export function findNoteByIdInCache(
 
   if (generalMatch) {
     return generalMatch;
+  }
+
+  const homeData = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
+
+  if (homeData?.quickNote?.id === noteId) {
+    return homeData.quickNote;
+  }
+
+  const starredMatch = homeData?.starredNotes.find((note) => note.id === noteId);
+
+  if (starredMatch) {
+    return starredMatch;
   }
 
   const calendarQueries = queryClient.getQueriesData<CalendarNotesResponse>({

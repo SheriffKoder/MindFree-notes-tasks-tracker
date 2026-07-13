@@ -46,6 +46,9 @@
 import type { Note } from "@/entities/note";
 import type { NotesViewId } from "@/shared/view-switcher";
 
+/** View modes that supply reserved label metadata for {@link NoteListCard}. */
+export type ReservedMetaContext = NotesViewId | "home";
+
 /**
  * Reserved metadata shown below/on note list cards.
  *
@@ -79,9 +82,16 @@ export type ReservedMeta = {
  * // => "July priorities"
  * ```
  */
-export function getReservedValue(view: NotesViewId, note: Note): string | undefined {
+export function getReservedValue(
+  view: ReservedMetaContext,
+  note: Note,
+): string | undefined {
   if (view === "month-notes") {
     return note.date ?? undefined;
+  }
+
+  if (view === "home") {
+    return note.date ?? (note.title || undefined);
   }
 
   if (view === "general-notes") {
@@ -109,9 +119,20 @@ export function getReservedValue(view: NotesViewId, note: Note): string | undefi
  * // { value: "July priorities", kind: "file" }
  * ```
  */
-export function getReservedMeta(view: NotesViewId, note: Note): ReservedMeta {
+export function getReservedMeta(
+  view: ReservedMetaContext,
+  note: Note,
+): ReservedMeta {
   if (view === "month-notes") {
     return { value: getReservedValue(view, note), kind: "date" };
+  }
+
+  if (view === "home") {
+    if (note.date) {
+      return { value: note.date, kind: "date" };
+    }
+
+    return { value: note.title || undefined, kind: "file" };
   }
 
   if (view === "general-notes") {

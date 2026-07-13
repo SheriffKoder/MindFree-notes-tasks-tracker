@@ -18,6 +18,10 @@ export type NoteEditorRequest =
   | {
       mode: "create";
       general: true;
+    }
+  | {
+      mode: "create";
+      quick: true;
     };
 
 /** Local drawer state owned by {@link useNotesDrawer}. */
