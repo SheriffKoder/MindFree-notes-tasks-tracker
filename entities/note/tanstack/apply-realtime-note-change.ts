@@ -9,11 +9,14 @@
 
 import { mapNoteRow } from "@/entities/note/lib/map-note-row";
 import {
+  patchHomeNotesCache,
   relocateNoteInCache,
   removeCalendarNoteFromCache,
   removeGeneralNoteFromCache,
+  removeHomeNoteFromCacheQuery,
   upsertCalendarNoteInCache,
   upsertGeneralNoteInCache,
+  upsertHomeNoteInCache,
 } from "@/entities/note/mutations/note-cache-mutations";
 import type { Note, NoteRow } from "@/entities/note/model/types";
 import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
@@ -55,7 +58,7 @@ function mapRealtimeRow(row: Record<string, unknown>): Note {
   return mapNoteRow(row as unknown as NoteRow);
 }
 
-function removeNoteFromAllCaches(queryClient: QueryClient, noteId: string): void {
+function removeNoteFromOwnerCaches(queryClient: QueryClient, noteId: string): void {
   const calendarQueries = queryClient.getQueriesData<CalendarNotesResponse>({
     queryKey: ["calendarNotes"],
   });
@@ -69,6 +72,11 @@ function removeNoteFromAllCaches(queryClient: QueryClient, noteId: string): void
   queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
     current ? removeGeneralNoteFromCache(current, noteId) : current,
   );
+}
+
+function removeNoteFromAllCaches(queryClient: QueryClient, noteId: string): void {
+  removeNoteFromOwnerCaches(queryClient, noteId);
+  removeHomeNoteFromCacheQuery(queryClient, noteId);
 }
 
 /**
@@ -103,10 +111,6 @@ export function applyRealtimeNoteChange(
 
   const note = mapRealtimeRow(newRecord);
 
-  if (note.isQuick) {
-    return { applied: false, note, event };
-  }
-
   if (isNoteMutationPending(note.id)) {
     return { applied: false, note, event };
   }
@@ -120,6 +124,24 @@ export function applyRealtimeNoteChange(
   const previous =
     cached ??
     (oldRecord && event === "UPDATE" ? mapRealtimeRow(oldRecord) : null);
+
+  if (note.isQuick) {
+    removeNoteFromOwnerCaches(queryClient, note.id);
+
+    if (previous) {
+      patchHomeNotesCache(queryClient, previous, note);
+    } else {
+      upsertHomeNoteInCache(queryClient, note);
+    }
+
+    return { applied: true, note, event };
+  }
+
+  if (event === "INSERT") {
+    upsertHomeNoteInCache(queryClient, note);
+  } else if (previous) {
+    patchHomeNotesCache(queryClient, previous, note);
+  }
 
   const previousDate = previous?.date ?? null;
   const dateChanged =
@@ -159,7 +181,7 @@ export function applyRealtimeNoteChange(
     return { applied: true, note, event };
   }
 
-  removeNoteFromAllCaches(queryClient, note.id);
+  removeNoteFromOwnerCaches(queryClient, note.id);
 
   queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
     current ? upsertGeneralNoteInCache(current, note) : current,

@@ -87,7 +87,7 @@ export function useNotesRealtimeSync({
       return channel;
     }
 
-    let channelPromise = subscribe();
+    const channelPromise = subscribe();
 
     return () => {
       cancelled = true;

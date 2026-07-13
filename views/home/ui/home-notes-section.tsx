@@ -11,8 +11,9 @@
 
 import { useCallback } from "react";
 
-import type { Note } from "@/entities/note/client";
+import { useNotesRealtimeSync, type Note } from "@/entities/note/client";
 import { NoteDrawer } from "@/features/notes/note-drawer";
+import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { HomeNotesStrip } from "@/views/home/ui/home-notes-strip";
 
@@ -21,17 +22,22 @@ import { HomeNotesStrip } from "@/views/home/ui/home-notes-strip";
  */
 export function HomeNotesSection() {
   const drawer = useNotesDrawer();
+  const { openCreateQuick, openEdit } = drawer;
+
+  useNotesRealtimeSync({
+    onNoteChange: notifyNoteDrawerRealtime,
+  });
 
   const handleNoteClick = useCallback(
     (note: Note) => {
-      drawer.openEdit(note.id);
+      openEdit(note.id);
     },
-    [drawer.openEdit],
+    [openEdit],
   );
 
   const handleQuickPlaceholderClick = useCallback(() => {
-    drawer.openCreateQuick();
-  }, [drawer.openCreateQuick]);
+    openCreateQuick();
+  }, [openCreateQuick]);
 
   return (
     <>
