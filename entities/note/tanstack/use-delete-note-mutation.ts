@@ -8,9 +8,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { fetchDeleteNote } from "@/entities/note/mutations/delete-note-client";
-import { removeCalendarNoteFromCache } from "@/entities/note/mutations/note-cache-mutations";
+import {
+  removeCalendarNoteFromCache,
+  removeGeneralNoteFromCache,
+} from "@/entities/note/mutations/note-cache-mutations";
 import { resolveOwningQueryKey } from "@/entities/note/mutations/patch-note-in-cache";
-import type { CalendarNotesResponse, Note } from "@/entities/note/model/types";
+import type {
+  CalendarNotesResponse,
+  GeneralNotesResponse,
+  Note,
+} from "@/entities/note/model/types";
+import { generalNotesQueryKey } from "@/entities/note/tanstack/query-keys";
 import {
   clearNoteMutationPending,
   markNoteMutationPending,
@@ -22,7 +30,8 @@ export interface DeleteNoteMutationInput {
 }
 
 interface DeleteNoteMutationContext {
-  previousData: CalendarNotesResponse | undefined;
+  previousCalendarData: CalendarNotesResponse | undefined;
+  previousGeneralData: GeneralNotesResponse | undefined;
   queryKey: ReturnType<typeof resolveOwningQueryKey>;
 }
 
@@ -44,16 +53,28 @@ export function useDeleteNoteMutation() {
 
       await queryClient.cancelQueries({ queryKey });
 
-      const previousData =
+      const previousCalendarData =
         queryClient.getQueryData<CalendarNotesResponse>(queryKey);
+      const previousGeneralData =
+        queryClient.getQueryData<GeneralNotesResponse>(generalNotesQueryKey);
 
       if (note.date) {
         queryClient.setQueryData<CalendarNotesResponse>(queryKey, (current) =>
           current ? removeCalendarNoteFromCache(current, note.id) : current,
         );
+      } else {
+        queryClient.setQueryData<GeneralNotesResponse>(
+          generalNotesQueryKey,
+          (current) =>
+            current ? removeGeneralNoteFromCache(current, note.id) : current,
+        );
       }
 
-      return { previousData, queryKey } satisfies DeleteNoteMutationContext;
+      return {
+        previousCalendarData,
+        previousGeneralData,
+        queryKey,
+      } satisfies DeleteNoteMutationContext;
     },
     onSettled: (_data, _error, variables) => {
       clearNoteMutationPending(variables.note.id);
@@ -63,7 +84,16 @@ export function useDeleteNoteMutation() {
         return;
       }
 
-      queryClient.setQueryData(context.queryKey, context.previousData);
+      if (context.previousCalendarData !== undefined) {
+        queryClient.setQueryData(context.queryKey, context.previousCalendarData);
+      }
+
+      if (context.previousGeneralData !== undefined) {
+        queryClient.setQueryData(
+          generalNotesQueryKey,
+          context.previousGeneralData,
+        );
+      }
     },
   });
 }

@@ -9,6 +9,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { NoteForm } from "@/entities/note/editor";
 import type { NoteFormFooterMeta } from "@/entities/note/editor/model/types";
+import { useDeleteNoteMutation } from "@/entities/note/client";
 import { AppDrawer } from "@/shared/drawer";
 import { useAuthUserId } from "@/shared/offline-queue";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
@@ -26,6 +27,8 @@ import type { UseNotesDrawerResult } from "@/views/notes/model/editor/use-notes-
 export interface NoteDrawerProps {
   /** Page-level drawer open/close state and editor request. */
   drawer: UseNotesDrawerResult;
+  /** Clears page selection when the drawer is dismissed. */
+  onDismiss?: () => void;
 }
 
 const INITIAL_FOOTER_META: NoteFormFooterMeta = {
@@ -38,9 +41,10 @@ const INITIAL_FOOTER_META: NoteFormFooterMeta = {
  *
  * Date navigation is independent from page URL month and page calendar highlight.
  */
-export function NoteDrawer({ drawer }: NoteDrawerProps) {
+export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
   const { isOpen, request, setOpen, openEdit } = drawer;
   const userId = useAuthUserId();
+  const deleteNoteMutation = useDeleteNoteMutation();
   const [footerMeta, setFooterMeta] =
     useState<NoteFormFooterMeta>(INITIAL_FOOTER_META);
 
@@ -138,11 +142,38 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
     [applyPickedDate],
   );
 
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        onDismiss?.();
+      }
+
+      setOpen(open);
+    },
+    [onDismiss, setOpen],
+  );
+
+  const handleDelete = useCallback(() => {
+    if (!note?.id) {
+      return;
+    }
+
+    deleteNoteMutation.mutate(
+      { note },
+      {
+        onSuccess: () => {
+          onDismiss?.();
+          setOpen(false);
+        },
+      },
+    );
+  }, [deleteNoteMutation, note, onDismiss, setOpen]);
+
   return (
     <AppDrawer
       ariaLabel="Note editor"
       open={isOpen}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
     >
       <div
         className="flex min-h-full flex-col"
@@ -158,6 +189,7 @@ export function NoteDrawer({ drawer }: NoteDrawerProps) {
           showContentLastSaved={false}
           onChange={handleChangeWithDirty}
           onDatePick={handleDatePick}
+          onDelete={note?.id ? handleDelete : undefined}
           onFooterMetaChange={handleFooterMetaChange}
         />
 

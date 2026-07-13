@@ -3,7 +3,7 @@
  * Top bar with optional header slot and close button.
  */
 
-import { X } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ export interface DrawerHeaderProps {
 }
 
 /**
- * Renders the drawer chrome row — feature header on the left, close on the right.
+ * Renders a thin top row — back chevron on the left, optional header slot after it.
  */
 export function DrawerHeader({
   header,
@@ -27,6 +27,17 @@ export function DrawerHeader({
 }: DrawerHeaderProps) {
   return (
     <div className={DRAWER_HEADER_CLASS}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0"
+        aria-label="Close"
+        onClick={onClose}
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </Button>
+
       {header ? (
         <div id={titleId} className="min-w-0 flex-1">
           {header}
@@ -36,16 +47,6 @@ export function DrawerHeader({
           {ariaLabel}
         </span>
       )}
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label="Close"
-        onClick={onClose}
-      >
-        <X />
-      </Button>
     </div>
   );
 }

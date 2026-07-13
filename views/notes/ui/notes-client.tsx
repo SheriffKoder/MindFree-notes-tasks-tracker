@@ -42,7 +42,7 @@ export function NotesClient() {
   const { month, view, previousMonth, nextMonth, changeView, cycleView } = useNotesUrlState();
   
   // Page selection
-  const { highlightedDate, selectDate } = useNotesPageSelection(month);
+  const { highlightedDate, selectDate, clearSelection } = useNotesPageSelection(month);
   
   // Drawer options
   const drawer = useNotesDrawer();
@@ -126,7 +126,7 @@ export function NotesClient() {
         </div>
       </div>
 
-      <NoteDrawer drawer={drawer} />
+      <NoteDrawer drawer={drawer} onDismiss={clearSelection} />
     </div>
   );
 }

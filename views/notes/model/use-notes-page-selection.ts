@@ -22,6 +22,8 @@ export interface UseNotesPageSelectionResult {
    * Always sets selection to `date`, including when another day was active.
    */
   selectDate: (date: string) => void;
+  /** Clears page calendar highlight (e.g. when the drawer is dismissed). */
+  clearSelection: () => void;
 }
 
 /**
@@ -47,9 +49,14 @@ export function useNotesPageSelection(
     setSelectedDate(date);
   }, []);
 
+  const clearSelection = useCallback(() => {
+    setSelectedDate(undefined);
+  }, []);
+
   return {
     selectedDate,
     highlightedDate,
     selectDate,
+    clearSelection,
   };
 }
