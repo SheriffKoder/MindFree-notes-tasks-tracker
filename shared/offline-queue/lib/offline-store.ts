@@ -19,8 +19,13 @@ type OfflineStore = Record<string, OfflineWrite>;
 
 const STORAGE_PREFIX = "offline-writes:";
 
-function storageKey(userId: string): string {
+/** localStorage key for one user's offline write bucket. */
+export function offlineWritesStorageKey(userId: string): string {
   return `${STORAGE_PREFIX}${userId}`;
+}
+
+function storageKey(userId: string): string {
+  return offlineWritesStorageKey(userId);
 }
 
 function readStore(userId: string): OfflineStore {

@@ -11,6 +11,7 @@ import { createClient } from "@/shared/lib/supabase/client";
 import {
   getOfflineWrites,
   isOnline,
+  offlineWritesStorageKey,
 } from "@/shared/offline-queue/lib/offline-store";
 import type { OfflineWrite } from "@/shared/offline-queue/lib/offline-store";
 import { useOnlineStatus } from "@/shared/offline-queue/hooks/use-online-status";
@@ -47,6 +48,7 @@ export function useAuthUserId(): string | null {
 
 /**
  * Merges offline writes after load; flushes when the browser reconnects or regains focus.
+ * Cross-tab: listens for `storage` so sibling tabs merge when another tab saves offline writes.
  */
 export function useOfflineSync(
   userId: string | null,
@@ -87,6 +89,31 @@ export function useOfflineSync(
       mergeAll();
     },
     [mergeAll],
+  );
+
+  useEffect(
+    function mergeOfflineWritesFromOtherTabs() {
+      if (!userId) {
+        return;
+      }
+
+      const storageKey = offlineWritesStorageKey(userId);
+
+      function handleStorageEvent(event: StorageEvent) {
+        if (event.key !== storageKey) {
+          return;
+        }
+
+        mergeAll();
+      }
+
+      window.addEventListener("storage", handleStorageEvent);
+
+      return function removeStorageListener() {
+        window.removeEventListener("storage", handleStorageEvent);
+      };
+    },
+    [mergeAll, userId],
   );
 
   useEffect(
