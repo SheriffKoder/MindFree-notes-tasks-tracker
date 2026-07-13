@@ -19,6 +19,8 @@ export interface NoteFormTitleRowProps {
   onToggleImportant: () => void;
   /** When set, shows the calendar date picker beside the toggles. */
   onDatePick?: (isoDate: string) => void;
+  /** Bound calendar date for the dropdown picker (`YYYY-MM-DD`). */
+  selectedDate?: string | null;
   /** When set, shows a delete control on the title row. */
   onDelete?: () => void;
 }
@@ -33,6 +35,7 @@ export function NoteFormTitleRow({
   onToggleStarred,
   onToggleImportant,
   onDatePick,
+  selectedDate,
   onDelete,
 }: NoteFormTitleRowProps) {
   return (
@@ -51,6 +54,7 @@ export function NoteFormTitleRow({
         <NoteFormToggleButtons
           values={values}
           onDatePick={onDatePick}
+          selectedDate={selectedDate}
           onDelete={onDelete}
           onToggleImportant={onToggleImportant}
           onToggleStarred={onToggleStarred}

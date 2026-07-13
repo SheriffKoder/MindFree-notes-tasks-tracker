@@ -20,6 +20,8 @@ export interface NoteFormToggleButtonsProps {
   onToggleImportant: () => void;
   /** When set, renders the calendar picker left of the star toggle. */
   onDatePick?: (isoDate: string) => void;
+  /** Bound calendar date for the dropdown picker (`YYYY-MM-DD`). */
+  selectedDate?: string | null;
   /** When set, renders a delete control after the bookmark toggle. */
   onDelete?: () => void;
 }
@@ -32,6 +34,7 @@ export function NoteFormToggleButtons({
   onToggleStarred,
   onToggleImportant,
   onDatePick,
+  selectedDate,
   onDelete,
 }: NoteFormToggleButtonsProps) {
   return (
@@ -39,6 +42,7 @@ export function NoteFormToggleButtons({
       {onDatePick ? (
         <NoteDatePickerTrigger
           currentTitle={values.title}
+          selectedDate={selectedDate}
           onPick={onDatePick}
         />
       ) : null}

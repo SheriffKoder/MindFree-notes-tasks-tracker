@@ -78,6 +78,7 @@ export function NoteForm({
         errors={errors}
         values={values}
         onDatePick={onDatePick ? handleDatePick : undefined}
+        selectedDate={note?.date ?? calendarDate}
         onDelete={onDelete}
         onTitleChange={setTitle}
         onToggleImportant={toggleImportant}
