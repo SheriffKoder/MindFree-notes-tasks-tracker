@@ -4,13 +4,14 @@
  *
  * Purpose: Render home read-model cards with reserved labels.
  * Used in: views/home/ui/home-notes-section.tsx
- * Used for: Step 2 home strip — quick slot first, starred notes follow.
+ * Used for: Drag-scroll row — quick slot first, starred notes follow.
  */
 
 "use client";
 
 import { useCallback } from "react";
 
+import { DragHorizontalScroll } from "@/components/drag-horizontal/drag-horizontal-scroll";
 import { useHomeNotesQuery, type Note } from "@/entities/note/client";
 import { NoteListCard } from "@/features/notes/note-list-card";
 import { QueryStatePanel } from "@/shared/react-query";
@@ -73,7 +74,7 @@ export function HomeNotesStrip({
   const quickReserved = quickNote ? getReservedMeta("home", quickNote) : null;
 
   return (
-    <div className="-mx-1 overflow-x-auto px-1 pb-1">
+    <DragHorizontalScroll className="-mx-1 px-1 pb-1">
       <div className="flex flex-row gap-3">
         <div className={HOME_STRIP_CARD_SHELL_CLASS}>
           {quickNote ? (
@@ -104,6 +105,6 @@ export function HomeNotesStrip({
 
         {starredNotes.map(renderStarredNote)}
       </div>
-    </div>
+    </DragHorizontalScroll>
   );
 }

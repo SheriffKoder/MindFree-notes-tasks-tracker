@@ -277,6 +277,27 @@
     color: var(--color-fg-muted);
     font-size: var(--text-sm);
     line-height: var(--leading-normal);
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  @media (min-width: 768px) {
+    .page-header__subtitle {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
   }
 
   .section-divider {

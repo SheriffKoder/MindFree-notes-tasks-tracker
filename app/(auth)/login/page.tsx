@@ -46,7 +46,7 @@ export default function LoginPage({
       <div className="flex w-full max-w-md flex-col gap-6">
         <div className="flex flex-col gap-2 text-center">
           <h1 className="text-h1">MindFree</h1>
-          <p className="text-body-muted">
+          <p className="page-header__subtitle">
             Clear your mind and return to what matters.
           </p>
         </div>

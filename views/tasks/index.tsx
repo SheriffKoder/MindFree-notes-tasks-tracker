@@ -21,7 +21,7 @@ export function TasksView() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
       <section className="flex flex-col gap-2">
         <h2 className="text-h2">Tasks</h2>
-        <p className="text-body-muted">
+        <p className="page-header__subtitle">
           This page will host the monthly task calendar, task drawer, and completion
           workflows.
         </p>

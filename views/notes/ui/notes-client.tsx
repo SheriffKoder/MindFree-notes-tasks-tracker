@@ -92,7 +92,7 @@ export function NotesClient() {
       <OfflineBanner />
       <section className="flex shrink-0 flex-col gap-2">
         <h2 className="text-h2">Notes</h2>
-        <p className="text-body-muted">
+        <p className="page-header__subtitle">
           Browse calendar notes by month. Click a day or list card to open the
           note editor.
         </p>

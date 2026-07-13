@@ -21,7 +21,7 @@ export function ProgressView() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
       <section className="flex flex-col gap-2">
         <h2 className="text-h2">Progress</h2>
-        <p className="text-body-muted">
+        <p className="page-header__subtitle">
           This page will hold the monthly progress cards, pie charts, and task tracking
           summaries.
         </p>
