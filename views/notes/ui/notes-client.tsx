@@ -24,6 +24,7 @@ import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
 import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
+import { NotesAddButton } from "@/views/notes/ui/notes-add-button";
 
 /**
  * Renders the Notes page shell with month/view controls and hydrated query islands.
@@ -81,6 +82,11 @@ export function NotesClient() {
     [drawer.openEdit, selectDate],
   );
 
+  const handleAddNote = useCallback(() => {
+    clearSelection();
+    drawer.openCreateGeneral();
+  }, [clearSelection, drawer.openCreateGeneral]);
+
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
       <OfflineBanner />
@@ -102,11 +108,14 @@ export function NotesClient() {
           onPrevious={previousMonth}
           onNext={nextMonth}
         />
-        <ViewSwitcher
-          view={view}
-          onViewChange={changeView}
-          onCycleView={cycleView}
-        />
+        <div className="flex shrink-0 items-center gap-2">
+          <ViewSwitcher
+            view={view}
+            onViewChange={changeView}
+            onCycleView={cycleView}
+          />
+          <NotesAddButton onClick={handleAddNote} />
+        </div>
       </section>
 
       <div className="relative min-h-0 flex-1">
