@@ -69,6 +69,8 @@ export interface NoteFormProps {
   onDatePick?: (isoDate: string) => string;
   /** Bumped when idle open drawer may accept a remote server revision into fields. */
   remoteSyncKey?: number;
+  /** When set, renders a delete control on the title row (persisted notes only). */
+  onDelete?: () => void;
 }
 
 export interface UseNoteFormOptions {

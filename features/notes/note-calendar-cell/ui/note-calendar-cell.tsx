@@ -40,7 +40,7 @@ export const NoteCalendarCell = memo(function NoteCalendarCell({
     <div
       style={NOTE_CALENDAR_CELL_CSS_VARS}
       className={cn(
-        "relative h-20 md:h-24 w-full max-w-full min-w-0 overflow-hidden bg-[var(--note-cell-bg-default)] p-1 transition-colors duration-200 hover:bg-[var(--note-cell-hover-light)] dark:hover:bg-[var(--note-cell-hover-dark)] md:min-h-20",
+        "relative h-full min-h-0 w-full max-w-full min-w-0 overflow-hidden bg-[var(--note-cell-bg-default)] p-1 transition-colors duration-200 hover:bg-[var(--note-cell-hover-light)] dark:hover:bg-[var(--note-cell-hover-dark)]",
         isSelected &&
           "bg-[var(--note-cell-bg-selected)] ring-2 ring-inset ring-[var(--note-cell-border-selected)]",
       )}

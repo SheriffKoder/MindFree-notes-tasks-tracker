@@ -115,14 +115,16 @@ export function NotesClient() {
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-[-10] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
         />
-        <div className="h-full min-h-0 overflow-x-auto overflow-y-auto pt-4 md:pt-5">
-          <NotesViewsSection
-            month={month}
-            view={view}
-            highlightedDate={highlightedDate}
-            onCalendarDaySelect={handleCalendarDaySelect}
-            onNoteClick={handleNoteClick}
-          />
+        <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
+          <div className="min-h-0 flex-1">
+            <NotesViewsSection
+              month={month}
+              view={view}
+              highlightedDate={highlightedDate}
+              onCalendarDaySelect={handleCalendarDaySelect}
+              onNoteClick={handleNoteClick}
+            />
+          </div>
         </div>
       </div>
 

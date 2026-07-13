@@ -18,16 +18,19 @@ import { getTodayIsoDate } from "@/shared/calendar/lib/today";
 import type { InMonthDay, MonthCalendarProps } from "@/shared/calendar/model/types";
 
 const frameClassName =
-  "w-full max-w-full overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]";
+  "flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]";
 const headerCellClassName =
   "flex min-h-8 min-w-0 items-center justify-center border-r border-[var(--color-border)] px-1 py-2 text-center text-caption [color:var(--color-fg-muted)] last:border-r-0";
-/** Equal columns that cannot grow past 1/7 of the grid — long cell content stays clipped/wrapped inside. */
+/**
+ * Equal columns + equal rows that share leftover height — cell bodies stretch,
+ * independent of note preview length.
+ */
 const gridClassName =
-  "grid w-full grid-cols-[repeat(7,minmax(0,1fr))] divide-x divide-y divide-[var(--color-border)]";
+  "grid min-h-0 w-full flex-1 grid-cols-[repeat(7,minmax(0,1fr))] auto-rows-[minmax(0,1fr)] divide-x divide-y divide-[var(--color-border)]";
 const paddingCellClassName =
-  "flex min-h-16 min-w-0 items-start overflow-hidden bg-[color-mix(in_srgb,var(--color-surface-secondary)_55%,var(--color-surface))] p-1.5 text-caption [color:var(--color-fg-muted)] md:min-h-20";
+  "flex h-full min-h-0 min-w-0 items-start overflow-hidden bg-[color-mix(in_srgb,var(--color-surface-secondary)_55%,var(--color-surface))] p-1.5 text-caption [color:var(--color-fg-muted)]";
 const inMonthCellClassName =
-  "flex min-h-16 min-w-0 max-w-full overflow-hidden w-full cursor-pointer items-stretch bg-[var(--color-surface)] p-0 text-left md:min-h-20";
+  "flex h-full min-h-0 min-w-0 max-w-full w-full cursor-pointer items-stretch overflow-hidden bg-[var(--color-surface)] p-0 text-left";
 
 /**
  * Renders a month calendar matrix with weekday headers and a renderCell slot.
@@ -55,7 +58,7 @@ export function MonthCalendar<TDay extends InMonthDay>({
   return (
     <div className={cn(frameClassName, className)}>
       <div
-        className="grid w-full grid-cols-[repeat(7,minmax(0,1fr))] border-b border-[var(--color-border)]"
+        className="grid w-full shrink-0 grid-cols-[repeat(7,minmax(0,1fr))] border-b border-[var(--color-border)]"
         aria-hidden
       >
         {WEEKDAY_LABELS.map((label) => (
