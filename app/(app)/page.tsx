@@ -5,6 +5,7 @@
 
 import { Suspense } from "react";
 
+import { HomeHydrationSeed } from "@/app/(app)/home-hydration-seed";
 import {
   getProtectedAppNotice,
   type SearchParamsRecord,
@@ -44,8 +45,13 @@ export default function ProtectedHomeRoute({
   searchParams,
 }: ProtectedHomeRouteProps) {
   return (
-    <Suspense fallback={<HomeView />}>
-      <ProtectedHomeRouteContent searchParams={searchParams} />
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <HomeHydrationSeed />
+      </Suspense>
+      <Suspense fallback={<HomeView />}>
+        <ProtectedHomeRouteContent searchParams={searchParams} />
+      </Suspense>
+    </>
   );
 }

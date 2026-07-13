@@ -58,6 +58,16 @@ export interface GeneralNotesResponse {
 }
 
 /**
+ * Home dashboard payload — quick-note slot plus starred carousel.
+ */
+export interface HomeNotesResponse {
+  /** Single quick note (`date IS NULL`, `is_quick = true`), or `null` before lazy create. */
+  quickNote: Note | null;
+  /** Starred notes (`starred = true`, `is_quick = false`), most recently edited first. */
+  starredNotes: Note[];
+}
+
+/**
  * Supabase row shape for `mf_notes` before domain mapping.
  */
 export interface NoteRow {

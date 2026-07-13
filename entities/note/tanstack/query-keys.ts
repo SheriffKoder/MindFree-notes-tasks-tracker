@@ -10,3 +10,6 @@ export function calendarNotesQueryKey(month: string) {
 
 /** Query key for month-independent general notes. */
 export const generalNotesQueryKey = ["generalNotes"] as const;
+
+/** Query key for home quick note + starred carousel. */
+export const homeNotesQueryKey = ["homeNotes"] as const;

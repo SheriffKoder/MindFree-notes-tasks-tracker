@@ -8,6 +8,7 @@
 export {
   calendarNotesQueryKey,
   generalNotesQueryKey,
+  homeNotesQueryKey,
 } from "@/entities/note/tanstack/query-keys";
 export {
   calendarNotesQueryOptions,
@@ -19,6 +20,11 @@ export {
   fetchGeneralNotes,
   useGeneralNotesQuery,
 } from "@/entities/note/tanstack/general-notes-query";
+export {
+  homeNotesQueryOptions,
+  fetchHomeNotes,
+  useHomeNotesQuery,
+} from "@/entities/note/tanstack/home-notes-query";
 export { prefetchCalendarMonth } from "@/entities/note/tanstack/prefetch-calendar-month";
 export { prefetchAdjacentCalendarMonths } from "@/entities/note/tanstack/prefetch-adjacent-calendar-months";
 export { useUpdateNoteMutation } from "@/entities/note/tanstack/use-update-note-mutation";
@@ -38,5 +44,6 @@ export type {
   CalendarDay,
   CalendarNotesResponse,
   GeneralNotesResponse,
+  HomeNotesResponse,
   Note,
 } from "@/entities/note/model/types";

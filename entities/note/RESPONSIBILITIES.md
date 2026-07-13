@@ -7,15 +7,15 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 ## Entry points
 
 `index.ts` — domain types + pure month helpers (any layer)  
-`server.ts` — server reads, SSR hydrate, write use-cases (API routes, RSC)  
-`client.ts` — TanStack keys, fetchers, hooks, mutations, realtime (client only)  
+`server.ts` — server reads, SSR hydrate, write use-cases (API routes, RSC); exports `getHomeNotesResponse`, `hydrateHomeNotesQueries`  
+`client.ts` — TanStack keys, fetchers, hooks, mutations, realtime (client only); exports `useHomeNotesQuery`, `homeNotesQueryKey`  
 `editor/index.ts` — form schema, hook, UI exports
 
 ---
 
 ## Domain model
 
-`model/types.ts` — `Note`, `NoteRow`, `CalendarDay`, `CalendarNotesResponse`, `GeneralNotesResponse`
+`model/types.ts` — `Note`, `NoteRow`, `CalendarDay`, `CalendarNotesResponse`, `GeneralNotesResponse`, `HomeNotesResponse`
 
 ---
 
@@ -29,7 +29,7 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 
 ## Persistence
 
-`repository/note-repository.ts` — Supabase CRUD, month/general reads, `findCalendarNoteByDate`, `replaceNoteOnDate`
+`repository/note-repository.ts` — Supabase CRUD, month/general reads, `getQuickNote`, `getStarredNotes`, `findCalendarNoteByDate`, `replaceNoteOnDate`
 
 ---
 
@@ -43,6 +43,7 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 
 `queries/get-calendar-notes-response.ts` — month param → repo → transform → API/SSR payload  
 `queries/get-general-notes-response.ts` — general notes list payload  
+`queries/get-home-notes-response.ts` — quick note slot + starred carousel for Home (`GET /api/notes/home`)  
 `queries/get-notes-page-initial-data.ts` — parallel calendar + general for `/notes` SSR
 
 ---
@@ -76,9 +77,10 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 
 ## TanStack read cache
 
-`tanstack/query-keys.ts` — `calendarNotesQueryKey`, `generalNotesQueryKey`  
+`tanstack/query-keys.ts` — `calendarNotesQueryKey`, `generalNotesQueryKey`, `homeNotesQueryKey`  
 `tanstack/calendar-notes-query.ts` — fetcher, options, `useCalendarNotesQuery`  
-`tanstack/general-notes-query.ts` — fetcher, options, `useGeneralNotesQuery`
+`tanstack/general-notes-query.ts` — fetcher, options, `useGeneralNotesQuery`  
+`tanstack/home-notes-query.ts` — fetcher, options, `useHomeNotesQuery` (`["homeNotes"]`)
 
 ---
 
@@ -93,7 +95,8 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 
 ## Prefetch & SSR hydrate
 
-`tanstack/hydrate-notes-page-queries.ts` — seed `QueryClient` from SSR, return dehydrate state  
+`tanstack/hydrate-notes-page-queries.ts` — seed `QueryClient` from `/notes` SSR, return dehydrate state  
+`tanstack/hydrate-home-notes-queries.ts` — seed `["homeNotes"]` from `/` SSR, return dehydrate state  
 `tanstack/prefetch-calendar-month.ts` — prefetch one month  
 `tanstack/prefetch-adjacent-calendar-months.ts` — prefetch prev/next month
 
@@ -106,6 +109,21 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 `tanstack/note-mutation-pending.ts` — in-flight mutation ids; realtime skips echo
 
 Drawer form sync guard lives in `features/notes/note-drawer/model/` — not this entity.
+
+---
+
+## Home read model
+
+Quick note (`is_quick = true`) + starred carousel (`starred = true`, `is_quick = false`). Home UI lives in `views/home/`; entity owns fetch + cache only.
+
+`queries/get-home-notes-response.ts` — parallel `getQuickNote` + `getStarredNotes` → `HomeNotesResponse`  
+`repository/note-repository.ts` — `getQuickNote`, `getStarredNotes` (cap 20, `last_edited_at DESC`)  
+`tanstack/home-notes-query.ts` — `fetchHomeNotes`, `useHomeNotesQuery`  
+`tanstack/hydrate-home-notes-queries.ts` — SSR seed for `homeNotesQueryKey`  
+`app/api/notes/home/route.ts` — `GET` route (outside entity; calls `getHomeNotesResponse`)  
+`app/(app)/home-hydration-seed.tsx` — Home route SSR boundary (outside entity)
+
+Step 2+ (pending): home cache patches in mutations/realtime — see `app/development/workflow/home/notes-strip.md`.
 
 ---
 
@@ -151,6 +169,8 @@ Drawer form sync guard lives in `features/notes/note-drawer/model/` — not this
 | Change autosave fetch | `mutations/patch-note.ts` |
 | Fix optimistic UI after save | `mutations/note-cache-mutations.ts`, `patch-note-in-cache.ts` |
 | Fix list/calendar not updating | `tanstack/calendar-notes-query.ts`, `general-notes-query.ts` |
+| Fix home strip not loading | `queries/get-home-notes-response.ts`, `tanstack/home-notes-query.ts` |
+| Fix home strip stale after edit | `mutations/note-cache-mutations.ts` (Step 3), `apply-realtime-note-change.ts` |
 | Fix realtime sync | `tanstack/use-notes-realtime-sync.ts`, `apply-realtime-note-change.ts` |
 | Fix remote overwrite while typing | `features/notes/note-drawer/model/note-editor-sync-guard.ts` |
 | Change form fields / validation | `editor/model/*`, `editor/ui/*` |
