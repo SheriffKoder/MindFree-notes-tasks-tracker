@@ -94,7 +94,8 @@ Conflict: moving onto a day that already has a note requires replace confirmatio
 - Adding a **title** or **date** graduates out of quick (becomes general or calendar).
 - Promoting an existing note into quick clears metadata that belongs to “catalogued” notes.
 
-Detail docs land in Phase 3 (`writes-and-autosave.md`, `quick-note.md`).
+Detail docs: [writes-and-autosave.md](./writes-and-autosave.md), [quick-note.md](./quick-note.md).
+Home as consumer: [views/home/docs/notes-strip.md](../../../views/home/docs/notes-strip.md).
 
 ---
 

@@ -3,7 +3,7 @@
 The Home **quick slot** — one undated capture note per user that never appears on the Notes page lists.
 
 **Domain:** [domain-model.md](./domain-model.md)  
-**Home consumer:** planned [views/home/docs/notes-strip.md](../../../views/home/docs/notes-strip.md) _(Phase 4)_  
+**Home consumer:** [views/home/docs/notes-strip.md](../../../views/home/docs/notes-strip.md)  
 **Rules live in:** `evaluateNoteSave` / `applyQuickSlotRules`
 
 ---
@@ -72,4 +72,4 @@ Home membership is updated by `synchronizeNoteCaches` (quick slot + starred list
 | --- | --- |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Actions including `create-quick` |
 | [read-models.md](./read-models.md) | `["homeNotes"]` shape |
-| [ADR 0010](../../../docs/adr/README.md) | One domain, multiple consumers _(Phase 4)_ |
+| [ADR 0010](../../../docs/adr/0010-one-domain-multiple-consumers.md) | One domain, multiple consumers |
