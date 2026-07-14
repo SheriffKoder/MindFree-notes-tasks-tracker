@@ -1,6 +1,6 @@
 /**
  * @file features/auth/login/ui/demo-login-button.tsx
- * Demo sign-in button that submits to the login server action via a native form.
+ * Demo sign-in button that submits to the env-gated demo server action.
  */
 
 "use client";
@@ -8,11 +8,7 @@
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
-import { submitLoginForm } from "@/features/auth/login/model/login-action";
-
-/** Credentials for the public demo account. */
-const DEMO_EMAIL = "demo@example.com";
-const DEMO_PASSWORD = "password";
+import { submitDemoLoginForm } from "@/features/auth/login/model/demo-login-action";
 
 /**
  * Props for the demo login button component.
@@ -45,9 +41,7 @@ function DemoLoginSubmitButton() {
  */
 export function DemoLoginButton({ nextPath = "/" }: DemoLoginButtonProps) {
   return (
-    <form action={submitLoginForm} method="post">
-      <input name="email" type="hidden" value={DEMO_EMAIL} />
-      <input name="password" type="hidden" value={DEMO_PASSWORD} />
+    <form action={submitDemoLoginForm} method="post">
       <input name="next" type="hidden" value={nextPath} />
       <DemoLoginSubmitButton />
     </form>

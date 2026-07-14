@@ -5,24 +5,8 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 
+import { getSafePath } from "@/shared/lib/auth/get-safe-path";
 import { createClient } from "@/shared/lib/supabase/server";
-
-/**
- * Normalizes a redirect path so only safe relative paths inside the app are used.
- *
- * @param path - requested post-auth destination
- * @param fallbackPath - fallback route used when the input is unsafe
- * @returns Safe in-app redirect target
- */
-function getSafePath(path: string | null, fallbackPath: string) {
-  // Allow only single-slash relative paths that stay inside the app.
-  if (typeof path === "string" && path.startsWith("/") && !path.startsWith("//")) {
-    return path;
-  }
-
-  // Fall back to the provided route when the path is missing or unsafe.
-  return fallbackPath;
-}
 
 /**
  * Exchanges the OAuth code for a session and redirects after success or failure.

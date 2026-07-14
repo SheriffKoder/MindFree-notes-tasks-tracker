@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 
 import type { LoginActionState } from "@/features/auth/login/model/login-action-state";
 import { loginSchema } from "@/features/auth/login/model/login-schema";
+import { getSafeAppPath } from "@/shared/lib/auth/get-safe-path";
 import { createClient } from "@/shared/lib/supabase/server";
 
 /**
@@ -35,16 +36,7 @@ export async function login(formData: FormData): Promise<LoginActionState> {
   // Read the validated credentials after the schema has normalized them.
   const { email, password } = validatedFields.data;
   const nextPath = formData.get("next");
-
-  // Only allow safe relative redirects that point back into the app.
-  const redirectPath =
-    typeof nextPath === "string" &&
-    nextPath.startsWith("/") &&
-    !nextPath.startsWith("//") &&
-    nextPath !== "/login" &&
-    nextPath !== "/signup"
-      ? nextPath
-      : "/";
+  const redirectPath = getSafeAppPath(nextPath, "/");
 
   // Create the per-request server Supabase client for sign-in.
   const supabase = await createClient();

@@ -11,6 +11,7 @@ import {
   type SearchParamsRecord,
 } from "@/features/auth/model/auth-notice";
 import { LoginForm } from "@/features/auth/login";
+import { isDemoLoginConfigured } from "@/shared/lib/auth/demo-login-config";
 
 /**
  * Resolves request-time login form state from the current search params.
@@ -26,8 +27,15 @@ async function LoginPageContent({
   const resolvedSearchParams = await searchParams;
   const nextPath = getSafeNextPath(resolvedSearchParams.next);
   const notice = getAuthPageNotice(resolvedSearchParams, "login");
+  const demoLoginEnabled = isDemoLoginConfigured();
 
-  return <LoginForm nextPath={nextPath} notice={notice} />;
+  return (
+    <LoginForm
+      demoLoginEnabled={demoLoginEnabled}
+      nextPath={nextPath}
+      notice={notice}
+    />
+  );
 }
 
 /**

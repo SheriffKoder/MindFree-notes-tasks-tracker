@@ -3,6 +3,8 @@
  * Shared auth notice helpers for query-driven error and status states.
  */
 
+import { getSafeAppPath } from "@/shared/lib/auth/get-safe-path";
+
 /**
  * Narrow search param value type used by App Router page props.
  */
@@ -55,19 +57,7 @@ function getFirstParamValue(value: SearchParamValue) {
  * @returns Safe in-app destination
  */
 export function getSafeNextPath(value: SearchParamValue) {
-  const nextPath = getFirstParamValue(value);
-
-  if (
-    typeof nextPath === "string" &&
-    nextPath.startsWith("/") &&
-    !nextPath.startsWith("//") &&
-    nextPath !== "/login" &&
-    nextPath !== "/signup"
-  ) {
-    return nextPath;
-  }
-
-  return "/";
+  return getSafeAppPath(getFirstParamValue(value), "/");
 }
 
 /**
@@ -106,6 +96,14 @@ export function getAuthPageNotice(
       title: "Session expired",
       description: "Your session could not be restored. Please sign in again.",
       tone: "error",
+    } satisfies AuthNotice;
+  }
+
+  if (page === "login" && error === "demo_unavailable") {
+    return {
+      title: "Demo sign-in unavailable",
+      description: "Try Demo is not enabled for this environment.",
+      tone: "info",
     } satisfies AuthNotice;
   }
 

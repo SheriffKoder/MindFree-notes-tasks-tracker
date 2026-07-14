@@ -7,26 +7,8 @@
 
 import { redirect } from "next/navigation";
 
+import { getSafePath } from "@/shared/lib/auth/get-safe-path";
 import { createClient } from "@/shared/lib/supabase/server";
-
-/**
- * Normalizes a redirect path so only safe relative app paths are used.
- *
- * @param path - requested path from the client form
- * @param fallbackPath - fallback path used when the input is unsafe
- * @returns Safe in-app redirect path
- */
-function getSafePath(path: FormDataEntryValue | null, fallbackPath: string) {
-  if (
-    typeof path === "string" &&
-    path.startsWith("/") &&
-    !path.startsWith("//")
-  ) {
-    return path;
-  }
-
-  return fallbackPath;
-}
 
 /**
  * Starts the Google OAuth sign-in flow and redirects to the provider URL.

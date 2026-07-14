@@ -33,6 +33,8 @@ interface LoginFormProps {
   nextPath?: string;
   /** Optional auth redirect or fallback notice rendered above the form. */
   notice?: AuthNotice | null;
+  /** When true, renders the env-gated Try Demo control. */
+  demoLoginEnabled?: boolean;
 }
 
 /**
@@ -41,7 +43,11 @@ interface LoginFormProps {
  * @param props - login form configuration
  * @returns Login form shell for the `/login` route
  */
-export function LoginForm({ nextPath = "/", notice = null }: LoginFormProps) {
+export function LoginForm({
+  nextPath = "/",
+  notice = null,
+  demoLoginEnabled = false,
+}: LoginFormProps) {
   // Delegate RHF, Zod, and server action orchestration to the feature hook.
   const { errors, isPending, onSubmit, register, serverErrorMessage } =
     useLoginForm({
@@ -118,7 +124,7 @@ export function LoginForm({ nextPath = "/", notice = null }: LoginFormProps) {
         ) : null}
 
         <div className="flex flex-col gap-4 pt-1 ">
-          <DemoLoginButton nextPath={nextPath} />
+          {demoLoginEnabled ? <DemoLoginButton nextPath={nextPath} /> : null}
 
           <GoogleSignInButton
             errorRedirectPath="/login"
