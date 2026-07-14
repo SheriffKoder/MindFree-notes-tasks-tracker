@@ -11,14 +11,16 @@
 import { gsap } from "gsap";
 import { useCallback, useRef, useState } from "react";
 
-const DRAG_THRESHOLD_PX = 6;
-const SCROLL_SPEED = 2;
-const MOMENTUM_MULTIPLIER = 300;
+const DRAG_THRESHOLD_PX = 8;
+const SCROLL_SPEED = 1;
+const MOMENTUM_MULTIPLIER = 180;
 const MIN_VELOCITY = 0.1;
 
 interface DragScrollState {
   pointerDown: boolean;
   active: boolean;
+  /** Set after the drag threshold so child clicks still receive the click event. */
+  pointerId: number | null;
   startX: number;
   scrollLeft: number;
   lastX: number;
@@ -31,6 +33,7 @@ function createInitialDragState(): DragScrollState {
   return {
     pointerDown: false,
     active: false,
+    pointerId: null,
     startX: 0,
     scrollLeft: 0,
     lastX: 0,
@@ -90,16 +93,18 @@ export function useDragScroll() {
         return;
       }
 
+      // Do not capture yet — early capture retargets click to this container on
+      // desktop mice, so child card onClick never fires. Capture starts after
+      // the movement threshold (real drag).
       dragState.current = {
         ...createInitialDragState(),
         pointerDown: true,
+        pointerId: event.pointerId,
         startX: event.clientX,
         scrollLeft: element.scrollLeft,
         lastX: event.clientX,
         lastTime: Date.now(),
       };
-
-      element.setPointerCapture(event.pointerId);
     },
     [],
   );
@@ -123,6 +128,13 @@ export function useDragScroll() {
         state.active = true;
         state.suppressClick = true;
         setIsDragging(true);
+
+        if (
+          state.pointerId != null &&
+          !element.hasPointerCapture(state.pointerId)
+        ) {
+          element.setPointerCapture(state.pointerId);
+        }
       }
 
       event.preventDefault();
