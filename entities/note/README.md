@@ -2,7 +2,9 @@
 
 Business logic for calendar, general, and quick notes. Use the correct entry point for your runtime — not every file imports from the same barrel.
 
-**Where to look by responsibility:** [`RESPONSIBILITIES.md`](./RESPONSIBILITIES.md)
+**Why (domain & read models):** [`docs/`](./docs/README.md) — start with [`docs/domain-model.md`](./docs/domain-model.md)  
+**Where to look by responsibility:** [`RESPONSIBILITIES.md`](./RESPONSIBILITIES.md)  
+**Shared concepts:** [`docs/concepts/glossary.md`](../../docs/concepts/glossary.md)
 
 ## Entry points
 
