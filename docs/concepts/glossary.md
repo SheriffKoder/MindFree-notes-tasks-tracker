@@ -81,4 +81,4 @@ See [read-models.md](../../entities/note/docs/read-models.md).
 
 - **Calendar notes:** clearing **content** (while dirty) deletes the row — empty day, no leftover shell.
 - **General notes:** never auto-delete on empty; user deletes explicitly.
-- Full write rules: [writes-and-autosave.md](../../entities/note/docs/writes-and-autosave.md) _(Phase 3)_.
+- Full write rules: [writes-and-autosave.md](../../entities/note/docs/writes-and-autosave.md).

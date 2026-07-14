@@ -2,7 +2,8 @@
 
 Notes-specific **drawer island** — composes the shared drawer shell, the entity editor form, cache lookup, and calendar day navigation. Import from `@/features/notes/note-drawer`.
 
-**Where to look by responsibility:** [`RESPONSIBILITIES.md`](./RESPONSIBILITIES.md)
+**Where to look by responsibility:** [`RESPONSIBILITIES.md`](./RESPONSIBILITIES.md)  
+**WHY (save interceptor):** [`docs/pre-save-orchestrator.md`](./docs/pre-save-orchestrator.md)
 
 ## How this relates to the entity editor
 

@@ -97,5 +97,5 @@ Adjacent calendar months are prefetched from the Notes views section and the dra
 | --- | --- |
 | [state-management.md](./state-management.md) | Which state belongs in Query vs URL vs UI |
 | [read-models.md](../../entities/note/docs/read-models.md) | Payload ↔ key mapping |
-| ADRs (Phase 2+) | RSC + hydration, sync hub, offline simplicity |
+| ADRs | [0003](../adr/0003-rsc-first-with-query-hydration.md), [0007](../adr/0007-synchronize-note-caches-hub.md), [0009](../adr/0009-offline-writes-simple-queue.md) |
 | Workflow | `02-notes-page.md` Step 5; `home/notes-strip.md` sync hub |

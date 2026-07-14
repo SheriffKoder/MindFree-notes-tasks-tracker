@@ -2,7 +2,8 @@
 
 Drawer save interpretation for Step 11 (date ↔ general cycle). One folder owns every rule that turns form values into a PATCH, POST, DELETE, or noop.
 
-**Full plan:** `app/development/workflow/notes/date-general-cycle.md`
+**WHY:** [`../docs/pre-save-orchestrator.md`](../docs/pre-save-orchestrator.md) · [ADR 0006](../../../../docs/adr/0006-pre-save-orchestrator.md)  
+**Workflow archive:** `app/development/workflow/notes/` (date-general cycle substeps)
 
 ---
 
