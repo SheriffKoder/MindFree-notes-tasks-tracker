@@ -24,6 +24,35 @@ function isPublicRoute(pathname: string) {
 }
 
 /**
+ * Checks whether the current path is an API route.
+ *
+ * @param pathname - current request pathname
+ * @returns True when the path is under `/api`
+ */
+function isApiRoute(pathname: string) {
+  return pathname === "/api" || pathname.startsWith("/api/");
+}
+
+/**
+ * Returns a JSON 401 while preserving session cookies from the proxy refresh.
+ *
+ * @param sessionResponse - pass-through response from `updateSession`
+ * @returns Unauthorized JSON response
+ */
+function createApiUnauthorizedResponse(sessionResponse: NextResponse) {
+  const unauthorized = NextResponse.json(
+    { error: "Unauthorized" },
+    { status: 401 },
+  );
+
+  sessionResponse.cookies.getAll().forEach(function copySessionCookie(cookie) {
+    unauthorized.cookies.set(cookie.name, cookie.value);
+  });
+
+  return unauthorized;
+}
+
+/**
  * Redirects guests to the login page while preserving the target route.
  *
  * @param request - active Next.js proxy request
@@ -84,6 +113,10 @@ export async function proxy(request: NextRequest) {
 
   // Block access to protected routes when there is no authenticated user.
   if (!user && !publicRoute) {
+    if (isApiRoute(pathname)) {
+      return createApiUnauthorizedResponse(response);
+    }
+
     return createLoginRedirect(request);
   }
 

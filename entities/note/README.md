@@ -40,7 +40,7 @@ model/types  ←  lib  ←  transform  ←  repository
 
 - Lower layers never import from `queries/` or `tanstack/`.
 - `app/api/notes/*/route.ts` stays thin: auth check → one server export → JSON response.
-- Auth guards live in `shared/lib/auth/`, not in this entity.
+- Auth guards live in `shared/lib/auth/` — see [`shared/lib/auth/README.md`](../../shared/lib/auth/README.md) for the full entity pattern (API → use-case → repository `user_id` + RLS).
 
 ## Files
 
@@ -80,12 +80,16 @@ Maps a Supabase `NoteRow` (snake_case) to a domain `Note` (camelCase). Used by t
 
 ### `repository/note-repository.ts`
 
-Persistence layer. Talks to `mf_notes` via Supabase; scoped to the authenticated user by RLS. Returns `Note[]` — no HTTP, no aggregation.
+Persistence layer. Talks to `mf_notes` via Supabase; scoped by **app-layer `user_id` filters** and **RLS**. Every function takes `userId` as the first argument.
 
 | Function | Filter |
 | -------- | ------ |
-| `getCalendarNotesForMonth(month)` | `date` in month range, `date IS NOT NULL` |
-| `getGeneralNotes()` | `date IS NULL AND is_quick = false` |
+| `getCalendarNotesForMonth(userId, month)` | `user_id` + `date` in month range |
+| `getGeneralNotes(userId)` | `user_id` + `date IS NULL AND is_quick = false` |
+| `updateNoteById(userId, id, patch)` | `user_id` + `id` |
+| `deleteNoteById(userId, id)` | `user_id` + `id` |
+
+`getAuthenticatedUserId()` is exported for SSR hydration seeds.
 
 ### `transform/aggregate-month-notes.ts`
 
