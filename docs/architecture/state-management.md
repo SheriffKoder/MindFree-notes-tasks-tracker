@@ -45,7 +45,7 @@ For calendar editing, the drawer’s source of truth is **`activeDate` / selecte
 
 General / quick / edit-by-id opens still use a note id (or create request) when there is no date-nav mode. That is a different editor request shape — not a replacement for calendar date-as-truth.
 
-Formal ADR: selected-date decision _(Phase 2, ADR 0005)_.
+Formal ADR: [ADR 0005](../adr/0005-selected-date-not-selected-note.md).
 
 ---
 

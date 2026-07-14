@@ -10,5 +10,5 @@ App-wide shape of MindFree — rendering, state ownership, caching, data flow, r
 | [data-flow.md](./data-flow.md) | Phase 5 | API → use-case → repository |
 | [routing.md](./routing.md) | Phase 5 | App Router, month/view params |
 
-**Decisions (ADRs):** `docs/adr/` _(Phase 2 — migrate from `docs/ADR/`)_  
+**Decisions (ADRs):** [docs/adr/README.md](../adr/README.md)  
 **Clone setup:** [docs/setup/0-quick-setup.md](../setup/0-quick-setup.md)
