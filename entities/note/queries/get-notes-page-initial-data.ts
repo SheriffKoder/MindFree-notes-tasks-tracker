@@ -30,13 +30,14 @@ export interface NotesPageInitialData {
  * @returns both initial payloads for hydration
  */
 export async function getNotesPageInitialData(
+  userId: string,
   monthParam: string | null | undefined,
 ): Promise<NotesPageInitialData> {
   const month = parseMonthParam(monthParam);
 
   const [calendarNotes, generalNotes] = await Promise.all([
-    getCalendarNotesResponse(month),
-    getGeneralNotesResponse(),
+    getCalendarNotesResponse(userId, month),
+    getGeneralNotesResponse(userId),
   ]);
 
   return {

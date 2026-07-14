@@ -9,6 +9,7 @@ import {
   getHomeNotesResponse,
   hydrateHomeNotesQueries,
 } from "@/entities/note/server";
+import { getAuthenticatedUserId } from "@/entities/note/repository/note-repository";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**
@@ -17,7 +18,8 @@ import { getQueryClient, QueryHydration } from "@/shared/react-query";
 export async function HomeHydrationSeed() {
   await connection();
 
-  const homeNotes = await getHomeNotesResponse();
+  const userId = await getAuthenticatedUserId();
+  const homeNotes = await getHomeNotesResponse(userId);
   const queryClient = getQueryClient();
   const dehydratedState = hydrateHomeNotesQueries(queryClient, homeNotes);
 

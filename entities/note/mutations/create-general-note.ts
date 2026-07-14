@@ -17,7 +17,10 @@ import { createGeneralNote as createGeneralNoteRow } from "@/entities/note/repos
  * @returns created domain note
  * @throws when body is invalid
  */
-export async function createGeneralNote(body: unknown): Promise<Note> {
+export async function createGeneralNote(
+  userId: string,
+  body: unknown,
+): Promise<Note> {
   const parsed = createGeneralNoteBodySchema.safeParse(body);
 
   if (!parsed.success) {
@@ -25,5 +28,5 @@ export async function createGeneralNote(body: unknown): Promise<Note> {
   }
 
   const payload: CreateGeneralNoteBody = parsed.data;
-  return createGeneralNoteRow(payload);
+  return createGeneralNoteRow(userId, payload);
 }

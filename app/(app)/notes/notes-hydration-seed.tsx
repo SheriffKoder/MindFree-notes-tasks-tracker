@@ -9,6 +9,7 @@ import {
   getNotesPageInitialData,
   hydrateNotesPageQueries,
 } from "@/entities/note/server";
+import { getAuthenticatedUserId } from "@/entities/note/repository/note-repository";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**
@@ -18,7 +19,8 @@ export async function NotesHydrationSeed() {
   // Satisfy Next.js dynamic route rules before time-based month defaults run.
   await connection();
 
-  const initialData = await getNotesPageInitialData(null);
+  const userId = await getAuthenticatedUserId();
+  const initialData = await getNotesPageInitialData(userId, null);
   const queryClient = getQueryClient();
   const dehydratedState = hydrateNotesPageQueries(queryClient, initialData);
 

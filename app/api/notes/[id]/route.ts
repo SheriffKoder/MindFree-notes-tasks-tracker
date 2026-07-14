@@ -29,7 +29,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   try {
     const body = await request.json();
-    const note = await updateNote(id, body);
+    const note = await updateNote(userId, id, body);
 
     return Response.json({ note });
   } catch (error) {
@@ -75,7 +75,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
   const { id } = await context.params;
 
   try {
-    await deleteNote(id);
+    await deleteNote(userId, id);
 
     return new Response(null, { status: 204 });
   } catch (error) {

@@ -11,8 +11,8 @@ import { deleteNoteById } from "@/entities/note/repository/note-repository";
  * @param id - note row id
  * @throws when the note is not found
  */
-export async function deleteNote(id: string): Promise<void> {
-  const deleted = await deleteNoteById(id);
+export async function deleteNote(userId: string, id: string): Promise<void> {
+  const deleted = await deleteNoteById(userId, id);
 
   if (!deleted) {
     throw new Error("Note not found.");

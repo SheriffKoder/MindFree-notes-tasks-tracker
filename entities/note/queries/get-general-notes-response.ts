@@ -13,8 +13,10 @@ import { getGeneralNotes } from "@/entities/note/repository/note-repository";
  *
  * @returns general notes response
  */
-export async function getGeneralNotesResponse(): Promise<GeneralNotesResponse> {
-  const generalNotes = await getGeneralNotes();
+export async function getGeneralNotesResponse(
+  userId: string,
+): Promise<GeneralNotesResponse> {
+  const generalNotes = await getGeneralNotes(userId);
 
   return { generalNotes };
 }

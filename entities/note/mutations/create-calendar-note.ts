@@ -48,7 +48,10 @@ function splitCreateBody(data: CreateCalendarNoteBody): {
  * @returns created domain note
  * @throws when body is invalid or the day is occupied without replace consent
  */
-export async function createCalendarNote(body: unknown): Promise<Note> {
+export async function createCalendarNote(
+  userId: string,
+  body: unknown,
+): Promise<Note> {
   const parsed = createCalendarNoteBodySchema.safeParse(body);
 
   if (!parsed.success) {
@@ -56,17 +59,17 @@ export async function createCalendarNote(body: unknown): Promise<Note> {
   }
 
   const { payload, replaceExistingOnDate } = splitCreateBody(parsed.data);
-  const conflicting = await findCalendarNoteByDate(payload.date);
+  const conflicting = await findCalendarNoteByDate(userId, payload.date);
 
   if (conflicting) {
     if (!replaceExistingOnDate) {
       throw new NoteDateConflictError(payload.date, conflicting.id);
     }
 
-    await deleteNoteById(conflicting.id);
+    await deleteNoteById(userId, conflicting.id);
   }
 
-  const note = await createCalendarNoteRow(payload);
+  const note = await createCalendarNoteRow(userId, payload);
 
   if (!note) {
     throw new Error("Failed to create calendar note.");

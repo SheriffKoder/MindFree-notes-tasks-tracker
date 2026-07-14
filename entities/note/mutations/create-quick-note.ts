@@ -17,7 +17,10 @@ import { createQuickNote as createQuickNoteRow } from "@/entities/note/repositor
  * @returns created domain note
  * @throws when body is invalid
  */
-export async function createQuickNote(body: unknown): Promise<Note> {
+export async function createQuickNote(
+  userId: string,
+  body: unknown,
+): Promise<Note> {
   const parsed = createGeneralNoteBodySchema.safeParse(body);
 
   if (!parsed.success) {
@@ -25,5 +28,5 @@ export async function createQuickNote(body: unknown): Promise<Note> {
   }
 
   const payload: CreateGeneralNoteBody = parsed.data;
-  return createQuickNoteRow(payload);
+  return createQuickNoteRow(userId, payload);
 }

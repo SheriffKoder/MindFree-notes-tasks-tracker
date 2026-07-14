@@ -17,10 +17,11 @@ import { buildCalendarNotesResponse } from "@/entities/note/transform/aggregate-
  * @returns aggregated calendar response
  */
 export async function getCalendarNotesResponse(
+  userId: string,
   monthParam: string | null | undefined,
 ): Promise<CalendarNotesResponse> {
   const month = parseMonthParam(monthParam);
-  const notes = await getCalendarNotesForMonth(month);
+  const notes = await getCalendarNotesForMonth(userId, month);
 
   return buildCalendarNotesResponse(month, notes);
 }

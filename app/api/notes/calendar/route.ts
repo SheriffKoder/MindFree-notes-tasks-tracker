@@ -26,7 +26,10 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   try {
-    const response = await getCalendarNotesResponse(searchParams.get("month"));
+    const response = await getCalendarNotesResponse(
+      userId,
+      searchParams.get("month"),
+    );
 
     return Response.json(response);
   } catch (error) {
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const note = await createCalendarNote(body);
+    const note = await createCalendarNote(userId, body);
 
     return Response.json({ note }, { status: 201 });
   } catch (error) {

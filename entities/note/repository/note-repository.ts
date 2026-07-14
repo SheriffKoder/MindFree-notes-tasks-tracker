@@ -1,6 +1,6 @@
 /**
  * @file entities/note/repository/note-repository.ts
- * Supabase data access for notes (scoped by RLS to the authenticated user).
+ * Supabase data access for notes (scoped by `user_id` filter + RLS).
  *
  * Purpose: Persistence layer for note reads and writes used by server use-cases.
  * Used in: entities/note/mutations/*, entities/note/queries/*, app/api/notes/*
@@ -21,12 +21,12 @@ import { NOTES_TABLE } from "@/shared/config/supabase-tables";
 import { createClient } from "@/shared/lib/supabase/server";
 
 /**
- * Resolves the authenticated user id required by RLS on insert (`auth.uid() = user_id`).
+ * Resolves the authenticated user id for repository queries (defense in depth + RLS).
  *
  * @returns current user id from the request session
  * @throws when unauthenticated
  */
-async function getAuthenticatedUserId(): Promise<string> {
+export async function getAuthenticatedUserId(): Promise<string> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,13 +45,17 @@ async function getAuthenticatedUserId(): Promise<string> {
  * @param month - `YYYY-MM` month key
  * @returns calendar notes in the month, ordered by date ascending
  */
-export async function getCalendarNotesForMonth(month: string): Promise<Note[]> {
+export async function getCalendarNotesForMonth(
+  userId: string,
+  month: string,
+): Promise<Note[]> {
   const { monthStart, monthEnd } = getMonthRange(month);
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from(NOTES_TABLE)
     .select("*")
+    .eq("user_id", userId)
     .gte("date", monthStart)
     .lt("date", monthEnd)
     .not("date", "is", null)
@@ -69,12 +73,13 @@ export async function getCalendarNotesForMonth(month: string): Promise<Note[]> {
  *
  * @returns general notes ordered by most recently edited
  */
-export async function getGeneralNotes(): Promise<Note[]> {
+export async function getGeneralNotes(userId: string): Promise<Note[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from(NOTES_TABLE)
     .select("*")
+    .eq("user_id", userId)
     .is("date", null)
     .eq("is_quick", false)
     .order("last_edited_at", { ascending: false });
@@ -91,12 +96,13 @@ export async function getGeneralNotes(): Promise<Note[]> {
  *
  * @returns quick note row, or `null` when the slot is empty
  */
-export async function getQuickNote(): Promise<Note | null> {
+export async function getQuickNote(userId: string): Promise<Note | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from(NOTES_TABLE)
     .select("*")
+    .eq("user_id", userId)
     .is("date", null)
     .eq("is_quick", true)
     .maybeSingle();
@@ -118,12 +124,16 @@ export async function getQuickNote(): Promise<Note | null> {
  * @param limit - max rows to return (default 20)
  * @returns starred notes ordered by most recently edited
  */
-export async function getStarredNotes(limit = 20): Promise<Note[]> {
+export async function getStarredNotes(
+  userId: string,
+  limit = 20,
+): Promise<Note[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from(NOTES_TABLE)
     .select("*")
+    .eq("user_id", userId)
     .eq("starred", true)
     .eq("is_quick", false)
     .order("last_edited_at", { ascending: false })
@@ -144,6 +154,7 @@ export async function getStarredNotes(limit = 20): Promise<Note[]> {
  * @returns updated note, or `null` when no row matches
  */
 export async function updateNoteById(
+  userId: string,
   id: string,
   patch: UpdateNoteBody,
 ): Promise<Note | null> {
@@ -184,6 +195,7 @@ export async function updateNoteById(
     .from(NOTES_TABLE)
     .update(dbPatch)
     .eq("id", id)
+    .eq("user_id", userId)
     .select("*")
     .maybeSingle();
 
@@ -201,13 +213,14 @@ export async function updateNoteById(
 /**
  * Inserts a calendar note for one day (`date IS NOT NULL`, `is_quick = false`).
  *
+ * @param userId - authenticated user id
  * @param payload - dated note fields
  * @returns created note, or `null` when the day is already taken
  */
 export async function createCalendarNote(
+  userId: string,
   payload: CreateCalendarNoteBody,
 ): Promise<Note | null> {
-  const userId = await getAuthenticatedUserId();
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -247,6 +260,7 @@ export async function createCalendarNote(
  * @returns conflicting note, if any
  */
 export async function findCalendarNoteByDate(
+  userId: string,
   date: string,
   excludeNoteId?: string,
 ): Promise<Note | null> {
@@ -255,6 +269,7 @@ export async function findCalendarNoteByDate(
   let query = supabase
     .from(NOTES_TABLE)
     .select("*")
+    .eq("user_id", userId)
     .eq("date", date);
 
   if (excludeNoteId) {
@@ -288,17 +303,18 @@ type NoteFieldPatch = Pick<
  * @returns updated note, or `null` when the target row is missing
  */
 export async function replaceNoteOnDate(
+  userId: string,
   targetId: string,
   date: string,
   patch: NoteFieldPatch,
 ): Promise<Note | null> {
-  const conflicting = await findCalendarNoteByDate(date, targetId);
+  const conflicting = await findCalendarNoteByDate(userId, date, targetId);
 
   if (conflicting) {
-    await deleteNoteById(conflicting.id);
+    await deleteNoteById(userId, conflicting.id);
   }
 
-  return updateNoteById(targetId, { ...patch, date });
+  return updateNoteById(userId, targetId, { ...patch, date });
 }
 
 /**
@@ -308,9 +324,9 @@ export async function replaceNoteOnDate(
  * @returns created note
  */
 export async function createGeneralNote(
+  userId: string,
   payload: CreateGeneralNoteBody,
 ): Promise<Note> {
-  const userId = await getAuthenticatedUserId();
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -341,9 +357,9 @@ export async function createGeneralNote(
  * @returns created note
  */
 export async function createQuickNote(
+  userId: string,
   payload: CreateGeneralNoteBody,
 ): Promise<Note> {
-  const userId = await getAuthenticatedUserId();
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -373,13 +389,17 @@ export async function createQuickNote(
  * @param id - note row id
  * @returns whether a row was removed
  */
-export async function deleteNoteById(id: string): Promise<boolean> {
+export async function deleteNoteById(
+  userId: string,
+  id: string,
+): Promise<boolean> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from(NOTES_TABLE)
     .delete()
     .eq("id", id)
+    .eq("user_id", userId)
     .select("id")
     .maybeSingle();
 

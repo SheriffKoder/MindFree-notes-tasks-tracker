@@ -22,7 +22,7 @@ export async function GET() {
   }
 
   try {
-    const response = await getGeneralNotesResponse();
+    const response = await getGeneralNotesResponse(userId);
 
     return Response.json(response);
   } catch (error) {
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const note = await createGeneralNote(body);
+    const note = await createGeneralNote(userId, body);
 
     return Response.json({ note }, { status: 201 });
   } catch (error) {

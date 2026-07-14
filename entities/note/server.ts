@@ -32,3 +32,4 @@ export { createGeneralNote } from "@/entities/note/mutations/create-general-note
 export { createQuickNote } from "@/entities/note/mutations/create-quick-note";
 export { deleteNote } from "@/entities/note/mutations/delete-note";
 export { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";
+export { getAuthenticatedUserId } from "@/entities/note/repository/note-repository";

@@ -49,7 +49,11 @@ function splitUpdateBody(data: UpdateNoteBody): {
  * @returns updated domain note
  * @throws when body is invalid or the note is not found
  */
-export async function updateNote(id: string, body: unknown): Promise<Note> {
+export async function updateNote(
+  userId: string,
+  id: string,
+  body: unknown,
+): Promise<Note> {
   const parsed = updateNoteBodySchema.safeParse(body);
 
   if (!parsed.success) {
@@ -59,14 +63,14 @@ export async function updateNote(id: string, body: unknown): Promise<Note> {
   const { patch, replaceExistingOnDate } = splitUpdateBody(parsed.data);
 
   if (patch.date) {
-    const conflicting = await findCalendarNoteByDate(patch.date, id);
+    const conflicting = await findCalendarNoteByDate(userId, patch.date, id);
 
     if (conflicting) {
       if (!replaceExistingOnDate) {
         throw new NoteDateConflictError(patch.date, conflicting.id);
       }
 
-      const note = await replaceNoteOnDate(id, patch.date, patch);
+      const note = await replaceNoteOnDate(userId, id, patch.date, patch);
 
       if (!note) {
         throw new Error("Note not found.");
@@ -76,7 +80,7 @@ export async function updateNote(id: string, body: unknown): Promise<Note> {
     }
   }
 
-  const note = await updateNoteById(id, patch);
+  const note = await updateNoteById(userId, id, patch);
 
   if (!note) {
     throw new Error("Note not found.");

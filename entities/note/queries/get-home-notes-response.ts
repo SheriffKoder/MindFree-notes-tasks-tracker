@@ -16,10 +16,12 @@ import {
  *
  * @returns quick note slot plus starred notes (quick excluded from starred list)
  */
-export async function getHomeNotesResponse(): Promise<HomeNotesResponse> {
+export async function getHomeNotesResponse(
+  userId: string,
+): Promise<HomeNotesResponse> {
   const [quickNote, starredNotes] = await Promise.all([
-    getQuickNote(),
-    getStarredNotes(),
+    getQuickNote(userId),
+    getStarredNotes(userId),
   ]);
 
   return { quickNote, starredNotes };

@@ -19,7 +19,7 @@ export async function GET() {
   }
 
   try {
-    const response = await getHomeNotesResponse();
+    const response = await getHomeNotesResponse(userId);
 
     return Response.json(response);
   } catch (error) {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const note = await createQuickNote(body);
+    const note = await createQuickNote(userId, body);
 
     return Response.json({ note }, { status: 201 });
   } catch (error) {
