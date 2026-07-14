@@ -88,4 +88,6 @@ The following are intentionally deferred:
 
 ### Follow-up
 
-See `docs/followups/supabase-auth-dashboard-setup.md` for the dashboard and provider setup checklist needed to make real users work.
+See [docs/setup/1-supabase-auth-dashboard-setup.md](../setup/1-supabase-auth-dashboard-setup.md) for the dashboard and provider setup checklist needed to make real users work.
+
+Security layers: [docs/guides/security.md](../guides/security.md).

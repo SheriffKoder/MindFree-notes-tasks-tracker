@@ -6,8 +6,8 @@ Records of significant technical decisions. Each ADR is one decision — context
 
 | ADR | Title | Status |
 | --- | ----- | ------ |
-| [0001](../ADR/0001-auth-architecture.md) | Supabase Auth architecture | Accepted _(lives in `docs/ADR/` until Phase 5 migrate)_ |
-| 0002 | Entity / feature / view structure | Deferred → Phase 5 / `PROJECT-STRUCTURE.md` |
+| [0001](./0001-auth-architecture.md) | Supabase Auth architecture | Accepted |
+| [0002](./0002-entity-feature-view-structure.md) | Entity / feature / view structure | Accepted |
 | [0003](./0003-rsc-first-with-query-hydration.md) | RSC-first pages with TanStack hydration | Accepted |
 | [0004](./0004-url-owned-application-state.md) | URL-owned application state (`month`, `view`) | Accepted |
 | [0005](./0005-selected-date-not-selected-note.md) | Drawer source of truth is selected date | Accepted |
@@ -38,4 +38,4 @@ Trade-offs that made this better than alternatives.
 Positive, trade-offs, follow-ups.
 ```
 
-**Related:** [architecture/README.md](../architecture/README.md), [state-management.md](../architecture/state-management.md)
+**Related:** [architecture/README.md](../architecture/README.md), [guides/security.md](../guides/security.md)
