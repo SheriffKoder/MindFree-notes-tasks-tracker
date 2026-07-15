@@ -3,8 +3,8 @@
  * Shared domain exports — types and pure helpers only.
  *
  * Cross-slice consumers (features/*, views/*) import from here, never from
- * individual lib files. Server reads: `entities/activity/server` (added later);
- * client cache: `entities/activity/client` (added later).
+ * individual lib files. Server reads: `entities/activity/server`
+ * client cache: `entities/activity/client`
  */
 
 export { WEEKDAYS } from "@/entities/activity/model/types";

@@ -44,7 +44,7 @@
  */
 
 import type { Note } from "@/entities/note";
-import type { NotesViewId } from "@/shared/view-switcher";
+import type { NotesViewId } from "@/views/notes/lib/notes-views";
 
 /** View modes that supply reserved label metadata for {@link NoteListCard}. */
 export type ReservedMetaContext = NotesViewId | "home";

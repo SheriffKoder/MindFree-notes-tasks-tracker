@@ -20,6 +20,7 @@ import {
   useOfflineSync,
 } from "@/shared/offline-queue";
 import { ViewSwitcher } from "@/shared/view-switcher";
+import { NOTES_VIEW_CONFIG } from "@/views/notes/lib/notes-views";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
@@ -110,6 +111,7 @@ export function NotesClient() {
         />
         <div className="flex shrink-0 items-center gap-2">
           <ViewSwitcher
+            config={NOTES_VIEW_CONFIG}
             view={view}
             onViewChange={changeView}
             onCycleView={cycleView}

@@ -1,29 +1,37 @@
 /**
  * @file shared/view-switcher/ui/view-icon.tsx
- * Renders the icon for a Notes page view id.
+ * Renders the icon for a view id within a page's view config.
  */
 
-import type { NotesViewId } from "@/shared/view-switcher/lib/note-views";
-import { getNotesViewDefinition } from "@/shared/view-switcher/lib/note-views";
+import {
+  getViewDefinition,
+  type ViewConfig,
+} from "@/shared/view-switcher/lib/view-config";
 
 /**
  * Props for {@link ViewIcon}.
  */
-export interface ViewIconProps {
+export interface ViewIconProps<Id extends string> {
+  /** Page view config. */
+  config: ViewConfig<Id>;
   /** View id whose icon should render. */
-  view: NotesViewId;
+  view: Id;
   /** Optional class name for the SVG. */
   className?: string;
 }
 
 /**
- * Renders the Lucide icon associated with a Notes view.
+ * Renders the Lucide icon associated with a view.
  *
- * @param props - view id and optional class name
+ * @param props - config, view id, and optional class name
  * @returns icon element
  */
-export function ViewIcon({ view, className }: ViewIconProps) {
-  const Icon = getNotesViewDefinition(view).icon;
+export function ViewIcon<Id extends string>({
+  config,
+  view,
+  className,
+}: ViewIconProps<Id>) {
+  const Icon = getViewDefinition(config, view).icon;
 
   return <Icon className={className} aria-hidden />;
 }

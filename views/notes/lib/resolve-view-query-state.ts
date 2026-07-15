@@ -8,7 +8,7 @@ import type {
   GeneralNotesResponse,
 } from "@/entities/note";
 import type { QueryStatePanelVariant } from "@/shared/react-query";
-import type { NotesViewId } from "@/shared/view-switcher";
+import type { NotesViewId } from "@/views/notes/lib/notes-views";
 
 interface QuerySlice<TData> {
   data: TData | undefined;

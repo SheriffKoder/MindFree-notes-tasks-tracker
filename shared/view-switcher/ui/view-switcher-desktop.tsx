@@ -5,20 +5,19 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  NOTE_VIEWS,
-  type NotesViewId,
-} from "@/shared/view-switcher/lib/note-views";
+import type { ViewConfig } from "@/shared/view-switcher/lib/view-config";
 import { ViewIcon } from "@/shared/view-switcher/ui/view-icon";
 
 /**
  * Props for {@link ViewSwitcherDesktop}.
  */
-export interface ViewSwitcherDesktopProps {
+export interface ViewSwitcherDesktopProps<Id extends string> {
+  /** Page view config. */
+  config: ViewConfig<Id>;
   /** Current active view. */
-  view: NotesViewId;
+  view: Id;
   /** Called when the user selects a view. */
-  onViewChange: (nextView: NotesViewId) => void;
+  onViewChange: (nextView: Id) => void;
   /** Optional wrapper class name. */
   className?: string;
 }
@@ -26,14 +25,15 @@ export interface ViewSwitcherDesktopProps {
 /**
  * Renders a segmented icon row for desktop view switching.
  *
- * @param props - current view and selection callback
+ * @param props - config, current view, and selection callback
  * @returns desktop view switcher UI
  */
-export function ViewSwitcherDesktop({
+export function ViewSwitcherDesktop<Id extends string>({
+  config,
   view,
   onViewChange,
   className,
-}: ViewSwitcherDesktopProps) {
+}: ViewSwitcherDesktopProps<Id>) {
   return (
     <div
       className={cn(
@@ -41,9 +41,9 @@ export function ViewSwitcherDesktop({
         className,
       )}
       role="tablist"
-      aria-label="Notes view"
+      aria-label={config.ariaLabel}
     >
-      {NOTE_VIEWS.map((definition) => {
+      {config.views.map((definition) => {
         const isActive = definition.id === view;
 
         return (
@@ -52,14 +52,14 @@ export function ViewSwitcherDesktop({
             type="button"
             variant={isActive ? "secondary" : "ghost"}
             size="icon"
-            className={definition.id === "month-notes" ? "xl:hidden" : undefined}
+            className={definition.desktopClassName}
             role="tab"
             aria-selected={isActive}
             aria-label={definition.title}
             title={definition.title}
             onClick={() => onViewChange(definition.id)}
           >
-            <ViewIcon view={definition.id} />
+            <ViewIcon config={config} view={definition.id} />
           </Button>
         );
       })}

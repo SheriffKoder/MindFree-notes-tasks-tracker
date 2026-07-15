@@ -18,8 +18,8 @@ import { NoteListCard } from "@/features/notes/note-list-card";
 import { MonthCalendar, type CalendarCellRenderContext } from "@/shared/calendar";
 import { ListView } from "@/shared/list-view";
 import { QueryStatePanel } from "@/shared/react-query";
-import type { NotesViewId } from "@/shared/view-switcher";
 import { usePrefetchAdjacentCalendarMonths } from "@/views/notes/model/use-prefetch-adjacent-calendar-months";
+import type { NotesViewId } from "@/views/notes/lib/notes-views";
 import { resolveViewQueryState } from "@/views/notes/lib/resolve-view-query-state";
 import { getReservedMeta } from "@/views/notes/lib/reserved-meta";
 
