@@ -1,15 +1,26 @@
 /**
  * @file app/(app)/tasks/page.tsx
- * Protected tasks route that composes the tasks page inside the shared shell.
+ * Protected tasks route — sync shell; SSR seed hydrates the cache in parallel
+ * with the client shell. `?month=`/`?view=` toggles stay client-side.
  */
 
-import { TasksView } from "@/views/tasks";
+import { Suspense } from "react";
+
+import { TasksClient, TasksHydrationSeed } from "@/views/tasks";
 
 /**
- * Renders the protected tasks route.
- *
- * @returns Tasks route composition for `/tasks`
+ * Renders the Tasks route. SSR hydration seeds the definitions + records caches
+ * next to the client shell so first paint needs no client round-trip.
  */
 export default function TasksRoute() {
-  return <TasksView />;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <TasksHydrationSeed />
+      </Suspense>
+      <Suspense fallback={null}>
+        <TasksClient />
+      </Suspense>
+    </>
+  );
 }
