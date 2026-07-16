@@ -1,11 +1,11 @@
 /**
- * @file entities/activity/lib/build-calendar-days.ts
+ * @file entities/activity/transform/build-calendar-days.ts
  * Client-side join of activity definitions + month record lookup into per-day
  * calendar rows for Tasks (and later Reminders).
  *
  * Purpose: definitions and records live in separate caches; the calendar needs
- *          one `{ day, date, activities[] }` entry per day with each active
- *          activity paired to its record (or `null`).
+ *          one `{ day, date, activities[] }` entry per day. Recorded history
+ *          always appears; the current schedule only adds empty (due) slots.
  * Used in: Tasks calendar pane (Step 9.5); Reminders calendar (Phase 3).
  *
  * Function index:
@@ -23,9 +23,10 @@ import type { Activity } from "@/entities/activity/model/types";
 
 /**
  * Joins task definitions and a month's record lookup into one calendar day per
- * date. Each day lists every activity active on that day (`isActiveOnDay`) with
- * its record from `recordLookup` or `null`. Visibility filtering is left to
- * the view layer.
+ * date. An activity appears on a day when it has a record for that date
+ * (history, schedule-independent) **or** when it is currently scheduled
+ * (`isActiveOnDay` — empty/due slots). Visibility filtering (e.g. hide
+ * incomplete) stays in the view layer.
  *
  * @param month - `YYYY-MM` month key
  * @param activities - task definitions (typically all tasks for the kind)
@@ -46,15 +47,14 @@ export function buildTaskCalendarDays(
     const dayActivities: TaskCalendarDay["activities"] = [];
 
     for (const activity of activities) {
-      if (!isActiveOnDay(activity, date)) {
+      const record =
+        recordLookup.byTaskDate.get(recordKey(activity.id, date)) ?? null;
+
+      if (!record && !isActiveOnDay(activity, date)) {
         continue;
       }
 
-      dayActivities.push({
-        activity,
-        record:
-          recordLookup.byTaskDate.get(recordKey(activity.id, date)) ?? null,
-      });
+      dayActivities.push({ activity, record });
     }
 
     calendarDays.push({

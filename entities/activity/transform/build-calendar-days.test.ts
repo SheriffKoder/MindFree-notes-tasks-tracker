@@ -1,13 +1,13 @@
 /**
- * @file entities/activity/lib/build-calendar-days.test.ts
- * Locks calendar-day join: one entry per day in the month, `isActiveOnDay`
- * gating, multiple activities per day, and record pairing via `recordLookup`.
+ * @file entities/activity/transform/build-calendar-days.test.ts
+ * Locks calendar-day join: one entry per day, scheduled slots via
+ * `isActiveOnDay`, recorded history regardless of schedule, and record pairing.
  */
 
 import { describe, expect, it } from "vitest";
 
-import { buildTaskCalendarDays } from "@/entities/activity/transform/build-calendar-days";
 import { buildRecordLookup } from "@/entities/activity/lib/record/build-record-lookup";
+import { buildTaskCalendarDays } from "@/entities/activity/transform/build-calendar-days";
 import type {
   Activity,
   ActivityRecord,
@@ -82,6 +82,27 @@ describe("buildTaskCalendarDays", () => {
     ]);
   });
 
+  it("keeps recorded days when the schedule no longer matches", () => {
+    const weekly = buildActivity({
+      id: "task-1",
+      scheduleType: "weekly",
+      // Monday only — 2026-07-15 is a Wednesday
+      scheduleConfig: ["mon"],
+    });
+    const record = buildRecord({ taskId: "task-1", date: "2026-07-15" });
+
+    const days = buildTaskCalendarDays(
+      "2026-07",
+      [weekly],
+      buildRecordLookup([record]),
+    );
+    const wednesday = days.find((day) => day.date === "2026-07-15");
+    const monday = days.find((day) => day.date === "2026-07-13");
+
+    expect(wednesday?.activities).toEqual([{ activity: weekly, record }]);
+    expect(monday?.activities).toEqual([{ activity: weekly, record: null }]);
+  });
+
   it("pairs each active activity with its record or null", () => {
     const activity = buildActivity({ id: "task-1" });
     const other = buildActivity({
@@ -122,7 +143,7 @@ describe("buildTaskCalendarDays", () => {
     ]);
   });
 
-  it("excludes activities outside the validity window", () => {
+  it("excludes unscheduled empty slots outside the validity window", () => {
     const activity = buildActivity({
       startsAt: "2026-07-10",
       endsAt: "2026-07-12",
@@ -137,11 +158,29 @@ describe("buildTaskCalendarDays", () => {
     expect(days.find((day) => day.date === "2026-07-09")?.activities).toEqual(
       [],
     );
-    expect(days.find((day) => day.date === "2026-07-10")?.activities).toHaveLength(
-      1,
-    );
+    expect(
+      days.find((day) => day.date === "2026-07-10")?.activities,
+    ).toHaveLength(1);
     expect(days.find((day) => day.date === "2026-07-13")?.activities).toEqual(
       [],
     );
+  });
+
+  it("still shows a record outside the validity window", () => {
+    const activity = buildActivity({
+      startsAt: "2026-07-10",
+      endsAt: "2026-07-12",
+    });
+    const record = buildRecord({ taskId: "task-1", date: "2026-07-15" });
+
+    const days = buildTaskCalendarDays(
+      "2026-07",
+      [activity],
+      buildRecordLookup([record]),
+    );
+
+    expect(days.find((day) => day.date === "2026-07-15")?.activities).toEqual([
+      { activity, record },
+    ]);
   });
 });

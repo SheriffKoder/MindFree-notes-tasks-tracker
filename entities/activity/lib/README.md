@@ -31,7 +31,7 @@ lib/
 | File | Problem it solves |
 | ---- | ----------------- |
 | `aggregate-month-records.ts` | Server: sort flat records into `ActivityRecordsResponse`. |
-| `build-calendar-days.ts` | Client: join activities + record lookup → `TaskCalendarDay[]`. |
+| `build-calendar-days.ts` | Client: join activities + record lookup → `TaskCalendarDay[]` (records always; schedule only adds empty due slots). |
 | `compute-task-month-progress.ts` | Client: one completion % per task for the month (`Map<taskId, number>`). |
 
 ## Scheduling: two axes, one gate

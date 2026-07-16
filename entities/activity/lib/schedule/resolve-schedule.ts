@@ -5,7 +5,8 @@
  * Purpose: gate the recurrence pattern (matches-recurrence) by the validity
  *          window (afterthoughts §7). Single source used by the Tasks calendar
  *          and the Home Today list.
- * Used in: transform/aggregate-month-records, Home derivation, calendar overlay.
+ * Used in: calendar empty/due slots, month progress denominator, Home Today
+ *          (later). Recorded calendar history does **not** go through this gate.
  *
  * Function index:
  * - isActiveOnDay:   window gate + recurrence match for one day
