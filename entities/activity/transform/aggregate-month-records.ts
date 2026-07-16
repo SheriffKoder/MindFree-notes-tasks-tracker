@@ -4,7 +4,7 @@
  *
  * Purpose: records stay flat over the wire (a day holds records for many
  *          activities); lookup maps are derived client-side via
- *          entities/activity/lib/build-record-lookup. This only orders the flat
+ *          entities/activity/lib/record/build-record-lookup. This only orders the flat
  *          list deterministically for stable rendering.
  * Used in: entities/activity/queries/get-activity-records-response.ts
  */

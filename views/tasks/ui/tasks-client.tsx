@@ -2,26 +2,23 @@
  * @file views/tasks/ui/tasks-client.tsx
  * Client boundary for the Tasks page — layout, URL state, and controls.
  *
- * Step 8 scope: header + toolbar (month nav, task filter, add) wired to state,
- * plus the responsive body shell. Desktop shows calendar + list side by side
- * (no view switcher); mobile toggles between them via the mobile switcher.
- *
- * The calendar/list panes land in Step 9. Re-render isolation contract: the
- * calendar pane reads useTasksFilter (re-renders on filter change); the list
+ * Step 9: calendar + list panes wired via TasksViewsSection. Re-render isolation:
+ * the calendar pane reads useTasksFilter (re-renders on filter change); the list
  * pane must stay a NON-consumer so toggling the filter never re-renders it.
  */
 
 "use client";
 
 import { useActivitiesQuery } from "@/entities/activity/client";
-import { cn } from "@/lib/utils";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { ViewSwitcherMobile } from "@/shared/view-switcher";
 import { TASKS_VIEW_CONFIG } from "@/views/tasks/lib/tasks-views";
 import { TasksFilterProvider } from "@/views/tasks/model/tasks-filter-context";
+import { useTasksPageSelection } from "@/views/tasks/model/use-tasks-page-selection";
 import { useTasksUrlState } from "@/views/tasks/model/use-tasks-url-state";
 import { TasksAddButton } from "@/views/tasks/ui/tasks-add-button";
 import { TasksFilter } from "@/views/tasks/ui/tasks-filter";
+import { TasksViewsSection } from "@/views/tasks/ui/tasks-views-section";
 import { useCallback } from "react";
 
 /**
@@ -32,6 +29,8 @@ export function TasksClient() {
   // useTasksUrlState is used to get the month, view, and navigation functions
   const { month, view, previousMonth, nextMonth, cycleView } =
     useTasksUrlState();
+
+  const { highlightedDate, selectDate } = useTasksPageSelection(month);
 
   // useActivitiesQuery is used to get the tasks
   const { data } = useActivitiesQuery("task");
@@ -79,30 +78,21 @@ export function TasksClient() {
           </div>
         </section>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Calendar pane (Step 9) — the filter consumer. Mobile: shown when view=calendar. */}
-          <section
-            aria-label="Tasks calendar"
-            className={cn(
-              "min-h-0 flex-col overflow-auto",
-              view === "calendar" ? "flex" : "hidden",
-              "md:flex",
-            )}
-          >
-            {/* Calendar mounts here in Step 9 and reads useTasksFilter() to filter records by selected tasks */}
-          </section>
-
-          {/* List pane (Step 9) — NOT a filter consumer; stays stable. Mobile: shown when view=list. */}
-          <section
-            aria-label="Tasks list"
-            className={cn(
-              "min-h-0 flex-col overflow-auto",
-              view === "list" ? "flex" : "hidden",
-              "md:flex",
-            )}
-          >
-            {/* Activity list mounts here in Step 9. */}
-          </section>
+        <div className="relative min-h-0 flex-1">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-[-10] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
+          />
+          <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
+            <div className="min-h-0 flex-1">
+              <TasksViewsSection
+                month={month}
+                view={view}
+                highlightedDate={highlightedDate}
+                onDaySelect={selectDate}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </TasksFilterProvider>

@@ -7,7 +7,7 @@
  * Used in: entities/activity/lib/resolve-schedule.ts
  */
 
-import { getScheduleDateParts } from "@/entities/activity/lib/date-parts";
+import { getScheduleDateParts } from "@/entities/activity/lib/schedule/date-parts";
 import type { ScheduleConfig, ScheduleType } from "@/entities/activity/model/types";
 
 /**

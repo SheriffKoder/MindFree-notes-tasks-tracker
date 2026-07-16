@@ -11,7 +11,7 @@
  * - archiveActivityById: stamp `archived_at = now()` via updateActivityById
  */
 
-import { mapActivityRow } from "@/entities/activity/lib/map-row";
+import { mapActivityRow } from "@/entities/activity/lib/mapping/map-row";
 import type { Activity, ActivityRow } from "@/entities/activity/model/types";
 import type { UpdateActivityBody } from "@/entities/activity/schema/update-activity.schema";
 import { ACTIVITIES_TABLE } from "@/shared/config/supabase-tables";

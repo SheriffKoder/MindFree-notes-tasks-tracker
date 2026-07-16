@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildRecordLookup,
   recordKey,
-} from "@/entities/activity/lib/build-record-lookup";
+} from "@/entities/activity/lib/record/build-record-lookup";
 import type { ActivityRecord } from "@/entities/activity/model/types";
 
 function buildRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {

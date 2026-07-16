@@ -23,6 +23,8 @@ export type {
 export type {
   ActivitiesResponse,
   ActivityRecordsResponse,
+  TaskCalendarDay,
+  TaskCalendarDayActivity,
   TasksPageData,
 } from "@/entities/activity/model/read-models";
 
@@ -30,17 +32,21 @@ export {
   getCurrentMonth,
   getMonthRange,
   parseMonthParam,
-} from "@/entities/activity/lib/parse-month";
-export type { MonthRange } from "@/entities/activity/lib/parse-month";
+} from "@/entities/activity/lib/month";
+export type { MonthRange } from "@/entities/activity/lib/month";
 
 export {
+  getActivityStatus,
   isActiveInMonth,
   isActiveOnDay,
-} from "@/entities/activity/lib/resolve-schedule";
-export { getActivityStatus } from "@/entities/activity/lib/activity-status";
-export { isMeaningfulRecord } from "@/entities/activity/lib/is-meaningful-record";
+} from "@/entities/activity/lib/schedule";
+export { isMeaningfulRecord } from "@/entities/activity/lib/record";
 export {
   buildRecordLookup,
   recordKey,
-} from "@/entities/activity/lib/build-record-lookup";
-export type { RecordLookup } from "@/entities/activity/lib/build-record-lookup";
+} from "@/entities/activity/lib/record";
+export type { RecordLookup } from "@/entities/activity/lib/record";
+export {
+  buildTaskCalendarDays,
+  computeTaskMonthProgress,
+} from "@/entities/activity/transform";

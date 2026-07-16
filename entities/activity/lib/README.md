@@ -6,18 +6,33 @@ reads, the client caches, and the feature UI from one place — and be unit-test
 in isolation. Decisions trace to
 [`app/development/workflow/activity/pre-implementation-afterthoughts.md`](../../../app/development/workflow/activity/pre-implementation-afterthoughts.md).
 
-## Why these exist
+Read-model composition (calendar days, month progress, API record shaping) lives
+in [`../transform/`](../transform/) — not here.
+
+## Layout
+
+```
+lib/
+├── month/          # month key + SQL/calendar bounds
+├── schedule/       # recurrence, validity window, lifecycle status
+├── record/         # record semantics + client lookup maps
+└── mapping/        # Supabase row → domain (repository-only internal)
+```
+
+| Segment | Files | Problem it solves |
+| ------- | ----- | ----------------- |
+| **`month/`** | `parse-month.ts` | Turn a `YYYY-MM` param into a validated month key + SQL date bounds and calendar metadata, so record queries and the calendar agree on "what is this month". |
+| **`schedule/`** | `date-parts.ts`, `matches-recurrence.ts`, `resolve-schedule.ts`, `activity-status.ts` | Recurrence matching, per-day validity window, and derived lifecycle (`active` / `upcoming` / `expired` / `archived`). |
+| **`record/`** | `is-meaningful-record.ts`, `build-record-lookup.ts` | Whether a record counts as done for its `trackingMode`, and O(1) lookup by `(taskId, date)` from a flat month of records. |
+| **`mapping/`** | `map-row.ts` | Translate snake_case Supabase rows into camelCase domain objects — import within `repository/` only. |
+
+## `transform/` (sibling layer)
 
 | File | Problem it solves |
 | ---- | ----------------- |
-| `parse-month.ts` | Turn a `YYYY-MM` param into a validated month key + SQL date bounds and calendar metadata, so record queries and the calendar agree on "what is this month". |
-| `date-parts.ts` | Break a `YYYY-MM-DD` day into the exact strings a recurrence compares against (`weekday`, `dayOfMonth`, `DD/MM`), parsed in **UTC** so the weekday never drifts with the host timezone. |
-| `matches-recurrence.ts` | Answer "does this recurrence pattern fire on this day?" from the JSON `scheduleConfig` alone — recurrence only, no window (afterthoughts §7). |
-| `resolve-schedule.ts` | Gate the recurrence by the `startsAt`/`endsAt` window to get the real "active on a day / in a month" answer. Single source for the Tasks calendar and the Home Today list (§7). |
-| `activity-status.ts` | Derive `active \| upcoming \| expired \| archived` from the clock, the window, and `archivedAt` — never stored, so extending `endsAt` or clearing `archivedAt` re-activates with no migration (§10). |
-| `is-meaningful-record.ts` | Decide whether a record holds real work for its `trackingMode`. One predicate drives both display and the later delete-on-empty watcher; completion is derived, not a stored flag (§2). |
-| `build-record-lookup.ts` | Records travel flat over the wire; consumers need O(1) access by `(taskId, date)` (recording, calendar/Home cells) and per-task grouping (metadata/progress). Both maps derive in one pass (§1, §4). |
-| `map-row.ts` | Translate snake_case Supabase rows into camelCase domain objects, keeping the DB schema out of the rest of the slice. |
+| `aggregate-month-records.ts` | Server: sort flat records into `ActivityRecordsResponse`. |
+| `build-calendar-days.ts` | Client: join activities + record lookup → `TaskCalendarDay[]`. |
+| `compute-task-month-progress.ts` | Client: one completion % per task for the month (`Map<taskId, number>`). |
 
 ## Scheduling: two axes, one gate
 
@@ -26,8 +41,8 @@ recurrence fires on it:
 
 ```text
 isActiveOnDay(activity, day)
-  = withinWindow(day, startsAt, endsAt)      // resolve-schedule (inline gate)
-  && matchesRecurrence(day, type, config)     // matches-recurrence → date-parts
+  = withinWindow(day, startsAt, endsAt)      // schedule/resolve-schedule
+  && matchesRecurrence(day, type, config)     // schedule/matches-recurrence → date-parts
 
 date-parts ──▶ matches-recurrence ──▶ resolve-schedule ──▶ isActiveInMonth
 ```
@@ -37,8 +52,17 @@ by the recurrence, and `activity-status` folds that same date into both bounds.
 
 ## Public vs internal
 
-`resolve-schedule`, `activity-status`, `is-meaningful-record`, `build-record-lookup`
-(and `parse-month`) are re-exported from `entities/activity/index.ts` — the
-cross-slice surface features/views import. `date-parts` and `matches-recurrence`
-are scheduling internals, and `map-row` is data-access plumbing: import those by
-their file path **within the slice only**, never from another slice.
+Each segment exposes a barrel `index.ts`. Cross-slice consumers import from
+`entities/activity/index.ts` only — never from segment paths.
+
+| Public (re-exported from slice `index.ts`) | Segment |
+| ------------------------------------------ | ------- |
+| `parseMonthParam`, `getMonthRange`, `getCurrentMonth` | `lib/month` |
+| `isActiveOnDay`, `isActiveInMonth`, `getActivityStatus` | `lib/schedule` |
+| `isMeaningfulRecord`, `buildRecordLookup`, `recordKey` | `lib/record` |
+| `buildTaskCalendarDays`, `computeTaskMonthProgress` | `transform` |
+
+| Internal (within-slice imports only) | Segment |
+| ------------------------------------ | ------- |
+| `date-parts`, `matches-recurrence` | `lib/schedule` |
+| `map-row` | `lib/mapping` |

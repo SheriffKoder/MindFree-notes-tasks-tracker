@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { getActivityStatus } from "@/entities/activity/lib/activity-status";
+import { getActivityStatus } from "@/entities/activity/lib/schedule/activity-status";
 import type { Activity } from "@/entities/activity/model/types";
 
 function buildActivity(overrides: Partial<Activity> = {}): Activity {

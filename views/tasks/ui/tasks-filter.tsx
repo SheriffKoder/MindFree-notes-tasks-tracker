@@ -3,7 +3,8 @@
  * Task-selection filter for the Tasks calendar (dropdown + reset).
  *
  * Purpose: choose which tasks' records render on the calendar. Unchecking a task
- * hides its records; "Show all" resets. Reads/writes selection via
+ * hides its records; "Show incomplete" reveals unfinished day entries (hidden
+ * by default); "Show all" resets the task-id selection only. Reads/writes via
  * useTasksFilter — the activity list is unaffected (tasks-page.md).
  * Used in: views/tasks/ui/tasks-client.tsx
  */
@@ -37,7 +38,14 @@ export interface TasksFilterProps {
  * active filter via the `secondary` variant.
  */
 export function TasksFilter({ tasks, className }: TasksFilterProps) {
-  const { isShown, isFiltered, toggle, reset } = useTasksFilter();
+  const {
+    isShown,
+    isFiltered,
+    showIncomplete,
+    toggle,
+    toggleShowIncomplete,
+    reset,
+  } = useTasksFilter();
 
   return (
     <div
@@ -63,6 +71,16 @@ export function TasksFilter({ tasks, className }: TasksFilterProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>Display</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuCheckboxItem
+            checked={showIncomplete}
+            onCheckedChange={() => toggleShowIncomplete()}
+            onSelect={(event) => event.preventDefault()}
+          >
+            Show incomplete
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuSeparator />
           <DropdownMenuLabel>Show tasks</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {tasks.length === 0 ? (
@@ -96,7 +114,7 @@ export function TasksFilter({ tasks, className }: TasksFilterProps) {
               reset();
             }}
           >
-            Show all
+            Show all tasks
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

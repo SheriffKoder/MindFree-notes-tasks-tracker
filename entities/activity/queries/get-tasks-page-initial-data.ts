@@ -6,7 +6,7 @@
  * current-month records — in parallel; Home derives on top (afterthoughts §5).
  */
 
-import { parseMonthParam } from "@/entities/activity/lib/parse-month";
+import { parseMonthParam } from "@/entities/activity/lib/month/parse-month";
 import type { TasksPageData } from "@/entities/activity/model/read-models";
 import { getActivitiesResponse } from "@/entities/activity/queries/get-activities-response";
 import { getActivityRecordsResponse } from "@/entities/activity/queries/get-activity-records-response";

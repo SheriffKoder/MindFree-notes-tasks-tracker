@@ -3,8 +3,8 @@
  * Reads completion records whose `date` falls in a given month.
  */
 
-import { mapActivityRecordRow } from "@/entities/activity/lib/map-row";
-import { getMonthRange } from "@/entities/activity/lib/parse-month";
+import { mapActivityRecordRow } from "@/entities/activity/lib/mapping/map-row";
+import { getMonthRange } from "@/entities/activity/lib/month/parse-month";
 import type {
   ActivityRecord,
   ActivityRecordRow,

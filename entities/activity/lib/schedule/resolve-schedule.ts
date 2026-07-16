@@ -12,8 +12,8 @@
  * - isActiveInMonth: any active day within a month (delegates to isActiveOnDay)
  */
 
-import { matchesRecurrence } from "@/entities/activity/lib/matches-recurrence";
-import { getMonthRange } from "@/entities/activity/lib/parse-month";
+import { getMonthRange } from "@/entities/activity/lib/month/parse-month";
+import { matchesRecurrence } from "@/entities/activity/lib/schedule/matches-recurrence";
 import type { Activity } from "@/entities/activity/model/types";
 
 /**

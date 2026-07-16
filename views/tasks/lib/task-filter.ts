@@ -4,9 +4,13 @@
  *
  * The filter narrows which tasks' records render on the calendar. State is a set
  * of HIDDEN task ids (empty = all shown) so newly-created tasks appear by
- * default and "reset" is a simple clear. Only the calendar consumes this; the
- * activity list stays stable (tasks-page.md).
+ * default and "reset" is a simple clear. Incomplete day entries are hidden by
+ * default and shown only when `showIncomplete` is true. Only the calendar
+ * consumes this; the activity list stays stable (tasks-page.md).
  */
+
+import type { Activity, ActivityRecord } from "@/entities/activity";
+import { isMeaningfulRecord } from "@/entities/activity";
 
 /**
  * Whether a task's records should render given the hidden set.
@@ -42,4 +46,27 @@ export function toggleHiddenTask(
   }
 
   return next;
+}
+
+/**
+ * Whether a scheduled day-activity entry should render on the calendar.
+ * Incomplete entries (no meaningful record) are hidden unless `showIncomplete`.
+ *
+ * @param activity - activity definition (tracking mode)
+ * @param record - day's record, or `null` when not recorded
+ * @param showIncomplete - when true, incomplete entries are visible
+ * @returns true when the pill should render
+ */
+export function isDayActivityShown(
+  activity: Pick<Activity, "trackingMode">,
+  record: ActivityRecord | null,
+  showIncomplete: boolean,
+): boolean {
+  if (showIncomplete) {
+    return true;
+  }
+
+  return (
+    record !== null && isMeaningfulRecord(record, activity.trackingMode)
+  );
 }

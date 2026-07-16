@@ -4,7 +4,7 @@
  *
  * The hook lives in hooks/use-activity-records-query (one responsibility per
  * file). Records travel flat; lookup maps are derived in the view
- * (entities/activity/lib/build-record-lookup).
+ * (entities/activity/lib/record/build-record-lookup).
  */
 
 import { queryOptions } from "@tanstack/react-query";

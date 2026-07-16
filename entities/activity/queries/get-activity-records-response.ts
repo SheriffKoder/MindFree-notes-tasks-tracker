@@ -3,10 +3,10 @@
  * Read use-case: completion records for one month.
  *
  * Records travel flat; client-side lookup maps are derived separately
- * (entities/activity/lib/build-record-lookup).
+ * (entities/activity/lib/record/build-record-lookup).
  */
 
-import { parseMonthParam } from "@/entities/activity/lib/parse-month";
+import { parseMonthParam } from "@/entities/activity/lib/month/parse-month";
 import type { ActivityRecordsResponse } from "@/entities/activity/model/read-models";
 import { getRecordsForMonth } from "@/entities/activity/repository";
 import { buildActivityRecordsResponse } from "@/entities/activity/transform/aggregate-month-records";

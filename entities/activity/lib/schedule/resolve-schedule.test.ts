@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 import {
   isActiveInMonth,
   isActiveOnDay,
-} from "@/entities/activity/lib/resolve-schedule";
+} from "@/entities/activity/lib/schedule/resolve-schedule";
 import type { Activity } from "@/entities/activity/model/types";
 
 function buildActivity(overrides: Partial<Activity> = {}): Activity {

@@ -3,7 +3,7 @@
  * Reads activity definitions for a kind (active and archived; filter client-side).
  */
 
-import { mapActivityRow } from "@/entities/activity/lib/map-row";
+import { mapActivityRow } from "@/entities/activity/lib/mapping/map-row";
 import type {
   Activity,
   ActivityKind,

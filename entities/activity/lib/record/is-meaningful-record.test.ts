@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { isMeaningfulRecord } from "@/entities/activity/lib/is-meaningful-record";
+import { isMeaningfulRecord } from "@/entities/activity/lib/record/is-meaningful-record";
 
 describe("isMeaningfulRecord", () => {
   it("boolean is meaningful only when count > 0", () => {
