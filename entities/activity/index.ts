@@ -40,6 +40,7 @@ export {
   isActiveInMonth,
   isActiveOnDay,
 } from "@/entities/activity/lib/schedule";
+export { isRemoteActivityNewer } from "@/entities/activity/lib/is-remote-activity-newer";
 export { isMeaningfulRecord } from "@/entities/activity/lib/record";
 export {
   buildRecordLookup,

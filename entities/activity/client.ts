@@ -1,13 +1,10 @@
 /**
  * @file entities/activity/client.ts
- * Client-side TanStack Query exports for activity read caches.
+ * Client-side TanStack Query exports for activity read caches + write mutations.
  *
  * Purpose: single import surface for `"use client"` modules — keys, fetchers,
- *          query options, and read hooks. No server/repository code.
+ *          query options, read hooks, and mutation hooks. No server/repository.
  * Used in: views/tasks, features/activity/* client modules.
- *
- * Hydration (Step 7) and mutation hooks (Step 12) are added here as those steps
- * land.
  */
 
 export {
@@ -22,8 +19,21 @@ export {
   activityRecordsQueryOptions,
   fetchActivityRecords,
 } from "@/entities/activity/client/activity-records-query";
-export { useActivitiesQuery } from "@/entities/activity/hooks/use-activities-query";
-export { useActivityRecordsQuery } from "@/entities/activity/hooks/use-activity-records-query";
+export { fetchPostActivity } from "@/entities/activity/client/post-activity";
+export { fetchPatchActivity } from "@/entities/activity/client/patch-activity";
+export { fetchDeleteActivity } from "@/entities/activity/client/delete-activity";
+export {
+  clearActivityMutationPending,
+  isActivityMutationPending,
+  markActivityMutationPending,
+  useActivitiesQuery,
+  useActivityRecordsQuery,
+  useArchiveActivityMutation,
+  useCreateActivityMutation,
+  useDeleteActivityMutation,
+  useRestoreActivityMutation,
+  useUpdateActivityMutation,
+} from "@/entities/activity/hooks";
 
 export type {
   ActivitiesResponse,
