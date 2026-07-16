@@ -4,9 +4,9 @@
  *
  * Purpose: Compose ActivityForm + last-saved footer inside AppDrawer; resolve
  * the edit target from the already-loaded `["activities", "task"]` cache via
- * a one-line `.find()`.
+ * a one-line `.find()`. Autosave / archive / delete live in the config
+ * orchestrator (Step 13).
  * Used in: views/tasks/ui/tasks-client.tsx
- * Used for: Create draft / edit existing task without asking for kind.
  */
 
 "use client";
@@ -18,6 +18,7 @@ import {
   type ActivityFormFooterMeta,
 } from "@/entities/activity/editor";
 import { useActivitiesQuery } from "@/entities/activity/client";
+import { useConfigOrchestrator } from "@/features/activity/activity-drawer/model/use-config-orchestrator";
 import { ActivityDrawerFooter } from "@/features/activity/activity-drawer/ui/activity-drawer-footer";
 import { AppDrawer } from "@/shared/drawer";
 import type { UseTasksDrawerResult } from "@/views/tasks/model/use-tasks-drawer";
@@ -39,10 +40,9 @@ const INITIAL_FOOTER_META: ActivityFormFooterMeta = {
  *
  * Edit-mode resolution is a single cache lookup — Activity has one definitions
  * bucket per kind, unlike Notes' calendar/general split.
- * Archive/restore/delete callbacks land in Step 13's orchestrator.
  */
 export function ActivityDrawer({ drawer, onDismiss }: ActivityDrawerProps) {
-  const { isOpen, request, setOpen } = drawer;
+  const { isOpen, request, setOpen, openEdit } = drawer;
   const { data } = useActivitiesQuery("task");
   const activities = data?.activities ?? [];
   const [footerMeta, setFooterMeta] =
@@ -79,6 +79,33 @@ export function ActivityDrawer({ drawer, onDismiss }: ActivityDrawerProps) {
     [onDismiss, setOpen],
   );
 
+  const handleActivityCreated = useCallback(
+    (activityId: string) => {
+      openEdit(activityId);
+    },
+    [openEdit],
+  );
+
+  const handleDeleted = useCallback(() => {
+    onDismiss?.();
+    setOpen(false);
+  }, [onDismiss, setOpen]);
+
+  const {
+    saveStatus,
+    handleChange,
+    commitKey,
+    archive,
+    restore,
+    remove,
+  } = useConfigOrchestrator({
+    activity,
+    kind: "task",
+    isOpen,
+    onActivityCreated: handleActivityCreated,
+    onDeleted: handleDeleted,
+  });
+
   const handleFooterMetaChange = useCallback((meta: ActivityFormFooterMeta) => {
     setFooterMeta(meta);
   }, []);
@@ -92,13 +119,19 @@ export function ActivityDrawer({ drawer, onDismiss }: ActivityDrawerProps) {
       <div className="flex min-h-full flex-col">
         <ActivityForm
           activity={activity}
+          commitKey={commitKey}
           resetKey={resetKey}
+          saveStatus={saveStatus}
+          onArchive={activity?.id ? archive : undefined}
+          onChange={handleChange}
+          onDelete={activity?.id ? remove : undefined}
           onFooterMetaChange={handleFooterMetaChange}
+          onRestore={activity?.id ? restore : undefined}
         />
 
         <ActivityDrawerFooter
           formattedLastEditedAt={footerMeta.formattedLastEditedAt}
-          saveStatus={footerMeta.saveStatus}
+          saveStatus={saveStatus}
         />
       </div>
     </AppDrawer>
