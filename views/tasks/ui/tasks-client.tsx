@@ -41,6 +41,11 @@ export function TasksClient() {
 
   const drawer = useTasksDrawer();
 
+  // Phase 5 — mount useActivityRealtimeSync(...) here (mirrors
+  // useNotesRealtimeSync in views/notes/ui/notes-client.tsx).
+  // Phase 6 — mount useOfflineSync(userId, [activityOfflineAdapter]) here
+  // (mirrors createNotesOfflineSyncAdapter + useOfflineSync in the same file).
+
   const { data } = useActivitiesQuery("task");
   const tasks = data?.activities ?? [];
 

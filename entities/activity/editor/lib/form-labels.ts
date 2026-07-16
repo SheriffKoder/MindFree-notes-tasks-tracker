@@ -45,15 +45,3 @@ export const MONTH_LABELS: { value: string; label: string }[] = [
   { value: "11", label: "Nov" },
   { value: "12", label: "Dec" },
 ];
-
-/** Preset swatches for the color row (stored as hex strings). */
-export const ACTIVITY_COLOR_PRESETS = [
-  "#ef4444",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#06b6d4",
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
-] as const;
