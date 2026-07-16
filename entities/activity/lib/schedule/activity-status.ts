@@ -6,7 +6,7 @@
  *          and the config form's "Starts …" / "Expired …" banner. Status is
  *          never stored; extending `endsAt` or clearing `archivedAt` re-activates
  *          with no migration.
- * Used in: features/activity/activity-groups, entities/activity/ui form banner.
+ * Used in: features/activity/activity-groups, entities/activity/editor form banner.
  *
  * Function index:
  * - getActivityStatus: archived → upcoming → expired → active
