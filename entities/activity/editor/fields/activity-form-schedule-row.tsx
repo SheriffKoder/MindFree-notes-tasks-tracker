@@ -1,15 +1,29 @@
 /**
  * @file entities/activity/editor/fields/activity-form-schedule-row.tsx
- * Schedule type select + config input orchestrator.
+ * Schedule type dropdown + config dependents.
  */
 
 "use client";
 
-import { Label } from "@/components/ui/label";
-import type { ScheduleConfig, ScheduleType } from "@/entities/activity/model/types";
-import { FIELD_SELECT_CLASS } from "@/entities/activity/editor/lib/form-classes";
+import { ChevronDown } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ActivityFormFieldRow } from "@/entities/activity/editor/fields/activity-form-field-row";
+import {
+  FIELD_MENU_CONTENT_CLASS,
+  FIELD_MENU_TRIGGER_CLASS,
+} from "@/entities/activity/editor/lib/form-classes";
 import { SCHEDULE_TYPE_LABELS } from "@/entities/activity/editor/lib/form-labels";
 import { ScheduleInput } from "@/entities/activity/editor/schedule-input";
+import type { ScheduleConfig, ScheduleType } from "@/entities/activity/model/types";
+import { cn } from "@/lib/utils";
 
 const SCHEDULE_TYPES = Object.keys(SCHEDULE_TYPE_LABELS) as ScheduleType[];
 
@@ -34,31 +48,45 @@ export function ActivityFormScheduleRow({
   onScheduleConfigChange,
 }: ActivityFormScheduleRowProps) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="activity-schedule-type">Schedule</Label>
-        <select
-          aria-invalid={Boolean(scheduleTypeError)}
-          className={FIELD_SELECT_CLASS}
-          id="activity-schedule-type"
-          name="scheduleType"
-          value={scheduleType}
-          onChange={(event) =>
-            onScheduleTypeChange(event.target.value as ScheduleType)
-          }
-        >
-          {SCHEDULE_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {SCHEDULE_TYPE_LABELS[type]}
-            </option>
-          ))}
-        </select>
-        {scheduleTypeError ? (
-          <p className="text-caption [color:var(--color-error)]" role="alert">
-            {scheduleTypeError}
-          </p>
-        ) : null}
-      </div>
+    <div className="flex flex-col gap-2">
+      <ActivityFormFieldRow error={scheduleTypeError} label="Schedule">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              aria-label="Schedule type"
+              className={FIELD_MENU_TRIGGER_CLASS}
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              <span className="truncate">
+                {SCHEDULE_TYPE_LABELS[scheduleType]}
+              </span>
+              <ChevronDown
+                aria-hidden
+                className="h-3.5 w-3.5 shrink-0 opacity-60"
+              />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className={cn(FIELD_MENU_CONTENT_CLASS, "min-w-[10rem]")}
+          >
+            <DropdownMenuRadioGroup
+              value={scheduleType}
+              onValueChange={(value) =>
+                onScheduleTypeChange(value as ScheduleType)
+              }
+            >
+              {SCHEDULE_TYPES.map((type) => (
+                <DropdownMenuRadioItem key={type} value={type}>
+                  {SCHEDULE_TYPE_LABELS[type]}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ActivityFormFieldRow>
 
       <ScheduleInput
         error={scheduleConfigError}

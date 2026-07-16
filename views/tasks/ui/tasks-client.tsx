@@ -5,43 +5,56 @@
  * Step 9: calendar + list panes wired via TasksViewsSection. Re-render isolation:
  * the calendar pane reads useTasksFilter (re-renders on filter change); the list
  * pane must stay a NON-consumer so toggling the filter never re-renders it.
+ * Step 11: config drawer open/close from add button + list card clicks.
+ * TasksViewsSection is memoized so drawer state updates don't re-render the
+ * calendar/list tree (handlers/props stay stable across open/close).
  */
 
 "use client";
 
+import { useCallback } from "react";
+
+import type { Activity } from "@/entities/activity";
 import { useActivitiesQuery } from "@/entities/activity/client";
+import { ActivityDrawer } from "@/features/activity/activity-drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { ViewSwitcherMobile } from "@/shared/view-switcher";
 import { TASKS_VIEW_CONFIG } from "@/views/tasks/lib/tasks-views";
 import { TasksFilterProvider } from "@/views/tasks/model/tasks-filter-context";
+import { useTasksDrawer } from "@/views/tasks/model/use-tasks-drawer";
 import { useTasksPageSelection } from "@/views/tasks/model/use-tasks-page-selection";
 import { useTasksUrlState } from "@/views/tasks/model/use-tasks-url-state";
 import { TasksAddButton } from "@/views/tasks/ui/tasks-add-button";
 import { TasksFilter } from "@/views/tasks/ui/tasks-filter";
 import { TasksViewsSection } from "@/views/tasks/ui/tasks-views-section";
-import { useCallback } from "react";
 
 /**
  * Renders the Tasks page shell with month/filter controls and a responsive
  * calendar + list body (side by side on desktop, toggled on mobile).
  */
 export function TasksClient() {
-  // useTasksUrlState is used to get the month, view, and navigation functions
   const { month, view, previousMonth, nextMonth, cycleView } =
     useTasksUrlState();
 
-  const { highlightedDate, selectDate } = useTasksPageSelection(month);
+  const { highlightedDate, selectDate, clearSelection } =
+    useTasksPageSelection(month);
 
-  // useActivitiesQuery is used to get the tasks
+  const drawer = useTasksDrawer();
+
   const { data } = useActivitiesQuery("task");
-
-  // data?.activities is an array of tasks, if there are no tasks, it will be an empty array
   const tasks = data?.activities ?? [];
 
-  // useCallback is used to memoize the handleAddTask function so it doesn't get recreated on every render
   const handleAddTask = useCallback(() => {
-    // Config drawer arrives in Step 11; the toolbar seam is ready now.
-  }, []);
+    clearSelection();
+    drawer.openCreate();
+  }, [clearSelection, drawer.openCreate]);
+
+  const handleActivityClick = useCallback(
+    (activity: Activity) => {
+      drawer.openEdit(activity.id);
+    },
+    [drawer.openEdit],
+  );
 
   return (
     // TasksFilterProvider is to isolate the tasks filtering to the calendar only not re-rendering the list
@@ -90,10 +103,13 @@ export function TasksClient() {
                 view={view}
                 highlightedDate={highlightedDate}
                 onDaySelect={selectDate}
+                onActivityClick={handleActivityClick}
               />
             </div>
           </div>
         </div>
+
+        <ActivityDrawer drawer={drawer} onDismiss={clearSelection} />
       </div>
     </TasksFilterProvider>
   );

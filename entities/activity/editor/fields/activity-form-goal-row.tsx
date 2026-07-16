@@ -1,12 +1,12 @@
 /**
  * @file entities/activity/editor/fields/activity-form-goal-row.tsx
- * Optional positive integer goal for count/duration tracking.
+ * Optional goal stepper beside its label.
  */
 
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ActivityFormFieldRow } from "@/entities/activity/editor/fields/activity-form-field-row";
+import { Incrementer } from "@/shared/incrementer";
 
 export interface ActivityFormGoalRowProps {
   goal: number | null | undefined;
@@ -15,7 +15,7 @@ export interface ActivityFormGoalRowProps {
 }
 
 /**
- * Number input that maps empty → `null` and invalid → previous-or-null via parse.
+ * Goal as `{value} {− | +}` — no free-text input.
  */
 export function ActivityFormGoalRow({
   goal,
@@ -23,34 +23,14 @@ export function ActivityFormGoalRow({
   onChange,
 }: ActivityFormGoalRowProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor="activity-goal">Goal (optional)</Label>
-      <Input
-        aria-invalid={Boolean(error)}
-        id="activity-goal"
-        inputMode="numeric"
+    <ActivityFormFieldRow error={error} label="Goal">
+      <Incrementer
+        allowNull
+        aria-label="Goal"
         min={1}
-        name="goal"
-        placeholder="e.g. 10"
-        type="number"
-        value={goal ?? ""}
-        onChange={(event) => {
-          const raw = event.target.value;
-
-          if (raw.trim() === "") {
-            onChange(null);
-            return;
-          }
-
-          const parsed = Number.parseInt(raw, 10);
-          onChange(Number.isFinite(parsed) ? parsed : null);
-        }}
+        value={goal ?? null}
+        onChange={onChange}
       />
-      {error ? (
-        <p className="text-caption [color:var(--color-error)]" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </div>
+    </ActivityFormFieldRow>
   );
 }

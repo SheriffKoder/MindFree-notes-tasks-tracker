@@ -1,14 +1,28 @@
 /**
  * @file entities/activity/editor/fields/activity-form-tracking-mode-row.tsx
- * Native select for how completion is recorded.
+ * Tracking mode as a DropdownMenu beside its label.
  */
 
 "use client";
 
-import { Label } from "@/components/ui/label";
-import type { TrackingMode } from "@/entities/activity/model/types";
-import { FIELD_SELECT_CLASS } from "@/entities/activity/editor/lib/form-classes";
+import { ChevronDown } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ActivityFormFieldRow } from "@/entities/activity/editor/fields/activity-form-field-row";
+import {
+  FIELD_MENU_CONTENT_CLASS,
+  FIELD_MENU_TRIGGER_CLASS,
+} from "@/entities/activity/editor/lib/form-classes";
 import { TRACKING_MODE_LABELS } from "@/entities/activity/editor/lib/form-labels";
+import type { TrackingMode } from "@/entities/activity/model/types";
+import { cn } from "@/lib/utils";
 
 const TRACKING_MODES = Object.keys(TRACKING_MODE_LABELS) as TrackingMode[];
 
@@ -19,7 +33,7 @@ export interface ActivityFormTrackingModeRowProps {
 }
 
 /**
- * Styled native `<select>` for the four tracking modes.
+ * Radio menu for the four tracking modes.
  */
 export function ActivityFormTrackingModeRow({
   trackingMode,
@@ -27,27 +41,36 @@ export function ActivityFormTrackingModeRow({
   onChange,
 }: ActivityFormTrackingModeRowProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor="activity-tracking-mode">Tracking</Label>
-      <select
-        aria-invalid={Boolean(error)}
-        className={FIELD_SELECT_CLASS}
-        id="activity-tracking-mode"
-        name="trackingMode"
-        value={trackingMode}
-        onChange={(event) => onChange(event.target.value as TrackingMode)}
-      >
-        {TRACKING_MODES.map((mode) => (
-          <option key={mode} value={mode}>
-            {TRACKING_MODE_LABELS[mode]}
-          </option>
-        ))}
-      </select>
-      {error ? (
-        <p className="text-caption [color:var(--color-error)]" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </div>
+    <ActivityFormFieldRow error={error} label="Type">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            aria-label="Tracking type"
+            className={FIELD_MENU_TRIGGER_CLASS}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            <span className="truncate">{TRACKING_MODE_LABELS[trackingMode]}</span>
+            <ChevronDown aria-hidden className="h-3.5 w-3.5 shrink-0 opacity-60" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className={cn(FIELD_MENU_CONTENT_CLASS, "min-w-[12rem]")}
+        >
+          <DropdownMenuRadioGroup
+            value={trackingMode}
+            onValueChange={(value) => onChange(value as TrackingMode)}
+          >
+            {TRACKING_MODES.map((mode) => (
+              <DropdownMenuRadioItem key={mode} value={mode}>
+                {TRACKING_MODE_LABELS[mode]}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </ActivityFormFieldRow>
   );
 }

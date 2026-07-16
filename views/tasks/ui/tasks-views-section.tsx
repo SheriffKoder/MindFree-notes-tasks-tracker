@@ -5,6 +5,8 @@
 
 "use client";
 
+import { memo } from "react";
+
 import type { Activity, ActivityRecord } from "@/entities/activity";
 import {
   useActivitiesQuery,
@@ -27,6 +29,8 @@ export interface TasksViewsSectionProps {
   highlightedDate?: string;
   /** Snaps page selection to the clicked calendar day. */
   onDaySelect: (date: string) => void;
+  /** Opens the config drawer for a list card (Step 11). */
+  onActivityClick?: (activity: Activity) => void;
 }
 
 interface CalendarPaneContentProps {
@@ -69,9 +73,14 @@ function CalendarPaneContent({
 interface ListPaneContentProps {
   activities: Activity[];
   queryState: ViewQueryState;
+  onActivityClick?: (activity: Activity) => void;
 }
 
-function ListPaneContent({ activities, queryState }: ListPaneContentProps) {
+function ListPaneContent({
+  activities,
+  queryState,
+  onActivityClick,
+}: ListPaneContentProps) {
   if (queryState.kind !== "ready") {
     return (
       <QueryStatePanel
@@ -81,18 +90,27 @@ function ListPaneContent({ activities, queryState }: ListPaneContentProps) {
     );
   }
 
-  return <TasksListPane activities={activities} />;
+  return (
+    <TasksListPane
+      activities={activities}
+      onActivityClick={onActivityClick}
+    />
+  );
 }
 
 /**
  * Fetches activities + records, resolves per-pane query state, and renders the
  * responsive calendar/list body (mirrors Notes calendar + sidebar layout).
+ *
+ * Memoized so drawer open/close in TasksClient (useTasksDrawer state) does not
+ * re-render the calendar/list tree — props stay stable across that update.
  */
-export function TasksViewsSection({
+export const TasksViewsSection = memo(function TasksViewsSection({
   month,
   view,
   highlightedDate,
   onDaySelect,
+  onActivityClick,
 }: TasksViewsSectionProps) {
   const activitiesQuery = useActivitiesQuery("task");
   const recordsQuery = useActivityRecordsQuery(month);
@@ -122,6 +140,7 @@ export function TasksViewsSection({
           <ListPaneContent
             activities={activities}
             queryState={listQueryState}
+            onActivityClick={onActivityClick}
           />
         </section>
       ) : null}
@@ -155,6 +174,7 @@ export function TasksViewsSection({
               <ListPaneContent
                 activities={activities}
                 queryState={listQueryState}
+                onActivityClick={onActivityClick}
               />
             </div>
           </div>
@@ -162,4 +182,4 @@ export function TasksViewsSection({
       </section>
     </>
   );
-}
+});

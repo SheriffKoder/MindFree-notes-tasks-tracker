@@ -23,6 +23,7 @@ import {
   addWindowIssues,
 } from "@/entities/activity/schema/activity-form.schema";
 import { defaultScheduleConfig } from "@/entities/activity/editor/lib/default-schedule-config";
+import { formatActivityLastEditedAt } from "@/entities/activity/editor/lib/format-last-edited";
 import type {
   ActivityFormFieldErrors,
   ActivityFormValues,
@@ -188,6 +189,11 @@ export function useActivityForm({
     [values],
   );
 
+  const formattedLastEditedAt = useMemo(
+    () => formatActivityLastEditedAt(activity?.updatedAt),
+    [activity?.updatedAt],
+  );
+
   const updateValues = useCallback((nextValues: ActivityFormValues) => {
     setValues(nextValues);
     setErrors(getFieldErrors(nextValues));
@@ -273,6 +279,7 @@ export function useActivityForm({
     errors,
     isDirty,
     isValid,
+    formattedLastEditedAt,
     setTitle,
     setDescription,
     setColor,

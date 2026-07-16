@@ -3,20 +3,40 @@
  * Shared class tokens for the activity config form.
  */
 
+import type { ActivitySaveStatus } from "@/entities/activity/editor/model/types";
+
 export const PLAIN_TITLE_CLASS =
-  "min-w-0 flex-1 border-0 bg-transparent p-0 text-lg font-medium leading-tight [color:var(--color-fg)] placeholder:[color:var(--color-fg-hint)] focus:outline-none focus:ring-0";
+  "min-w-0 flex-1 border-0 bg-transparent p-0 text-h2 placeholder:[color:var(--color-fg-hint)] focus:outline-none focus:ring-0";
 
 export const PLAIN_DESCRIPTION_CLASS =
-  "min-h-[4.5rem] w-full resize-y border-0 bg-transparent p-0 text-base leading-normal [color:var(--color-fg)] placeholder:[color:var(--color-fg-hint)] focus:outline-none focus:ring-0";
+  "min-h-[3rem] w-full resize-y rounded border-[var(--color-border)] [background-color:color-mix(in_srgb,var(--color-surface)_60%,transparent)] px-3 py-2 text-caption leading-normal [color:var(--color-fg-muted)] placeholder:[color:var(--color-fg-hint)] focus:outline-none focus-visible:[box-shadow:0_0_0_1px_color-mix(in_srgb,var(--color-accent)_40%,transparent)]";
 
-export const FIELD_SELECT_CLASS =
-  "flex h-9 w-full rounded-md border border-[var(--color-border)] [background-color:color-mix(in_srgb,var(--color-surface)_94%,transparent)] px-3 text-sm [color:var(--color-fg)] shadow-sm transition-[color,border-color,box-shadow,background-color] hover:border-[color-mix(in_srgb,var(--color-fg-muted)_20%,var(--color-border))] focus-visible:outline-none focus-visible:[box-shadow:0_0_0_1px_color-mix(in_srgb,var(--color-accent)_60%,transparent)] disabled:cursor-not-allowed disabled:opacity-50";
+/** Label beside a right-aligned control. */
+export const FIELD_LABEL_CLASS =
+  "shrink-0 text-sm [color:var(--color-fg)]";
 
-export const CHIP_CLASS =
-  "inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-caption font-medium transition-colors duration-150";
+/** Ghost trigger for DropdownMenu selects (value + chevron). */
+export const FIELD_MENU_TRIGGER_CLASS =
+  "h-8 max-w-[min(100%,14rem)] gap-1.5 px-2 text-sm font-normal [color:var(--color-fg-muted)] hover:[color:var(--color-fg)]";
 
-export const CHIP_INACTIVE_CLASS =
-  "border-[var(--color-border)] [background-color:color-mix(in_srgb,var(--color-surface)_94%,transparent)] [color:var(--color-fg-muted)] hover:border-[color-mix(in_srgb,var(--color-accent)_35%,var(--color-border))] hover:[color:var(--color-accent)]";
+/**
+ * DropdownMenuContent must sit above AppDrawer (`z-[60]`). Default menu chrome
+ * is `z-50`, which portals behind the drawer and looks like a no-op open.
+ */
+export const FIELD_MENU_CONTENT_CLASS = "z-[70]";
 
-export const CHIP_ACTIVE_CLASS =
-  "border-[color-mix(in_srgb,var(--color-accent)_45%,var(--color-border))] [background-color:var(--color-interactive-accent-surface)] [color:var(--color-accent)]";
+/**
+ * Transient save feedback label for the footer last-saved slot.
+ */
+export function getSaveStatusLabel(status: ActivitySaveStatus): string | null {
+  switch (status) {
+    case "saving":
+      return "Saving…";
+    case "saved":
+      return "Saved";
+    case "error":
+      return "Could not save";
+    default:
+      return null;
+  }
+}

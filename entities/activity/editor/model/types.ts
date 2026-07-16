@@ -20,10 +20,19 @@ export type ActivityFormFieldErrors = Partial<
   Record<keyof ActivityFormValues, string>
 >;
 
+/** Autosave feedback surfaced in the drawer footer (wired in Step 13). */
+export type ActivitySaveStatus = "idle" | "saving" | "saved" | "error";
+
 /** Metadata emitted with each controlled change. */
 export interface ActivityFormChangeMeta {
   isDirty: boolean;
   isValid: boolean;
+}
+
+/** Footer metadata emitted for the thin last-saved footer (drawer island). */
+export interface ActivityFormFooterMeta {
+  formattedLastEditedAt: string | null;
+  saveStatus: ActivitySaveStatus;
 }
 
 export interface ActivityFormProps {
@@ -38,6 +47,16 @@ export interface ActivityFormProps {
   commitKey?: number;
   /** Called when local field state changes. No network I/O in the form. */
   onChange?: (values: ActivityFormValues, meta: ActivityFormChangeMeta) => void;
+  /** Optional save feedback from the drawer island (Step 13). */
+  saveStatus?: ActivitySaveStatus;
+  /** Receives footer metadata for the thin last-saved footer. */
+  onFooterMetaChange?: (meta: ActivityFormFooterMeta) => void;
+  /** Soft-archive (persisted activities only; Step 13 wires). */
+  onArchive?: () => void;
+  /** Clear archive (persisted activities only; Step 13 wires). */
+  onRestore?: () => void;
+  /** Hard-delete (persisted activities only; Step 13 wires). */
+  onDelete?: () => void;
   /** Optional wrapper class for drawer layouts that need `flex-1` growth. */
   className?: string;
 }
@@ -56,6 +75,7 @@ export interface UseActivityFormResult {
   errors: ActivityFormFieldErrors;
   isDirty: boolean;
   isValid: boolean;
+  formattedLastEditedAt: string | null;
   setTitle: (title: string) => void;
   setDescription: (description: string | null) => void;
   setColor: (color: string | null) => void;

@@ -1,18 +1,19 @@
 /**
  * @file entities/activity/editor/schedule-input/schedule-input.tsx
- * Schedule-config orchestrator — switches inputs by `scheduleType`.
+ * Schedule-config orchestrator — switches dropdown inputs by `scheduleType`.
  */
 
 "use client";
 
 import type { ReactNode } from "react";
 
-import type { ScheduleConfig, ScheduleType, Weekday } from "@/entities/activity/model/types";
+import { ActivityFormFieldRow } from "@/entities/activity/editor/fields/activity-form-field-row";
 import { defaultScheduleConfig } from "@/entities/activity/editor/lib/default-schedule-config";
 import { DayMonthPicker } from "@/entities/activity/editor/schedule-input/day-month-picker";
 import { DayOfMonthPicker } from "@/entities/activity/editor/schedule-input/day-of-month-picker";
 import { OnceDateInput } from "@/entities/activity/editor/schedule-input/once-date-input";
 import { WeekdayPicker } from "@/entities/activity/editor/schedule-input/weekday-picker";
+import type { ScheduleConfig, ScheduleType, Weekday } from "@/entities/activity/model/types";
 
 export interface ScheduleInputProps {
   scheduleType: ScheduleType;
@@ -26,7 +27,7 @@ function asStringArray(config: ScheduleConfig): string[] {
 }
 
 /**
- * Renders exactly one config control per schedule type.
+ * Renders exactly one config control per schedule type (or a muted daily note).
  * Callers should seed `scheduleConfig` via `defaultScheduleConfig` on type change.
  */
 export function ScheduleInput({
@@ -44,14 +45,16 @@ export function ScheduleInput({
           ? scheduleConfig
           : (defaultScheduleConfig("once") as string);
 
-      body = <OnceDateInput value={value} onChange={onChange} />;
+      body = (
+        <OnceDateInput error={error} value={value} onChange={onChange} />
+      );
       break;
     }
     case "daily":
       body = (
-        <p className="text-caption [color:var(--color-fg-muted)]">
-          Repeats every day inside the validity window.
-        </p>
+        <ActivityFormFieldRow label="On">
+          <p className="px-2 text-sm [color:var(--color-fg-muted)]">Every day</p>
+        </ActivityFormFieldRow>
       );
       break;
     case "weekly": {
@@ -60,7 +63,9 @@ export function ScheduleInput({
         raw.length > 0 ? raw : (defaultScheduleConfig("weekly") as string[])
       ) as Weekday[];
 
-      body = <WeekdayPicker value={value} onChange={onChange} />;
+      body = (
+        <WeekdayPicker error={error} value={value} onChange={onChange} />
+      );
       break;
     }
     case "monthly": {
@@ -68,7 +73,9 @@ export function ScheduleInput({
       const value =
         raw.length > 0 ? raw : (defaultScheduleConfig("monthly") as string[]);
 
-      body = <DayOfMonthPicker value={value} onChange={onChange} />;
+      body = (
+        <DayOfMonthPicker error={error} value={value} onChange={onChange} />
+      );
       break;
     }
     case "yearly": {
@@ -76,19 +83,12 @@ export function ScheduleInput({
       const value =
         raw.length > 0 ? raw : (defaultScheduleConfig("yearly") as string[]);
 
-      body = <DayMonthPicker value={value} onChange={onChange} />;
+      body = (
+        <DayMonthPicker error={error} value={value} onChange={onChange} />
+      );
       break;
     }
   }
 
-  return (
-    <div className="flex flex-col gap-1">
-      {body}
-      {error ? (
-        <p className="text-caption [color:var(--color-error)]" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </div>
-  );
+  return body;
 }
