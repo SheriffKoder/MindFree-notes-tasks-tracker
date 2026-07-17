@@ -6,14 +6,15 @@
  *
  * Each cell is its own component (identity / progress / controls / note); this
  * file only composes them and owns the expand/collapse state. Dumb by design —
- * no query/mutation/context reads; recording + description writes are wired in
- * Milestone 2 (both are visual placeholders for now).
+ * no query/mutation/context reads. Interactive recording is injected by the
+ * view through `recordSlot` (`<QuickRecord>`); with no slot it falls back to a
+ * read-only stepper.
  */
 
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { memo, useState } from "react";
+import { memo, useState, type ReactNode } from "react";
 
 import type { TodayActivity } from "@/entities/activity";
 import {
@@ -34,12 +35,18 @@ export interface ActivityTodayCardProps {
    * stays compact; other surfaces can opt into open-by-default.
    */
   defaultOpen?: boolean;
+  /**
+   * Interactive recording control injected by the view (e.g. `<QuickRecord>`).
+   * When omitted the card renders a read-only stepper (`TodayCardControls`).
+   */
+  recordSlot?: ReactNode;
 }
 
 /** Skips re-render when `today` and `defaultOpen` are referentially equal. */
 export const ActivityTodayCard = memo(function ActivityTodayCard({
   today,
   defaultOpen = false,
+  recordSlot,
 }: ActivityTodayCardProps) {
   const { activity, progress, record } = today;
   const [open, setOpen] = useState(defaultOpen);
@@ -71,15 +78,17 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
           title={activity.title}
         />
 
-        <TodayCardProgress progress={progress} />
+        <TodayCardProgress activity={activity} record={record} />
 
         <span aria-hidden />
 
-        <TodayCardControls
-          activity={activity}
-          value={progress.value}
-          onChange={NOOP}
-        />
+        {recordSlot ?? (
+          <TodayCardControls
+            activity={activity}
+            value={progress.value}
+            onChange={NOOP}
+          />
+        )}
       </div>
 
       {open ? (

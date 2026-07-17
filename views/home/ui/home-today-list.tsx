@@ -2,15 +2,16 @@
  * @file views/home/ui/home-today-list.tsx
  * Client island listing today's activities on the Home dashboard.
  *
- * Purpose: Render the derived Home Today read model as compact rows.
+ * Purpose: Render the derived Home Today read model as compact rows, each with
+ *          inline quick-record controls injected into the card's `recordSlot`.
  * Used in: views/home/index.tsx
- * Used for: Read-only slice — quick-record + drawer wiring land in later steps.
  */
 
 "use client";
 
 import { useHomeTodayQuery } from "@/entities/activity/client";
 import { ActivityTodayCard } from "@/features/activity/activity-today-card";
+import { QuickRecord } from "@/features/activity/quick-record";
 import { QueryStatePanel } from "@/shared/react-query";
 
 /**
@@ -41,7 +42,11 @@ export function HomeTodayList() {
   return (
     <div className="flex flex-col gap-0.5">
       {today.map((item) => (
-        <ActivityTodayCard key={item.activity.id} today={item} />
+        <ActivityTodayCard
+          key={item.activity.id}
+          recordSlot={<QuickRecord today={item} />}
+          today={item}
+        />
       ))}
     </div>
   );
