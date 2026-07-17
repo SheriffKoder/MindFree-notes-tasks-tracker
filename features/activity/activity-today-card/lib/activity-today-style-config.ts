@@ -22,6 +22,8 @@ export const ACTIVITY_TODAY_CARD_STYLE_CONFIG = {
     title: "var(--color-fg)",
     /** Dimmed leading chevron + stepper. */
     dim: "var(--color-fg-hint)",
+    /** Current/goal progress text. */
+    progress: "var(--color-fg-muted)",
     /** Percent color fallback when the activity has no color. */
     taskColorFallback: "var(--color-accent)",
   },
@@ -37,4 +39,5 @@ export const ACTIVITY_TODAY_CARD_CSS_VARS: CSSProperties = {
     ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.hoverBackgroundDark,
   "--today-card-title": ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.title,
   "--today-card-dim": ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.dim,
+  "--today-card-progress": ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.progress,
 } as CSSProperties;
