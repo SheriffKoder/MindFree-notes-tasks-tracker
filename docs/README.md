@@ -20,6 +20,15 @@ Onboarding and architecture for MindFree. Prefer these **WHY** docs over the lon
 8. [adr/README.md](./adr/README.md) — decisions (auth, hydrate, selectedDate, hub, …)  
 9. File maps: [entities/note/RESPONSIBILITIES.md](../entities/note/RESPONSIBILITIES.md)  
 
+## Reading order (Activity — tasks & reminders)
+
+1. [entities/activity/docs/domain-model.md](../entities/activity/docs/domain-model.md) — one model, two kinds, tracking, records  
+2. [entities/activity/docs/scheduling.md](../entities/activity/docs/scheduling.md) — recurrence + window, derived status  
+3. [entities/activity/docs/read-models.md](../entities/activity/docs/read-models.md) — caches, calendar join, month progress  
+4. [entities/activity/docs/writes-and-autosave.md](../entities/activity/docs/writes-and-autosave.md) — create/patch/archive/delete + cache hub  
+5. Decisions: ADR [0011](./adr/0011-one-activity-model-two-kinds.md) · [0012](./adr/0012-calendar-records-always-visible.md) · [0013](./adr/0013-precompute-month-progress-map.md)  
+6. File map: [entities/activity/docs/responsibilities.md](../entities/activity/docs/responsibilities.md)  
+
 ## Index
 
 | Path | Contents |
@@ -30,5 +39,6 @@ Onboarding and architecture for MindFree. Prefer these **WHY** docs over the lon
 | [concepts/](./concepts/) | Glossary + terminology |
 | [guides/security.md](./guides/security.md) | Auth gates, RLS, IDOR |
 | [entities/note/docs/](../entities/note/docs/) | Notes domain WHY |
+| [entities/activity/docs/](../entities/activity/docs/) | Activity (tasks + reminders) domain WHY |
 | [views/notes/docs/](../views/notes/docs/) | Notes page drawer navigation |
 | [views/home/docs/](../views/home/docs/) | Home as Notes consumer |
