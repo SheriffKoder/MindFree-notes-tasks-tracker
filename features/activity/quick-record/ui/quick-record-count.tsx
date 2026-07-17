@@ -30,10 +30,6 @@ export const QuickRecordCount = memo(function QuickRecordCount({
 }: QuickRecordCountProps) {
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      <Hash
-        aria-hidden
-        className="h-3.5 w-3.5 shrink-0 [color:var(--today-card-dim)]"
-      />
       <Incrementer
         aria-label={`Adjust ${label} count`}
         editable

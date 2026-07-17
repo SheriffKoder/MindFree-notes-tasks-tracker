@@ -37,7 +37,7 @@ export const QuickRecord = memo(function QuickRecord({
   date,
 }: QuickRecordProps) {
   const { activity, record } = today;
-  const { count, duration, done, setCount, setDuration, toggleDone } =
+  const { count, duration, done, setCount, setDuration, toggleDone, addMinutes } =
     useQuickRecord({ activity, record, date });
 
   const mode = activity.trackingMode;
@@ -69,6 +69,7 @@ export const QuickRecord = memo(function QuickRecord({
           label={activity.title}
           value={duration}
           onChange={setDuration}
+          onTick={() => addMinutes(1)}
         />
       ) : null}
     </div>

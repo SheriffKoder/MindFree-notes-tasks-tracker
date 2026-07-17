@@ -1,9 +1,10 @@
 /**
  * @file features/activity/quick-record/ui/quick-record-duration.tsx
- * Dumb duration control for the Home Today row: clock icon + minutes stepper.
+ * Dumb duration control for the Home Today row: play/pause timer + clock icon +
+ * minutes stepper.
  *
- * Presentational only — value + onChange come from `useQuickRecord`. The live
- * play/pause timer mounts *before* this control in plan Step 11.
+ * Presentational only — value/onChange/onTick come from `useQuickRecord`. The
+ * live timer sits before the stepper and adds one minute per tick.
  */
 
 "use client";
@@ -11,6 +12,7 @@
 import { Clock } from "lucide-react";
 import { memo } from "react";
 
+import { DurationTimer } from "@/features/activity/quick-record/ui/duration-timer";
 import { Incrementer } from "@/shared/incrementer";
 
 export interface QuickRecordDurationProps {
@@ -20,20 +22,20 @@ export interface QuickRecordDurationProps {
   value: number;
   /** Sets the absolute duration in minutes (`null` clears to empty). */
   onChange: (value: number | null) => void;
+  /** Adds one minute each timer tick (wired to the shared recording flow). */
+  onTick: () => void;
 }
 
-/** Clock icon + editable boxed stepper bound to the day's minutes. */
+/** Timer + clock icon + editable boxed stepper bound to the day's minutes. */
 export const QuickRecordDuration = memo(function QuickRecordDuration({
   label,
   value,
   onChange,
+  onTick,
 }: QuickRecordDurationProps) {
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      <Clock
-        aria-hidden
-        className="h-3.5 w-3.5 shrink-0 [color:var(--today-card-dim)]"
-      />
+      <DurationTimer label={label} onTick={onTick} />
       <Incrementer
         aria-label={`Adjust ${label} minutes`}
         editable
