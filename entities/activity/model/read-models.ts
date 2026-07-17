@@ -50,6 +50,39 @@ export interface TaskCalendarDay {
 }
 
 /**
+ * Derived, never-stored progress for one activity on one day. Computed by
+ * `entities/activity/lib/record/derive-today-progress`; consumers read it, never
+ * recompute it.
+ */
+export interface TodayProgress {
+  /** Goal-aware completion: goal reached, or (no goal) a meaningful record. */
+  done: boolean;
+  /** Primary tracked value for the mode: duration for `duration`, else count. */
+  value: number;
+  /** Target value, or `null` when the activity is unbounded. */
+  goal: number | null;
+  /** Units left to reach the goal (`>= 0`), or `null` when unbounded. */
+  remaining: number | null;
+  /** Whole-number completion percent (0–100), or `null` when unbounded. */
+  percent: number | null;
+}
+
+/**
+ * One activity shown on Home today, paired with today's record and derived
+ * progress. Client-composed by `entities/activity/lib/today/build-today-activities`.
+ */
+export interface TodayActivity {
+  /** Activity definition shown today. */
+  activity: Activity;
+  /** Today's record, or `null` when nothing is recorded yet. */
+  record: ActivityRecord | null;
+  /** Convenience mirror of `progress.done` for view dimming/sorting. */
+  done: boolean;
+  /** Derived `value / goal` progress for the day. */
+  progress: TodayProgress;
+}
+
+/**
  * Initial data loaded by the Tasks server page for SSR hydration.
  */
 export interface TasksPageData {

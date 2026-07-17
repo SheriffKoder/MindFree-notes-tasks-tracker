@@ -26,6 +26,8 @@ export type {
   TaskCalendarDay,
   TaskCalendarDayActivity,
   TasksPageData,
+  TodayActivity,
+  TodayProgress,
 } from "@/entities/activity/model/read-models";
 
 export {
@@ -41,12 +43,16 @@ export {
   isActiveOnDay,
 } from "@/entities/activity/lib/schedule";
 export { isRemoteActivityNewer } from "@/entities/activity/lib/is-remote-activity-newer";
-export { isMeaningfulRecord } from "@/entities/activity/lib/record";
+export {
+  deriveTodayProgress,
+  isMeaningfulRecord,
+} from "@/entities/activity/lib/record";
 export {
   buildRecordLookup,
   recordKey,
 } from "@/entities/activity/lib/record";
 export type { RecordLookup } from "@/entities/activity/lib/record";
+export { buildTodayActivities } from "@/entities/activity/lib/today";
 export {
   buildTaskCalendarDays,
   computeTaskMonthProgress,
