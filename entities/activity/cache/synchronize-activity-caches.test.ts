@@ -178,6 +178,90 @@ describe("synchronizeActivityCaches", () => {
     expect(july?.records).toHaveLength(0);
   });
 
+  it("upserts a record into its month bucket by (taskId, date)", () => {
+    const existing = buildRecord({ id: "record-1", count: 1 });
+
+    queryClient.setQueryData(activityRecordsQueryKey("2024-06"), {
+      month: "2024-06",
+      records: [existing],
+    });
+
+    const updated = buildRecord({ id: "record-server", count: 3 });
+
+    synchronizeActivityCaches(queryClient, {
+      type: "record-upsert",
+      record: updated,
+    });
+
+    const june = queryClient.getQueryData<{ records: ActivityRecord[] }>(
+      activityRecordsQueryKey("2024-06"),
+    );
+
+    expect(june?.records).toHaveLength(1);
+    expect(june?.records[0]?.count).toBe(3);
+    expect(june?.records[0]?.id).toBe("record-server");
+  });
+
+  it("appends a record when its (taskId, date) is not yet cached", () => {
+    queryClient.setQueryData(activityRecordsQueryKey("2024-06"), {
+      month: "2024-06",
+      records: [],
+    });
+
+    const record = buildRecord({ date: "2024-06-15" });
+
+    synchronizeActivityCaches(queryClient, {
+      type: "record-upsert",
+      record,
+    });
+
+    const june = queryClient.getQueryData<{ records: ActivityRecord[] }>(
+      activityRecordsQueryKey("2024-06"),
+    );
+
+    expect(june?.records).toHaveLength(1);
+    expect(june?.records[0]?.date).toBe("2024-06-15");
+  });
+
+  it("removes a record from its month bucket on record-delete", () => {
+    const target = buildRecord({ id: "r-target", date: "2024-06-10" });
+    const keep = buildRecord({
+      id: "r-keep",
+      taskId: "activity-2",
+      date: "2024-06-10",
+    });
+
+    queryClient.setQueryData(activityRecordsQueryKey("2024-06"), {
+      month: "2024-06",
+      records: [target, keep],
+    });
+
+    synchronizeActivityCaches(queryClient, {
+      type: "record-delete",
+      record: target,
+    });
+
+    const june = queryClient.getQueryData<{ records: ActivityRecord[] }>(
+      activityRecordsQueryKey("2024-06"),
+    );
+
+    expect(june?.records).toHaveLength(1);
+    expect(june?.records[0]?.id).toBe("r-keep");
+  });
+
+  it("leaves an unseeded month bucket untouched on record write", () => {
+    synchronizeActivityCaches(queryClient, {
+      type: "record-upsert",
+      record: buildRecord({ date: "2024-09-01" }),
+    });
+
+    const september = queryClient.getQueryData(
+      activityRecordsQueryKey("2024-09"),
+    );
+
+    expect(september).toBeUndefined();
+  });
+
   it("does not touch a different kind cache", () => {
     const task = buildActivity({ kind: "task" });
     const reminder = buildActivity({

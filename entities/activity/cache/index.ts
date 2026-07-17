@@ -5,6 +5,7 @@
  * Function index:
  * - upsertActivityInCache, removeActivityFromCache (activity-cache-mutations)
  * - purgeActivityRecordsInCache (purge-activity-records-in-cache)
+ * - recordMonthKey, upsertRecordInCache, removeRecordFromCache (record/*)
  * - synchronizeActivityCaches, ActivityChange (synchronize-activity-caches)
  * - findActivityByIdInCache (find-activity-in-cache)
  */
@@ -15,6 +16,11 @@ export {
 } from "@/entities/activity/cache/activity-cache-mutations";
 export { findActivityByIdInCache } from "@/entities/activity/cache/find-activity-in-cache";
 export { purgeActivityRecordsInCache } from "@/entities/activity/cache/purge-activity-records-in-cache";
+export {
+  recordMonthKey,
+  removeRecordFromCache,
+  upsertRecordInCache,
+} from "@/entities/activity/cache/record";
 export {
   synchronizeActivityCaches,
   type ActivityChange,
