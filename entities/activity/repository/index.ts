@@ -11,6 +11,7 @@
  * - createActivity          (create-activity)
  * - updateActivityById, archiveActivityById (update-activity)
  * - deleteActivityById      (delete-activity)
+ * - upsertRecord, deleteRecord (record/*)
  */
 
 export { getAuthenticatedUserId } from "@/entities/activity/repository/get-authenticated-user-id";
@@ -22,3 +23,7 @@ export {
   updateActivityById,
 } from "@/entities/activity/repository/update-activity";
 export { deleteActivityById } from "@/entities/activity/repository/delete-activity";
+export {
+  deleteRecord,
+  upsertRecord,
+} from "@/entities/activity/repository/record";
