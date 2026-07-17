@@ -7,9 +7,14 @@
  * - updateActivity   (update-activity)
  * - archiveActivity  (archive-activity)
  * - deleteActivity   (delete-activity)
+ * - upsertActivityRecord, deleteActivityRecord (record/*)
  */
 
 export { createActivity } from "@/entities/activity/mutations/create-activity";
 export { updateActivity } from "@/entities/activity/mutations/update-activity";
 export { archiveActivity } from "@/entities/activity/mutations/archive-activity";
 export { deleteActivity } from "@/entities/activity/mutations/delete-activity";
+export {
+  deleteActivityRecord,
+  upsertActivityRecord,
+} from "@/entities/activity/mutations/record";

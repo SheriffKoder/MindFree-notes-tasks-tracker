@@ -19,6 +19,8 @@ export {
   archiveActivity,
   createActivity,
   deleteActivity,
+  deleteActivityRecord,
   updateActivity,
+  upsertActivityRecord,
 } from "@/entities/activity/mutations";
 export { getAuthenticatedUserId } from "@/entities/activity/repository";
