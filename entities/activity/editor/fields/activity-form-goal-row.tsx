@@ -15,7 +15,7 @@ export interface ActivityFormGoalRowProps {
 }
 
 /**
- * Goal as `{value} {− | +}` — no free-text input.
+ * Goal as an editable `[input] {− | +}` — type directly or step.
  */
 export function ActivityFormGoalRow({
   goal,
@@ -27,6 +27,7 @@ export function ActivityFormGoalRow({
       <Incrementer
         allowNull
         aria-label="Goal"
+        editable
         min={1}
         value={goal ?? null}
         onChange={onChange}
