@@ -3,7 +3,7 @@
  * Home dashboard composition for the protected MindFree landing route.
  */
 
-import { ChevronRight } from "lucide-react";
+import { BookMarked, ChevronRight } from "lucide-react";
 
 import {
   Card,
@@ -48,11 +48,7 @@ export function HomeView({ notice = null }: HomeViewProps) {
       <div className="mx-auto flex h-full w-full flex-col gap-4">
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
-            <h2 className="text-h2">MindFree</h2>
-            <p className="page-header__subtitle">
-              This route is now the real app home, ready for starred notes, today&apos;s
-              tasks, and reminders.
-            </p>
+            <h2 className="text-h2 flex items-center gap-2"><BookMarked aria-hidden className="h-6 w-6" /> MindFree</h2>
           </div>
 
           <HomeHeaderToolbar />
