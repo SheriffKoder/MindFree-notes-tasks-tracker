@@ -14,7 +14,7 @@
 export { getActivitiesResponse } from "@/entities/activity/queries/get-activities-response";
 export { getActivityRecordsResponse } from "@/entities/activity/queries/get-activity-records-response";
 export { getTasksPageInitialData } from "@/entities/activity/queries/get-tasks-page-initial-data";
-export { hydrateTasksPageQueries } from "@/entities/activity/client/hydrate-tasks-page-queries";
+export { seedActivityCaches } from "@/entities/activity/client/seed-activity-caches";
 export {
   archiveActivity,
   createActivity,

@@ -47,7 +47,7 @@ entities/note/tanstack/
 ├── query-keys.ts                    ["calendarNotes", month], ["generalNotes"]
 ├── calendar-notes-query.ts          fetch + queryOptions + useCalendarNotesQuery
 ├── general-notes-query.ts           fetch + queryOptions + useGeneralNotesQuery
-└── hydrate-notes-page-queries.ts    setQueryData + dehydrate (exported via server.ts)
+└── seed-notes-page-cache.ts         setQueryData only, void (exported via server.ts)
 ```
 
 Client components import from `entities/note/client`, never from `entities/note/server` or the main `index.ts` barrel when they need hooks (avoids bundling repository code).
@@ -91,9 +91,14 @@ export default function NotesRoute() {
 ```ts
 // notes-hydration-seed.tsx (server)
 const initialData = await getNotesPageInitialData(null);
-const dehydratedState = hydrateNotesPageQueries(getQueryClient(), initialData);
-return <QueryHydration state={dehydratedState}>{null}</QueryHydration>;
+const queryClient = getQueryClient();
+seedNotesPageCache(queryClient, initialData); // entity writes; no dehydrate
+return <QueryHydration state={dehydrate(queryClient)}>{null}</QueryHydration>;
 ```
+
+> Composing multiple entities on one page (e.g. Home): call each entity's
+> `seed*` writer against a single `getQueryClient()`, then `dehydrate` once and
+> wrap in one `<QueryHydration>`. See `views/home/ui/home-hydration-seed.tsx`.
 
 ## Adding TanStack Query to a new page / entity
 
@@ -106,9 +111,9 @@ entities/task/
 ├── tanstack/
 │   ├── query-keys.ts
 │   ├── tasks-query.ts              # fetchTasks, tasksQueryOptions, useTasksQuery
-│   └── hydrate-tasks-page-queries.ts
+│   └── seed-tasks-cache.ts         # seedTasksCache(qc, data): void (no dehydrate)
 ├── client.ts                       # re-export tanstack hooks + types
-└── server.ts                       # getTasksResponse, hydrateTasksPageQueries
+└── server.ts                       # getTasksResponse, seedTasksCache
 ```
 
 - **Keys** — stable tuples, e.g. `["tasks", filter]` or `["task", id]`.

@@ -86,8 +86,8 @@ POST on `/api/notes/home` supports lazy quick-note create when the slot is empty
 
 | Page | Seed |
 | ---- | ---- |
-| `/notes` | Current calendar month + general → `hydrateNotesPageQueries` |
-| `/` (Home) | Home payload → `hydrateHomeNotesQueries` |
+| `/notes` | Current calendar month + general → `seedNotesPageCache` |
+| `/` (Home) | Home payload → `seedHomeNotesCache` (composed into one Home seed) |
 
 Hydration seeds TanStack so the first paint doesn’t wait for a client round-trip when data was already fetched on the server. After that, all islands share the same browser `QueryClient`.
 

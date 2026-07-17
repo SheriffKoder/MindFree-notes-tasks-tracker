@@ -18,6 +18,8 @@ import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
 import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
 import { HomeRightAside } from "@/views/home/ui/home-right-aside";
 
+export { HomeHydrationSeed } from "@/views/home/ui/home-hydration-seed";
+
 /**
  * Props for the protected home dashboard.
  */

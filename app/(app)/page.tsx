@@ -5,12 +5,11 @@
 
 import { Suspense } from "react";
 
-import { HomeHydrationSeed } from "@/app/(app)/home-hydration-seed";
 import {
   getProtectedAppNotice,
   type SearchParamsRecord,
 } from "@/features/auth/model/auth-notice";
-import { HomeView } from "@/views/home";
+import { HomeHydrationSeed, HomeView } from "@/views/home";
 
 /**
  * Props for the protected home route.

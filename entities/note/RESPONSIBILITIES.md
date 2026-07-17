@@ -7,7 +7,7 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 ## Entry points
 
 `index.ts` — domain types + pure month helpers (any layer)  
-`server.ts` — server reads, SSR hydrate, write use-cases (API routes, RSC); exports `getHomeNotesResponse`, `hydrateHomeNotesQueries`  
+`server.ts` — server reads, SSR cache seeders, write use-cases (API routes, RSC); exports `getHomeNotesResponse`, `seedHomeNotesCache`  
 `client.ts` — TanStack keys, fetchers, hooks, mutations, realtime (client only); exports `useHomeNotesQuery`, `homeNotesQueryKey`  
 `editor/index.ts` — form schema, hook, UI exports
 
@@ -95,8 +95,8 @@ Short map by business responsibility. Paths are relative to `entities/note/`.
 
 ## Prefetch & SSR hydrate
 
-`tanstack/hydrate-notes-page-queries.ts` — seed `QueryClient` from `/notes` SSR, return dehydrate state  
-`tanstack/hydrate-home-notes-queries.ts` — seed `["homeNotes"]` from `/` SSR, return dehydrate state  
+`tanstack/seed-notes-page-cache.ts` — `seedNotesPageCache(qc, data)`: write `/notes` caches from SSR (void; caller dehydrates)  
+`tanstack/seed-home-notes-cache.ts` — `seedHomeNotesCache(qc, data)`: write `["homeNotes"]` from `/` SSR (void; caller dehydrates)  
 `tanstack/prefetch-calendar-month.ts` — prefetch one month  
 `tanstack/prefetch-adjacent-calendar-months.ts` — prefetch prev/next month
 
@@ -119,7 +119,7 @@ Quick note (`is_quick = true`) + starred carousel (`starred = true`, `is_quick =
 `queries/get-home-notes-response.ts` — parallel `getQuickNote` + `getStarredNotes` → `HomeNotesResponse`  
 `repository/note-repository.ts` — `getQuickNote`, `getStarredNotes` (cap 20, `last_edited_at DESC`)  
 `tanstack/home-notes-query.ts` — `fetchHomeNotes`, `useHomeNotesQuery`  
-`tanstack/hydrate-home-notes-queries.ts` — SSR seed for `homeNotesQueryKey`  
+`tanstack/seed-home-notes-cache.ts` — SSR seed for `homeNotesQueryKey`  
 `app/api/notes/home/route.ts` — `GET` route (outside entity; calls `getHomeNotesResponse`)  
 `app/(app)/home-hydration-seed.tsx` — Home route SSR boundary (outside entity)
 

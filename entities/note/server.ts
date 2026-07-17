@@ -24,8 +24,8 @@ export {
   getNotesPageInitialData,
   type NotesPageInitialData,
 } from "@/entities/note/queries/get-notes-page-initial-data";
-export { hydrateNotesPageQueries } from "@/entities/note/tanstack/hydrate-notes-page-queries";
-export { hydrateHomeNotesQueries } from "@/entities/note/tanstack/hydrate-home-notes-queries";
+export { seedNotesPageCache } from "@/entities/note/tanstack/seed-notes-page-cache";
+export { seedHomeNotesCache } from "@/entities/note/tanstack/seed-home-notes-cache";
 export { updateNote } from "@/entities/note/mutations/update-note";
 export { createCalendarNote } from "@/entities/note/mutations/create-calendar-note";
 export { createGeneralNote } from "@/entities/note/mutations/create-general-note";

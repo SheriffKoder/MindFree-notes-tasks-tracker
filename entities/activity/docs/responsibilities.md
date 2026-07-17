@@ -88,7 +88,7 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST), `app/api/
 `client/activities-query.ts` — `fetchActivities`, `activitiesQueryOptions`
 `client/activity-records-query.ts` — `fetchActivityRecords`, `activityRecordsQueryOptions`
 `client/post-activity.ts` / `patch-activity.ts` / `delete-activity.ts` — write fetchers
-`client/hydrate-tasks-page-queries.ts` — seed both caches from SSR, dehydrate
+`client/seed-activity-caches.ts` — `seedActivityCaches(qc, data)`: write both caches from SSR (void; caller dehydrates)
 
 ---
 

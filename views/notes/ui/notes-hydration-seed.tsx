@@ -3,11 +3,12 @@
  * SSR seed for the Notes TanStack cache — non-blocking sibling of NotesClient.
  */
 
+import { dehydrate } from "@tanstack/react-query";
 import { connection } from "next/server";
 
 import {
   getNotesPageInitialData,
-  hydrateNotesPageQueries,
+  seedNotesPageCache,
 } from "@/entities/note/server";
 import { getAuthenticatedUserId } from "@/entities/note/repository/note-repository";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
@@ -22,7 +23,7 @@ export async function NotesHydrationSeed() {
   const userId = await getAuthenticatedUserId();
   const initialData = await getNotesPageInitialData(userId, null);
   const queryClient = getQueryClient();
-  const dehydratedState = hydrateNotesPageQueries(queryClient, initialData);
+  seedNotesPageCache(queryClient, initialData);
 
-  return <QueryHydration state={dehydratedState}>{null}</QueryHydration>;
+  return <QueryHydration state={dehydrate(queryClient)}>{null}</QueryHydration>;
 }

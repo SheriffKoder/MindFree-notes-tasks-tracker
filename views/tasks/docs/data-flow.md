@@ -17,7 +17,7 @@ flowchart TD
     Seed["TasksHydrationSeed"]
     Init["getTasksPageInitialData(userId, month)<br/>definitions + records in parallel"]
     Repo["repository (RLS: user_id)<br/>+ transform"]
-    Hyd["hydrateTasksPageQueries → QueryHydration"]
+    Hyd["seedActivityCaches → dehydrate → QueryHydration"]
   end
 
   subgraph CACHE["TanStack cache (browser)"]
@@ -76,10 +76,10 @@ page.tsx
   │        ├─ getActivitiesResponse(userId,"task")  ─┐ parallel
   │        └─ getActivityRecordsResponse(userId,mo) ─┘
   │            → repository (user_id + RLS) → transform (sort)
-  │     hydrateTasksPageQueries(qc, data)
+  │     seedActivityCaches(qc, data)
   │        setQueryData(['activities','task'],   definitions)
   │        setQueryData(['activityRecords', mo], records)
-  │     → <QueryHydration state=…>
+  │     → <QueryHydration state={dehydrate(qc)}>
   └─ <TasksClient>          (client shell, renders in parallel)
 ```
 

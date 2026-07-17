@@ -6,12 +6,13 @@
  * canonical payloads on the server and hands a dehydrated cache to the client.
  */
 
+import { dehydrate } from "@tanstack/react-query";
 import { connection } from "next/server";
 
 import {
   getAuthenticatedUserId,
   getTasksPageInitialData,
-  hydrateTasksPageQueries,
+  seedActivityCaches,
 } from "@/entities/activity/server";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
@@ -28,7 +29,7 @@ export async function TasksHydrationSeed() {
   const userId = await getAuthenticatedUserId();
   const initialData = await getTasksPageInitialData(userId, null);
   const queryClient = getQueryClient();
-  const dehydratedState = hydrateTasksPageQueries(queryClient, initialData);
+  seedActivityCaches(queryClient, initialData);
 
-  return <QueryHydration state={dehydratedState}>{null}</QueryHydration>;
+  return <QueryHydration state={dehydrate(queryClient)}>{null}</QueryHydration>;
 }
