@@ -31,14 +31,18 @@ export {
   useArchiveActivityMutation,
   useCreateActivityMutation,
   useDeleteActivityMutation,
+  useHomeTodayQuery,
   useRestoreActivityMutation,
   useUpdateActivityMutation,
 } from "@/entities/activity/hooks";
+export type { UseHomeTodayQueryResult } from "@/entities/activity/hooks";
 
 export type {
   ActivitiesResponse,
   ActivityRecordsResponse,
   TasksPageData,
+  TodayActivity,
+  TodayProgress,
 } from "@/entities/activity/model/read-models";
 export type {
   Activity,

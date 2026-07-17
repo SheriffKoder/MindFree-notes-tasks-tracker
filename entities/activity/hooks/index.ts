@@ -5,6 +5,7 @@
  * Function index:
  * - useActivitiesQuery (use-activities-query)
  * - useActivityRecordsQuery (use-activity-records-query)
+ * - useHomeTodayQuery (use-home-today-query)
  * - useCreateActivityMutation (use-create-activity-mutation)
  * - useUpdateActivityMutation (use-update-activity-mutation)
  * - useArchiveActivityMutation, useRestoreActivityMutation (use-archive-activity-mutation)
@@ -19,6 +20,8 @@ export {
 } from "@/entities/activity/hooks/activity-mutation-pending";
 export { useActivitiesQuery } from "@/entities/activity/hooks/use-activities-query";
 export { useActivityRecordsQuery } from "@/entities/activity/hooks/use-activity-records-query";
+export { useHomeTodayQuery } from "@/entities/activity/hooks/use-home-today-query";
+export type { UseHomeTodayQueryResult } from "@/entities/activity/hooks/use-home-today-query";
 export { useCreateActivityMutation } from "@/entities/activity/hooks/use-create-activity-mutation";
 export { useUpdateActivityMutation } from "@/entities/activity/hooks/use-update-activity-mutation";
 export {
