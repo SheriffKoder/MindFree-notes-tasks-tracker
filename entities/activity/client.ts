@@ -23,19 +23,32 @@ export { fetchPostActivity } from "@/entities/activity/client/post-activity";
 export { fetchPatchActivity } from "@/entities/activity/client/patch-activity";
 export { fetchDeleteActivity } from "@/entities/activity/client/delete-activity";
 export {
+  fetchDeleteActivityRecord,
+  fetchUpsertActivityRecord,
+} from "@/entities/activity/client/record";
+export {
   clearActivityMutationPending,
+  clearRecordMutationPending,
   isActivityMutationPending,
+  isRecordMutationPending,
   markActivityMutationPending,
+  markRecordMutationPending,
   useActivitiesQuery,
   useActivityRecordsQuery,
   useArchiveActivityMutation,
   useCreateActivityMutation,
   useDeleteActivityMutation,
+  useDeleteActivityRecordMutation,
   useHomeTodayQuery,
   useRestoreActivityMutation,
   useUpdateActivityMutation,
+  useUpsertActivityRecordMutation,
 } from "@/entities/activity/hooks";
-export type { UseHomeTodayQueryResult } from "@/entities/activity/hooks";
+export type {
+  DeleteActivityRecordMutationInput,
+  UpsertActivityRecordMutationInput,
+  UseHomeTodayQueryResult,
+} from "@/entities/activity/hooks";
 
 export type {
   ActivitiesResponse,

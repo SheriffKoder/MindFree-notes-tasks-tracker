@@ -1,8 +1,10 @@
 // Function index:
 // - isMeaningfulRecord (is-meaningful-record)
+// - isRemoteRecordNewer (is-remote-record-newer)
 // - buildRecordLookup, recordKey (build-record-lookup)
 // - deriveTodayProgress (derive-today-progress)
 export { isMeaningfulRecord } from "@/entities/activity/lib/record/is-meaningful-record";
+export { isRemoteRecordNewer } from "@/entities/activity/lib/record/is-remote-record-newer";
 export {
   buildRecordLookup,
   recordKey,

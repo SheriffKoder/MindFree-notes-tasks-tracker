@@ -11,6 +11,8 @@
  * - useArchiveActivityMutation, useRestoreActivityMutation (use-archive-activity-mutation)
  * - useDeleteActivityMutation (use-delete-activity-mutation)
  * - mark/clear/is ActivityMutationPending (activity-mutation-pending)
+ * - useUpsertActivityRecordMutation, useDeleteActivityRecordMutation,
+ *   mark/clear/is RecordMutationPending (record/*)
  */
 
 export {
@@ -29,3 +31,14 @@ export {
   useRestoreActivityMutation,
 } from "@/entities/activity/hooks/use-archive-activity-mutation";
 export { useDeleteActivityMutation } from "@/entities/activity/hooks/use-delete-activity-mutation";
+export {
+  clearRecordMutationPending,
+  isRecordMutationPending,
+  markRecordMutationPending,
+  useDeleteActivityRecordMutation,
+  useUpsertActivityRecordMutation,
+} from "@/entities/activity/hooks/record";
+export type {
+  DeleteActivityRecordMutationInput,
+  UpsertActivityRecordMutationInput,
+} from "@/entities/activity/hooks/record";
