@@ -121,6 +121,7 @@ export function ActivityPageClient({
               filterAriaLabel={copy.filterAriaLabel}
               filterEmptyLabel={copy.filterEmptyLabel}
               filterShowAllLabel={copy.filterShowAllLabel}
+              filterShowIncompleteLabel={copy.filterShowIncompleteLabel}
               filterShowLabel={copy.filterShowLabel}
             />
             <ViewSwitcherMobile

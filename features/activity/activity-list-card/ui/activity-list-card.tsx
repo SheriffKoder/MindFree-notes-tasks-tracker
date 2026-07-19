@@ -8,10 +8,7 @@ import { memo } from "react";
 import type { Activity, ActivityStatus, ScheduleType } from "@/entities/activity";
 import { getActivityStatus } from "@/entities/activity";
 import { getActivityCardInteractionProps } from "@/features/activity/activity-list-card/lib/card-interaction-props";
-import {
-  ACTIVITY_LIST_CARD_CSS_VARS,
-  ACTIVITY_LIST_CARD_STYLE_CONFIG,
-} from "@/features/activity/activity-list-card/lib/card-style-config";
+import { ACTIVITY_LIST_CARD_CSS_VARS } from "@/features/activity/activity-list-card/lib/card-style-config";
 import { cn } from "@/lib/utils";
 
 export interface ActivityListCardProps {
@@ -43,8 +40,12 @@ export const ActivityListCard = memo(function ActivityListCard({
   onClick,
 }: ActivityListCardProps) {
   const status = getActivityStatus(activity, todayIso);
-  const color =
-    activity.color ?? ACTIVITY_LIST_CARD_STYLE_CONFIG.colors.taskColorFallback;
+  // Reminders (and any definition without a color) stay theme-neutral — no
+  // task-color accent dot.
+  const colorAccent =
+    activity.kind !== "reminder" && activity.color !== null
+      ? activity.color
+      : null;
 
   return (
     <article
@@ -58,17 +59,24 @@ export const ActivityListCard = memo(function ActivityListCard({
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-start gap-2">
-          <span
-            aria-hidden
-            className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ backgroundColor: color }}
-          />
+          {colorAccent ? (
+            <span
+              aria-hidden
+              className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: colorAccent }}
+            />
+          ) : null}
           <p className="line-clamp-2 min-w-0 flex-1 text-sm font-medium [color:var(--activity-card-title)]">
             {activity.title}
           </p>
         </div>
         {activity.description ? (
-          <p className="mt-1.5 line-clamp-2 pl-[18px] text-caption [color:var(--activity-card-muted)]">
+          <p
+            className={cn(
+              "mt-1.5 line-clamp-2 text-caption [color:var(--activity-card-muted)]",
+              colorAccent && "pl-[18px]",
+            )}
+          >
             {activity.description}
           </p>
         ) : null}

@@ -75,12 +75,14 @@ function CalendarPaneContent({
 
 interface ListPaneContentProps {
   activities: Activity[];
+  activeEmptyLabel: string;
   queryState: ViewQueryState;
   onActivityClick?: (activity: Activity) => void;
 }
 
 function ListPaneContent({
   activities,
+  activeEmptyLabel,
   queryState,
   onActivityClick,
 }: ListPaneContentProps) {
@@ -96,6 +98,7 @@ function ListPaneContent({
   return (
     <ActivityListPane
       activities={activities}
+      activeEmptyLabel={activeEmptyLabel}
       onActivityClick={onActivityClick}
     />
   );
@@ -152,6 +155,7 @@ export const ActivityViewsSection = memo(function ActivityViewsSection({
         >
           <ListPaneContent
             activities={activities}
+            activeEmptyLabel={copy.activeEmptyLabel}
             queryState={listQueryState}
             onActivityClick={onActivityClick}
           />
@@ -185,6 +189,7 @@ export const ActivityViewsSection = memo(function ActivityViewsSection({
             <div className="min-h-0 flex-1 overflow-y-auto px-4">
               <ListPaneContent
                 activities={activities}
+                activeEmptyLabel={copy.activeEmptyLabel}
                 queryState={listQueryState}
                 onActivityClick={onActivityClick}
               />

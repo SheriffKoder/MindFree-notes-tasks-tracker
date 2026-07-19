@@ -17,6 +17,8 @@ export interface ActivityPageCopy {
   filterShowLabel: string;
   filterEmptyLabel: string;
   filterShowAllLabel: string;
+  filterShowIncompleteLabel: string;
+  activeEmptyLabel: string;
   viewAriaLabel: string;
   viewListTitle: string;
   loadActivitiesError: string;
@@ -48,6 +50,8 @@ export function buildActivityPageCopy(
     filterShowLabel: `Show ${plural}`,
     filterEmptyLabel: `No ${plural} yet`,
     filterShowAllLabel: `Show all ${plural}`,
+    filterShowIncompleteLabel: "Show incomplete",
+    activeEmptyLabel: `No active ${plural}`,
     viewAriaLabel: `${title} view`,
     viewListTitle: `${Singular} list`,
     loadActivitiesError: `Could not load ${plural}.`,

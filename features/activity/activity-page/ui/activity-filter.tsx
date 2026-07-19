@@ -28,6 +28,7 @@ export interface ActivityFilterProps {
   filterShowLabel: string;
   filterEmptyLabel: string;
   filterShowAllLabel: string;
+  filterShowIncompleteLabel: string;
   className?: string;
 }
 
@@ -41,6 +42,7 @@ export function ActivityFilter({
   filterShowLabel,
   filterEmptyLabel,
   filterShowAllLabel,
+  filterShowIncompleteLabel,
   className,
 }: ActivityFilterProps) {
   const {
@@ -83,7 +85,7 @@ export function ActivityFilter({
             onCheckedChange={() => toggleShowIncomplete()}
             onSelect={(event) => event.preventDefault()}
           >
-            Show incomplete
+            {filterShowIncompleteLabel}
           </DropdownMenuCheckboxItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel>{filterShowLabel}</DropdownMenuLabel>

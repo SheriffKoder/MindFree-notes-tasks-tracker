@@ -12,6 +12,8 @@ import { ActivityGroups } from "@/features/activity/activity-groups";
 
 export interface ActivityListPaneProps {
   activities: Activity[];
+  /** Empty-state copy for the Active section (kind-aware from the page). */
+  activeEmptyLabel: string;
   /** Opens the config drawer for an activity. */
   onActivityClick?: (activity: Activity) => void;
 }
@@ -21,9 +23,14 @@ export interface ActivityListPaneProps {
  */
 export const ActivityListPane = memo(function ActivityListPane({
   activities,
+  activeEmptyLabel,
   onActivityClick,
 }: ActivityListPaneProps) {
   return (
-    <ActivityGroups activities={activities} onActivityClick={onActivityClick} />
+    <ActivityGroups
+      activities={activities}
+      activeEmptyLabel={activeEmptyLabel}
+      onActivityClick={onActivityClick}
+    />
   );
 });
