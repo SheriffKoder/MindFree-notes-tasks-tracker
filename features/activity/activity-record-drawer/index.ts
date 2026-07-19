@@ -19,3 +19,4 @@ export {
   useSelectedDayRecords,
   type UseSelectedDayRecordsResult,
 } from "@/features/activity/activity-record-drawer/model/use-selected-day-records";
+export type { ActivityRecordDrawerController } from "@/features/activity/activity-record-drawer/model/types";

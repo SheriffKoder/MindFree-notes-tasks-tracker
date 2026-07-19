@@ -1,33 +1,31 @@
 /**
  * @file features/activity/activity-record-drawer/ui/activity-record-list.tsx
- * Selected-day records list for the Tasks calendar drawer.
- *
- * Purpose: Present the derived selected-day read model as a header, Add
- *          dropdown, and Home-style record cards.
- * Used in: features/activity/activity-record-drawer/ui/activity-record-drawer.tsx
- *
- * Data ownership lives in `useSelectedDayRecords`: this component only renders
- * loading/error/empty/populated UI for that derived slice.
+ * Selected-day records list for the activity calendar drawer.
  */
 
 "use client";
 
-import { ActivityRecordTaskPicker } from "@/features/activity/activity-record-drawer/ui/activity-record-task-picker";
+import type { ActivityKind } from "@/entities/activity/model/types";
 import { useSelectedDayRecords } from "@/features/activity/activity-record-drawer/model/use-selected-day-records";
+import { ActivityRecordTaskPicker } from "@/features/activity/activity-record-drawer/ui/activity-record-task-picker";
 import { QuickRecordCard } from "@/features/activity/quick-record";
 import { QueryStatePanel } from "@/shared/react-query";
 
 export interface ActivityRecordListProps {
   /** Selected calendar day (`YYYY-MM-DD`). */
   date: string;
+  /** Definition kind owned by the mounting page. */
+  kind: ActivityKind;
 }
 
 /**
  * Renders the day header, Add picker, and persisted records for `date`.
  */
-export function ActivityRecordList({ date }: ActivityRecordListProps) {
-  const { items, candidates, isPending, isError } =
-    useSelectedDayRecords(date);
+export function ActivityRecordList({ date, kind }: ActivityRecordListProps) {
+  const { items, candidates, isPending, isError } = useSelectedDayRecords(
+    date,
+    kind,
+  );
 
   if (isError) {
     return (

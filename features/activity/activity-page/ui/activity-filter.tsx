@@ -1,12 +1,6 @@
 /**
- * @file views/tasks/ui/tasks-filter.tsx
- * Task-selection filter for the Tasks calendar (dropdown + reset).
- *
- * Purpose: choose which tasks' records render on the calendar. Unchecking a task
- * hides its records; "Show incomplete" reveals unfinished day entries (hidden
- * by default); "Show all" resets the task-id selection only. Reads/writes via
- * useTasksFilter — the activity list is unaffected (tasks-page.md).
- * Used in: views/tasks/ui/tasks-client.tsx
+ * @file features/activity/activity-page/ui/activity-filter.tsx
+ * Definition-selection filter for the activity calendar (dropdown + reset).
  */
 
 "use client";
@@ -24,20 +18,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Activity } from "@/entities/activity/client";
+import { useActivityFilter } from "@/features/activity/activity-page/model/activity-filter-context";
 import { cn } from "@/lib/utils";
-import { useTasksFilter } from "@/views/tasks/model/tasks-filter-context";
 
-export interface TasksFilterProps {
-  /** Tasks available to filter (from the definitions cache). */
-  tasks: readonly Activity[];
+export interface ActivityFilterProps {
+  /** Activities available to filter (from the definitions cache). */
+  activities: readonly Activity[];
+  filterAriaLabel: string;
+  filterShowLabel: string;
+  filterEmptyLabel: string;
+  filterShowAllLabel: string;
   className?: string;
 }
 
 /**
- * Renders a task multi-select beside the toolbar. The trigger reflects an
- * active filter via the `secondary` variant.
+ * Renders a multi-select beside the toolbar. The trigger reflects an active
+ * filter via the `secondary` variant.
  */
-export function TasksFilter({ tasks, className }: TasksFilterProps) {
+export function ActivityFilter({
+  activities,
+  filterAriaLabel,
+  filterShowLabel,
+  filterEmptyLabel,
+  filterShowAllLabel,
+  className,
+}: ActivityFilterProps) {
   const {
     isShown,
     isFiltered,
@@ -45,7 +50,7 @@ export function TasksFilter({ tasks, className }: TasksFilterProps) {
     toggle,
     toggleShowIncomplete,
     reset,
-  } = useTasksFilter();
+  } = useActivityFilter();
 
   return (
     <div
@@ -57,10 +62,10 @@ export function TasksFilter({ tasks, className }: TasksFilterProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            aria-label="Filter calendar by task"
+            aria-label={filterAriaLabel}
             className="shrink-0"
             size="icon"
-            title="Filter calendar by task"
+            title={filterAriaLabel}
             type="button"
             variant={isFiltered ? "secondary" : "ghost"}
           >
@@ -81,27 +86,27 @@ export function TasksFilter({ tasks, className }: TasksFilterProps) {
             Show incomplete
           </DropdownMenuCheckboxItem>
           <DropdownMenuSeparator />
-          <DropdownMenuLabel>Show tasks</DropdownMenuLabel>
+          <DropdownMenuLabel>{filterShowLabel}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {tasks.length === 0 ? (
-            <DropdownMenuItem disabled>No tasks yet</DropdownMenuItem>
+          {activities.length === 0 ? (
+            <DropdownMenuItem disabled>{filterEmptyLabel}</DropdownMenuItem>
           ) : (
-            tasks.map((task) => (
+            activities.map((activity) => (
               <DropdownMenuCheckboxItem
-                key={task.id}
-                checked={isShown(task.id)}
-                onCheckedChange={() => toggle(task.id)}
+                key={activity.id}
+                checked={isShown(activity.id)}
+                onCheckedChange={() => toggle(activity.id)}
                 onSelect={(event) => event.preventDefault()}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  {task.color ? (
+                  {activity.color ? (
                     <span
                       aria-hidden
                       className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: task.color }}
+                      style={{ backgroundColor: activity.color }}
                     />
                   ) : null}
-                  <span className="truncate">{task.title}</span>
+                  <span className="truncate">{activity.title}</span>
                 </span>
               </DropdownMenuCheckboxItem>
             ))
@@ -114,7 +119,7 @@ export function TasksFilter({ tasks, className }: TasksFilterProps) {
               reset();
             }}
           >
-            Show all tasks
+            {filterShowAllLabel}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -1,14 +1,14 @@
 /**
- * @file views/tasks/lib/resolve-view-query-state.ts
- * Maps the active tasks view to a loading or error state when query data is unavailable.
+ * @file features/activity/activity-page/lib/resolve-view-query-state.ts
+ * Maps the active activity view to a loading or error state when query data is unavailable.
  */
 
 import type {
   ActivitiesResponse,
   ActivityRecordsResponse,
 } from "@/entities/activity";
+import type { ActivityViewId } from "@/features/activity/activity-page/lib/activity-views";
 import type { QueryStatePanelVariant } from "@/shared/react-query";
-import type { TasksViewId } from "@/views/tasks/lib/tasks-views";
 
 interface QuerySlice<TData> {
   data: TData | undefined;
@@ -20,46 +20,42 @@ export type ViewQueryState =
   | { kind: "ready" }
   | { kind: QueryStatePanelVariant; message: string };
 
-const CALENDAR_VIEW_MESSAGES = {
-  activitiesError: "Could not load tasks.",
-  activitiesLoading: "Loading tasks…",
-  recordsError: "Could not load task records.",
-  recordsLoading: "Loading task records…",
-} as const;
-
-const LIST_VIEW_MESSAGES = {
-  error: "Could not load tasks.",
-  loading: "Loading tasks…",
-} as const;
+export interface ViewQueryMessages {
+  activitiesError: string;
+  activitiesLoading: string;
+  recordsError: string;
+  recordsLoading: string;
+}
 
 /**
  * Returns a blocking loading/error state for the active view, or `ready` when data can render.
  */
 export function resolveViewQueryState(
-  view: TasksViewId,
+  view: ActivityViewId,
   activities: QuerySlice<ActivitiesResponse>,
   records: QuerySlice<ActivityRecordsResponse>,
+  messages: ViewQueryMessages,
 ): ViewQueryState {
   if (view === "calendar") {
     if (activities.isError) {
-      return { kind: "error", message: CALENDAR_VIEW_MESSAGES.activitiesError };
+      return { kind: "error", message: messages.activitiesError };
     }
 
     if (activities.isPending && !activities.data) {
       return {
         kind: "loading",
-        message: CALENDAR_VIEW_MESSAGES.activitiesLoading,
+        message: messages.activitiesLoading,
       };
     }
 
     if (records.isError) {
-      return { kind: "error", message: CALENDAR_VIEW_MESSAGES.recordsError };
+      return { kind: "error", message: messages.recordsError };
     }
 
     if (records.isPending && !records.data) {
       return {
         kind: "loading",
-        message: CALENDAR_VIEW_MESSAGES.recordsLoading,
+        message: messages.recordsLoading,
       };
     }
 
@@ -67,11 +63,11 @@ export function resolveViewQueryState(
   }
 
   if (activities.isError) {
-    return { kind: "error", message: LIST_VIEW_MESSAGES.error };
+    return { kind: "error", message: messages.activitiesError };
   }
 
   if (activities.isPending && !activities.data) {
-    return { kind: "loading", message: LIST_VIEW_MESSAGES.loading };
+    return { kind: "loading", message: messages.activitiesLoading };
   }
 
   return { kind: "ready" };

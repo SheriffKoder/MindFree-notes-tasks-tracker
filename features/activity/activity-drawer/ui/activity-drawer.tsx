@@ -6,7 +6,7 @@
  * the edit target from the already-loaded kind-specific activity cache via
  * a one-line `.find()`. Autosave / archive / delete live in the config
  * orchestrator (Step 13).
- * Used in: views/tasks/ui/tasks-client.tsx
+ * Used in: features/activity/activity-page/ui/activity-page-client.tsx
  */
 
 "use client";

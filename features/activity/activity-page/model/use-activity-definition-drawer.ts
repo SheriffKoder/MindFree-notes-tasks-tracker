@@ -1,10 +1,9 @@
 /**
- * @file views/tasks/model/use-tasks-drawer.ts
- * Tasks drawer UI state — open/close and the current create-vs-edit request.
+ * @file features/activity/activity-page/model/use-activity-definition-drawer.ts
+ * Definition drawer UI state — open/close and the current create-vs-edit request.
  *
- * Presentation-only: does not fetch activities or create rows. The drawer shell
- * interprets {@link ActivityEditorRequest}. Kind is fixed by the Tasks page
- * (`task`) and never part of the request.
+ * Presentation-only: does not fetch activities or create rows. Kind is owned by
+ * the mounting page and never part of the request.
  */
 
 "use client";
@@ -16,24 +15,25 @@ import type {
   ActivityEditorRequest,
 } from "@/features/activity/activity-drawer";
 
-/** Local drawer state owned by {@link useTasksDrawer}. */
-export interface TasksDrawerState {
+/** Local drawer state owned by {@link useActivityDefinitionDrawer}. */
+export interface ActivityDefinitionDrawerState {
   isOpen: boolean;
   request: ActivityEditorRequest | null;
 }
 
-export type UseTasksDrawerResult = ActivityDrawerController;
+export type UseActivityDefinitionDrawerResult = ActivityDrawerController;
 
-const INITIAL_STATE: TasksDrawerState = {
+const INITIAL_STATE: ActivityDefinitionDrawerState = {
   isOpen: false,
   request: null,
 };
 
 /**
- * Manages Tasks drawer visibility and the active editor request.
+ * Manages definition drawer visibility and the active editor request.
  */
-export function useTasksDrawer(): UseTasksDrawerResult {
-  const [state, setState] = useState<TasksDrawerState>(INITIAL_STATE);
+export function useActivityDefinitionDrawer(): UseActivityDefinitionDrawerResult {
+  const [state, setState] =
+    useState<ActivityDefinitionDrawerState>(INITIAL_STATE);
 
   const openCreate = useCallback(() => {
     setState({

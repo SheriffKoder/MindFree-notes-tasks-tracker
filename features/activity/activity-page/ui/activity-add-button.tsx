@@ -1,10 +1,6 @@
 /**
- * @file views/tasks/ui/tasks-add-button.tsx
- * Icon-only control that opens the config drawer for a new task.
- *
- * Purpose: Primary create entry on the Tasks page toolbar.
- * Used in: views/tasks/ui/tasks-client.tsx
- * Used for: Lazy task create — drawer opens (Step 11); the row is created on save.
+ * @file features/activity/activity-page/ui/activity-add-button.tsx
+ * Icon-only control that opens the config drawer for a new activity.
  */
 
 "use client";
@@ -14,17 +10,22 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export interface TasksAddButtonProps {
-  /** Opens the drawer in task-create mode. */
+export interface ActivityAddButtonProps {
+  /** Accessible label for the create action. */
+  ariaLabel: string;
+  /** Opens the drawer in create mode. */
   onClick: () => void;
   className?: string;
 }
 
 /**
  * Renders a compact "+" button beside the view switcher.
- * Chrome matches the view switcher — bordered surface pill, ghost icon.
  */
-export function TasksAddButton({ onClick, className }: TasksAddButtonProps) {
+export function ActivityAddButton({
+  ariaLabel,
+  onClick,
+  className,
+}: ActivityAddButtonProps) {
   return (
     <div
       className={cn(
@@ -33,10 +34,10 @@ export function TasksAddButton({ onClick, className }: TasksAddButtonProps) {
       )}
     >
       <Button
-        aria-label="Add task"
+        aria-label={ariaLabel}
         className="shrink-0"
         size="icon"
-        title="Add task"
+        title={ariaLabel}
         type="button"
         variant="ghost"
         onClick={onClick}
