@@ -22,6 +22,7 @@ import {
   clearActivityMutationPending,
   markActivityMutationPending,
 } from "@/entities/activity/hooks/activity-mutation-pending";
+import { normalizeActivityDefinition } from "@/entities/activity/lib/definition";
 import type { ActivitiesResponse } from "@/entities/activity/model/read-models";
 import type { Activity, ActivityKind } from "@/entities/activity/model/types";
 
@@ -48,17 +49,22 @@ function buildOptimisticActivity(
 ): Activity {
   const now = new Date().toISOString();
 
+  // Match the server's kind policy before the optimistic row reaches any
+  // consumer. This prevents a reminder from briefly rendering task colors,
+  // goals, or numeric controls while the request is in flight.
+  const normalized = normalizeActivityDefinition(kind, values);
+
   return {
     id: `optimistic-${kind}-${now}`,
     kind,
     title: values.title,
     description: values.description ?? null,
-    color: values.color ?? null,
-    trackingMode: values.trackingMode,
+    color: normalized.color,
+    trackingMode: normalized.trackingMode,
     scheduleType: values.scheduleType,
     scheduleConfig: values.scheduleConfig,
-    goal: values.goal ?? null,
-    goalDuration: values.goalDuration ?? null,
+    goal: normalized.goal,
+    goalDuration: normalized.goalDuration,
     icon: null,
     startsAt: values.startsAt ?? null,
     endsAt: values.endsAt ?? null,
@@ -76,16 +82,29 @@ export function useCreateActivityMutation() {
 
   return useMutation({
     mutationFn: async ({ kind, values }: CreateActivityMutationInput) => {
-      const response = await fetchPostActivity({ kind, ...values });
+      // Send the same canonical definition shown optimistically. The server
+      // normalizes again as the authoritative boundary.
+      const normalized = normalizeActivityDefinition(kind, values);
+      const response = await fetchPostActivity({
+        kind,
+        ...values,
+        ...normalized,
+      });
       return response.activity;
     },
     onMutate: async ({ kind, values }) => {
+      // Definitions have one cache bucket per kind; record caches are not
+      // involved in definition creation.
       const queryKey = activitiesQueryKey(kind);
       const optimistic = buildOptimisticActivity(kind, values);
 
+      // Mark the temporary row pending for future realtime echo suppression.
+      // Canceling reads prevents an in-flight response from overwriting it.
       markActivityMutationPending(optimistic.id);
       await queryClient.cancelQueries({ queryKey });
 
+      // Capture the exact pre-mutation bucket before publishing the optimistic
+      // row so a failed request can restore it without another network read.
       const previousSnapshots: CacheSnapshot[] = [
         {
           queryKey,
@@ -93,6 +112,8 @@ export function useCreateActivityMutation() {
         },
       ];
 
+      // Route the optimistic create through the shared synchronization hub,
+      // just like a server or future realtime change.
       synchronizeActivityCaches(queryClient, {
         type: "create",
         activity: optimistic,
@@ -104,6 +125,7 @@ export function useCreateActivityMutation() {
       } satisfies CreateActivityMutationContext;
     },
     onSettled: (_data, _error, _variables, context) => {
+      // Clear pending state on both success and failure.
       if (context?.optimisticId) {
         clearActivityMutationPending(context.optimisticId);
       }
@@ -113,6 +135,7 @@ export function useCreateActivityMutation() {
         return;
       }
 
+      // Roll back every cache bucket captured by onMutate.
       for (const snapshot of context.previousSnapshots) {
         queryClient.setQueryData(snapshot.queryKey, snapshot.data);
       }
@@ -120,6 +143,8 @@ export function useCreateActivityMutation() {
     onSuccess: (serverActivity, { kind }, context) => {
       const queryKey = activitiesQueryKey(kind);
 
+      // Reconcile the temporary optimistic id with the database id. Doing both
+      // operations in one cache updater avoids a transient duplicate row.
       queryClient.setQueryData<ActivitiesResponse>(queryKey, (current) => {
         if (!current) {
           return current;

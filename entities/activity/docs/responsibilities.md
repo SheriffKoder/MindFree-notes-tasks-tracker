@@ -182,6 +182,8 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 | Change Home Today goal/progress math | `lib/record/derive-today-progress.ts` |
 | Change snapshot vs current configuration | `lib/record/resolve-record-configuration.ts` |
 | Change which goals survive a mode switch | `editor/model/normalize-activity-goals.ts` |
+| Force reminder-safe definition fields | `lib/definition/normalize-activity-definition.ts` |
+| Load one definition by id | `repository/get-activity-by-id.ts` |
 | Add `goal_duration` / `icon` columns | `supabase/migrations/004_activity_goal_duration_and_icon.sql` |
 | Add record tracking/goal snapshot columns | `supabase/migrations/005_activity_record_configuration_snapshots.sql` |
 | Apply optimistic record snapshots from the form | `hooks/record/build-optimistic-activity-record.ts` |
