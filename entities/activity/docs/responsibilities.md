@@ -18,7 +18,7 @@ noted. For the *why* behind these, see the WHY docs in this folder
 ## Domain model
 
 `model/types.ts` — `Activity`, `ActivityRecord`, row types, `ActivityKind`, `TrackingMode`, `ScheduleType`, `ScheduleConfig`, `ActivityStatus`, `WEEKDAYS`
-`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`, `TaskCalendarDay`, `TasksPageData`, `TodayActivity`, `TodayProgress`, `TodayProgressDimension`
+`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`, `TaskCalendarDay`, `ActivityPageData`, `TasksPageData` (alias), `TodayActivity`, `TodayProgress`, `TodayProgressDimension`
 
 ---
 
@@ -78,7 +78,7 @@ record surface so consumers never deep-import these implementation paths.
 
 `queries/get-activities-response.ts` — definitions payload
 `queries/get-activity-records-response.ts` — month records payload
-`queries/get-tasks-page-initial-data.ts` — parallel definitions + current-month records for `/tasks` SSR
+`queries/get-activity-page-initial-data.ts` — parallel definitions + current-month records for activity-page SSR (`kind`)
 
 ---
 

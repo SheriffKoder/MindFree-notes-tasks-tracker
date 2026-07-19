@@ -14,7 +14,7 @@ import { dehydrate } from "@tanstack/react-query";
 import { connection } from "next/server";
 
 import {
-  getTasksPageInitialData,
+  getActivityPageInitialData,
   seedActivityCaches,
 } from "@/entities/activity/server";
 import {
@@ -38,7 +38,7 @@ export async function HomeHydrationSeed() {
 
   const [homeNotes, activityData] = await Promise.all([
     getHomeNotesResponse(userId),
-    getTasksPageInitialData(userId, null),
+    getActivityPageInitialData(userId, null, "task"),
   ]);
 
   const queryClient = getQueryClient();

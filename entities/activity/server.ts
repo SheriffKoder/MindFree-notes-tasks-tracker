@@ -7,13 +7,13 @@
  * Used for: SSR reads (definitions + month records), write use-cases, RLS user
  *          resolution.
  *
- * Types (TasksPageData, ActivitiesResponse, ActivityRecordsResponse) come from
+ * Types (ActivityPageData, ActivitiesResponse, ActivityRecordsResponse) come from
  * `@/entities/activity`.
  */
 
 export { getActivitiesResponse } from "@/entities/activity/queries/get-activities-response";
 export { getActivityRecordsResponse } from "@/entities/activity/queries/get-activity-records-response";
-export { getTasksPageInitialData } from "@/entities/activity/queries/get-tasks-page-initial-data";
+export { getActivityPageInitialData } from "@/entities/activity/queries/get-activity-page-initial-data";
 export { seedActivityCaches } from "@/entities/activity/hydration";
 export {
   archiveActivity,

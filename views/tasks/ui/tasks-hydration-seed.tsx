@@ -11,7 +11,7 @@ import { connection } from "next/server";
 
 import {
   getAuthenticatedUserId,
-  getTasksPageInitialData,
+  getActivityPageInitialData,
   seedActivityCaches,
 } from "@/entities/activity/server";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
@@ -27,7 +27,7 @@ export async function TasksHydrationSeed() {
   await connection();
 
   const userId = await getAuthenticatedUserId();
-  const initialData = await getTasksPageInitialData(userId, null);
+  const initialData = await getActivityPageInitialData(userId, null, "task");
   const queryClient = getQueryClient();
   seedActivityCaches(queryClient, initialData);
 

@@ -52,6 +52,7 @@ export type {
 
 export type {
   ActivitiesResponse,
+  ActivityPageData,
   ActivityRecordsResponse,
   TasksPageData,
   TodayActivity,

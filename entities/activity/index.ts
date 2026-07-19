@@ -22,6 +22,7 @@ export type {
 } from "@/entities/activity/model/types";
 export type {
   ActivitiesResponse,
+  ActivityPageData,
   ActivityRecordsResponse,
   TaskCalendarDay,
   TaskCalendarDayActivity,

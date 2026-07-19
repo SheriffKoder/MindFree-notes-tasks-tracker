@@ -7,7 +7,11 @@
  * not month-scoped; records are month-scoped.
  */
 
-import type { Activity, ActivityRecord } from "@/entities/activity/model/types";
+import type {
+  Activity,
+  ActivityKind,
+  ActivityRecord,
+} from "@/entities/activity/model/types";
 
 /**
  * Activity definitions for a kind (stable, not month-scoped).
@@ -98,13 +102,18 @@ export interface TodayActivity {
 }
 
 /**
- * Initial data loaded by the Tasks server page for SSR hydration.
+ * Initial data loaded by an activity page (Tasks / Reminders) for SSR hydration.
  */
-export interface TasksPageData {
+export interface ActivityPageData {
+  /** Definition kind seeded into `["activities", kind]`. */
+  kind: ActivityKind;
   /** Resolved month key (`YYYY-MM`). */
   month: string;
-  /** Task definitions (`kind = task`). */
+  /** Definitions for {@link kind}. */
   activities: ActivitiesResponse;
-  /** Current-month records. */
+  /** Current-month records (shared across kinds). */
   records: ActivityRecordsResponse;
 }
+
+/** @deprecated Prefer {@link ActivityPageData}. */
+export type TasksPageData = ActivityPageData;

@@ -14,19 +14,19 @@ import {
   activitiesQueryKey,
   activityRecordsQueryKey,
 } from "@/entities/activity/client/query-keys";
-import type { TasksPageData } from "@/entities/activity/model/read-models";
+import type { ActivityPageData } from "@/entities/activity/model/read-models";
 
 /**
- * Seeds the definitions + current-month records caches from an SSR payload.
- * Shared by the Tasks page seed and the Home seed (same two caches).
+ * Seeds the kind definitions + current-month records caches from an SSR payload.
+ * Shared by activity-page seeds and the Home seed.
  *
  * @param queryClient - per-request server QueryClient
- * @param data - SSR initial payloads (definitions + month records)
+ * @param data - SSR initial payloads (kind definitions + month records)
  */
 export function seedActivityCaches(
   queryClient: QueryClient,
-  data: TasksPageData,
+  data: ActivityPageData,
 ): void {
-  queryClient.setQueryData(activitiesQueryKey("task"), data.activities);
+  queryClient.setQueryData(activitiesQueryKey(data.kind), data.activities);
   queryClient.setQueryData(activityRecordsQueryKey(data.month), data.records);
 }

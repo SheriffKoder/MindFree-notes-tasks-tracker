@@ -102,12 +102,12 @@ will feed the Progress page later.
 | `/tasks` | definitions + current-month records → `seedActivityCaches` |
 | `/` (Home) | same two caches → `seedActivityCaches` (composed into one Home seed) |
 
-`queries/get-tasks-page-initial-data.ts` fetches both payloads in parallel on
-the server; `hydration/seed-activity-caches.ts` writes them into the two canonical
-keys (the seed component dehydrates once for the client boundary), so first
-paint doesn't wait for a client round-trip. The Home seed composes the same
-writer alongside other entities. After hydration every island shares one browser
-`QueryClient`.
+`queries/get-activity-page-initial-data.ts` fetches both payloads in parallel on
+the server (for a given `kind`); `hydration/seed-activity-caches.ts` writes them
+into `["activities", kind]` and the month records key (the seed component
+dehydrates once for the client boundary), so first paint doesn't wait for a
+client round-trip. The Home seed composes the same writer alongside other
+entities. After hydration every island shares one browser `QueryClient`.
 
 ---
 
