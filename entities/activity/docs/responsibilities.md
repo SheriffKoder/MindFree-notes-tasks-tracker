@@ -109,7 +109,15 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 
 ## SSR cache seeding (`hydration/`)
 
-`hydration/seed-activity-caches.ts` — `seedActivityCaches(qc, data)`: write both caches from SSR (void; caller dehydrates)
+`hydration/seed-activity-caches.ts` —
+- `seedActivityCaches(qc, data)`: one kind's definitions + month records (Tasks /
+  Reminders pages)
+- `seedHomeActivityCaches(qc, data)`: both definition kinds + **one** month
+  records bucket (Home)
+
+`queries/get-activity-page-initial-data.ts` — kind-scoped page SSR payload
+`queries/get-home-activity-initial-data.ts` — Home SSR payload (tasks +
+reminders + one records fetch)
 
 ---
 

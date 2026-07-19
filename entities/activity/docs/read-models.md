@@ -99,22 +99,24 @@ will feed the Progress page later.
 
 | Page | Seed |
 | ---- | ---- |
-| `/tasks` | definitions + current-month records → `seedActivityCaches` |
-| `/` (Home) | same two caches → `seedActivityCaches` (composed into one Home seed) |
+| `/tasks` | `getActivityPageInitialData(..., "task")` → `seedActivityCaches` |
+| `/reminders` | `getActivityPageInitialData(..., "reminder")` → `seedActivityCaches` |
+| `/` (Home) | `getHomeActivityInitialData` → `seedHomeActivityCaches` (both kinds + one records month) |
 
-`queries/get-activity-page-initial-data.ts` fetches both payloads in parallel on
-the server (for a given `kind`); `hydration/seed-activity-caches.ts` writes them
-into `["activities", kind]` and the month records key (the seed component
-dehydrates once for the client boundary), so first paint doesn't wait for a
-client round-trip. The Home seed composes the same writer alongside other
-entities. After hydration every island shares one browser `QueryClient`.
+`getActivityPageInitialData` fetches one kind's definitions and the month's
+records in parallel. `getHomeActivityInitialData` fetches **task** definitions,
+**reminder** definitions, and **one** current-month records response in parallel
+— Home must not double-fetch records. Seeders write
+`["activities", kind]` / `["activityRecords", month]`; the seed component
+dehydrates once for the client boundary. After hydration every island shares
+one browser `QueryClient`.
 
 ---
 
 ## Home Today join
 
-`hooks/use-home-today-query.ts` is a memoized selector over task definitions and
-the current month's records. It builds the record lookup once, then calls
+`hooks/use-home-today-query.ts` is a memoized selector over `["activities", kind]`
+and the current month's records. It builds the record lookup once, then calls
 `lib/today/build-today-activities.ts` for today's `YYYY-MM-DD`.
 
 An unarchived task appears when **either**:

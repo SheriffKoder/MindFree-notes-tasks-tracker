@@ -115,5 +115,20 @@ export interface ActivityPageData {
   records: ActivityRecordsResponse;
 }
 
+/**
+ * Home dashboard activity SSR payload — both definition kinds + one shared
+ * month of records (never fetched twice).
+ */
+export interface HomeActivityData {
+  /** Resolved month key (`YYYY-MM`) for the shared records cache. */
+  month: string;
+  /** Task definitions → `["activities", "task"]`. */
+  tasks: ActivitiesResponse;
+  /** Reminder definitions → `["activities", "reminder"]`. */
+  reminders: ActivitiesResponse;
+  /** Current-month records (shared across kinds). */
+  records: ActivityRecordsResponse;
+}
+
 /** @deprecated Prefer {@link ActivityPageData}. */
 export type TasksPageData = ActivityPageData;

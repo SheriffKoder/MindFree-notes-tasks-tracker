@@ -24,6 +24,7 @@ export type {
   ActivitiesResponse,
   ActivityPageData,
   ActivityRecordsResponse,
+  HomeActivityData,
   TaskCalendarDay,
   TaskCalendarDayActivity,
   TasksPageData,
