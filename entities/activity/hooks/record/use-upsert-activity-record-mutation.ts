@@ -62,10 +62,9 @@ function findCachedRecord(
 /**
  * POST upsert record — optimistically writes `["activityRecords", month]`.
  *
- * HTTP stays totals-only. `trackingMode` / `goal` / `goalDuration` seed the
- * optimistic cache row on first create and are ignored once a cached record
- * already holds snapshots. The server response replaces optimistic snapshots
- * with database-authoritative values via newer-wins.
+ * `trackingMode` / `goal` / `goalDuration` are the card form's submitted
+ * snapshots. New cards seed them from the task; existing cards send their
+ * current record configuration, including per-day goal edits.
  */
 export function useUpsertActivityRecordMutation() {
   const queryClient = useQueryClient();
@@ -75,6 +74,9 @@ export function useUpsertActivityRecordMutation() {
       const response = await fetchUpsertActivityRecord({
         taskId: input.taskId,
         date: input.date,
+        trackingModeSnapshot: input.trackingMode,
+        goalSnapshot: input.goal,
+        goalDurationSnapshot: input.goalDuration,
         count: input.count,
         duration: input.duration,
         description: input.description ?? null,

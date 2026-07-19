@@ -177,4 +177,4 @@ Home branch — updating the shared caches updates every consumer at once. See
 | [views/tasks/docs/data-flow.md](../../../views/tasks/docs/data-flow.md) | Server fetch → caches → calendar/list endpoints |
 | [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md) · [0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md) | History-always-visible · precomputed progress map |
 | [0014-flat-records-client-side-join.md](../../../docs/adr/0014-flat-records-client-side-join.md) | Why records ship flat + join on the client (vs. Notes) |
-| [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | First-insert freezes tracking/goal snapshots |
+| [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | Record stores form-owned tracking/goal snapshots |

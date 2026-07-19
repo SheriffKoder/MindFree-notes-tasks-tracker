@@ -15,21 +15,18 @@ import { createClient } from "@/shared/lib/supabase/server";
 /**
  * Writes or updates exactly one record per `(taskId, date)` (RLS-scoped).
  *
- * The repository writes only mutable daily totals (`count`, `duration`,
- * `description`). PostgreSQL owns immutable configuration snapshots:
- * - on first insert, a trigger copies `tracking_mode` / `goal` /
- *   `goal_duration` from the owned task;
- * - on natural-key conflict, the same trigger restores the persisted
- *   snapshots so later upserts cannot reinterpret history.
+ * The card form writes daily totals, description, and configuration snapshots.
+ * New cards seed snapshots from their task; later writes submit the record's
+ * current snapshots so per-day goals can be edited independently.
  *
  * Values are absolute — the row's totals are replaced with the payload. The
  * write resolves against the `mf_task_record_task_date_unique` constraint.
- * `.select("*")` returns the full row, including those database-derived
- * snapshots, which `mapActivityRecordRow` exposes on the domain record.
+ * `.select("*")` returns the full row, which `mapActivityRecordRow` exposes on
+ * the domain record.
  *
  * @param userId - authenticated user id
- * @param payload - validated absolute record body (no snapshot fields)
- * @returns the upserted domain record with authoritative snapshots
+ * @param payload - validated absolute record form body
+ * @returns the upserted domain record
  */
 export async function upsertRecord(
   userId: string,
@@ -44,6 +41,9 @@ export async function upsertRecord(
         user_id: userId,
         task_id: payload.taskId,
         date: payload.date,
+        tracking_mode_snapshot: payload.trackingModeSnapshot,
+        goal_snapshot: payload.goalSnapshot,
+        goal_duration_snapshot: payload.goalDurationSnapshot,
         count: payload.count,
         duration: payload.duration,
         description: payload.description ?? null,

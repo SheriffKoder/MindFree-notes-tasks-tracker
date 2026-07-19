@@ -23,12 +23,21 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
  * Absolute record write body. `count`/`duration` are the day's totals, not
  * increments; `(taskId, date)` is the natural key the repository upserts on.
  *
- * Tracking-mode and goal snapshots are **not** part of this contract —
- * PostgreSQL derives and preserves them from the owning task on first insert.
+ * Configuration snapshots are form-owned values. A new card seeds them from
+ * its task definition; later card writes send the record's current snapshots,
+ * including any per-day goal edits.
  */
 export const upsertActivityRecordBodySchema = z.object({
   taskId: z.string().uuid(),
   date: z.string().regex(ISO_DATE_PATTERN, "Date must be YYYY-MM-DD."),
+  trackingModeSnapshot: z.enum([
+    "boolean",
+    "count",
+    "duration",
+    "count+duration",
+  ]),
+  goalSnapshot: z.number().int().positive().nullable(),
+  goalDurationSnapshot: z.number().int().positive().nullable(),
   count: z.number().int().nonnegative(),
   duration: z.number().int().nonnegative(),
   description: z.string().nullable().optional(),

@@ -1,6 +1,9 @@
 /**
  * @file features/activity/quick-record/ui/quick-record-controls.tsx
  * Presentational count/duration/boolean controls driven by `useQuickRecord`.
+ *
+ * When `showGoals` is true, each value control stacks its matching goal input
+ * below it in a column (drawer-only). Home keeps values alone.
  */
 
 "use client";
@@ -13,6 +16,7 @@ import { getQuickRecordControlVisibility } from "@/features/activity/quick-recor
 import type { UseQuickRecordResult } from "@/features/activity/quick-record/model/use-quick-record";
 import { QuickRecordCount } from "@/features/activity/quick-record/ui/quick-record-count";
 import { QuickRecordDuration } from "@/features/activity/quick-record/ui/quick-record-duration";
+import { Incrementer } from "@/shared/incrementer";
 import { cn } from "@/lib/utils";
 
 export interface QuickRecordControlsProps {
@@ -20,20 +24,27 @@ export interface QuickRecordControlsProps {
   activity: Pick<Activity, "title">;
   /** Shared orchestrator state and handlers. */
   recording: UseQuickRecordResult;
+  /** Stacks a goal input under each value control. Defaults off. */
+  showGoals?: boolean;
 }
 
 /** Mode-appropriate inline recording control(s) for one day row. */
 export const QuickRecordControls = memo(function QuickRecordControls({
   activity,
   recording,
+  showGoals = false,
 }: QuickRecordControlsProps) {
   const {
     trackingMode,
     count,
     duration,
+    goal,
+    goalDuration,
     done,
     setCount,
     setDuration,
+    setGoal,
+    setGoalDuration,
     toggleDone,
     addMinutes,
   } = recording;
@@ -53,27 +64,68 @@ export const QuickRecordControls = memo(function QuickRecordControls({
   const showLabels = trackingMode === "count+duration";
 
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <div className="flex shrink-0 items-start gap-2">
       {showCount ? (
-        <QuickRecordCount
-          label={activity.title}
-          showLabel={showLabels}
-          value={count}
-          onChange={setCount}
-        />
+        <div className="flex flex-col items-end gap-1">
+          <QuickRecordCount
+            label={activity.title}
+            showLabel={showLabels}
+            value={count}
+            onChange={setCount}
+          />
+          {showGoals ? (
+            <GoalInput
+              label={showLabels ? "Count goal" : "Goal"}
+              value={goal}
+              onChange={setGoal}
+            />
+          ) : null}
+        </div>
       ) : null}
       {showDuration ? (
-        <QuickRecordDuration
-          label={activity.title}
-          showLabel={showLabels}
-          value={duration}
-          onChange={setDuration}
-          onTick={() => addMinutes(1)}
-        />
+        <div className="flex flex-col items-end gap-1">
+          <QuickRecordDuration
+            label={activity.title}
+            showLabel={showLabels}
+            value={duration}
+            onChange={setDuration}
+            onTick={() => addMinutes(1)}
+          />
+          {showGoals ? (
+            <GoalInput
+              label={showLabels ? "Minutes goal" : "Goal"}
+              value={goalDuration}
+              onChange={setGoalDuration}
+            />
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
 });
+
+interface GoalInputProps {
+  label: string;
+  value: number | null;
+  onChange: (value: number | null) => void;
+}
+
+function GoalInput({ label, value, onChange }: GoalInputProps) {
+  return (
+    <div className="flex shrink-0 items-center gap-1.5">
+      <span className="text-[10px] [color:var(--today-card-dim)]">{label}</span>
+      <Incrementer
+        allowNull
+        aria-label={`Adjust ${label.toLowerCase()}`}
+        editable
+        min={1}
+        value={value}
+        valueVariant="boxed"
+        onChange={onChange}
+      />
+    </div>
+  );
+}
 
 interface QuickRecordToggleProps {
   done: boolean;

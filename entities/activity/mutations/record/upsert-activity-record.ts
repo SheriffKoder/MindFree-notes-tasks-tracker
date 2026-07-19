@@ -14,8 +14,9 @@ import { upsertActivityRecordBodySchema } from "@/entities/activity/schema/recor
 /**
  * Upserts a day's completion record for the authenticated user (RLS-scoped).
  *
- * Validates mutable totals only. Snapshot fields are absent from the body;
- * the repository response includes the database-authoritative snapshots.
+ * Validates the complete record form: values, description, tracking mode, and
+ * per-day goals. PostgreSQL enforces column constraints but does not derive or
+ * overwrite the submitted configuration.
  *
  * @param userId - authenticated user id
  * @param body - raw request body (validated here)

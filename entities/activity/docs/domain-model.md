@@ -109,20 +109,17 @@ mf_task_record natural key = (taskId, date)
 ```
 
 A record is a **daily aggregate** for one activity: `count`, `duration`, an
-optional note, and **immutable configuration snapshots** taken when the row is
-first inserted:
+optional note, and **configuration snapshots** stored on the row (migration
+`005`). The record form submits them on every upsert:
 
-| Snapshot field | Source on first insert |
-| -------------- | ---------------------- |
-| `trackingModeSnapshot` | `mf_task.tracking_mode` |
-| `goalSnapshot` | `mf_task.goal` |
-| `goalDurationSnapshot` | `mf_task.goal_duration` |
+| Snapshot field | First create | Later edits |
+| -------------- | ------------ | ----------- |
+| `trackingModeSnapshot` | seeded from `mf_task.tracking_mode` | kept as submitted (UI does not change mode) |
+| `goalSnapshot` | seeded from `mf_task.goal` | editable per day in the records drawer |
+| `goalDurationSnapshot` | seeded from `mf_task.goal_duration` | editable per day in the records drawer |
 
-PostgreSQL owns those snapshots (migration `005`): a trigger copies them from
-the owned task on `INSERT` and restores `OLD` on every `UPDATE`, so natural-key
-upserts cannot reinterpret history. The client never sends authoritative
-snapshot values. Delete then recreate intentionally captures the task's
-then-current configuration.
+Delete then recreate intentionally captures the task's then-current
+configuration.
 
 There is no stored `isCompleted` — whether a day counts is derived from the
 record values and the **effective** tracking mode via
@@ -191,4 +188,4 @@ Write path (create/patch/archive/restore/delete) and autosave:
 | [read-models.md](./read-models.md) | How definitions/records are cached and joined |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Create/patch/archive/delete + autosave |
 | [responsibilities.md](./responsibilities.md) | Where each concern's code lives |
-| [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | First-insert freezes tracking/goal snapshots |
+| [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | Record stores form-owned tracking/goal snapshots |

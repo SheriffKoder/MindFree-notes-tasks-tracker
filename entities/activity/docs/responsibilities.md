@@ -136,7 +136,7 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 `hooks/use-delete-activity-mutation.ts` — delete + cache removal + record purge
 `hooks/activity-mutation-pending.ts` — in-flight ids (realtime echo skip, Phase 5)
 `hooks/record/use-upsert-activity-record-mutation.ts` — absolute upsert + optimistic + newer-wins
-`hooks/record/build-optimistic-activity-record.ts` — seed/preserve configuration snapshots for optimistic rows
+`hooks/record/build-optimistic-activity-record.ts` — apply form-submitted configuration snapshots for optimistic rows
 `hooks/record/use-delete-activity-record-mutation.ts` — optimistic delete + rollback
 `hooks/record/record-mutation-pending.ts` — in-flight natural keys (realtime echo skip)
 
@@ -183,8 +183,8 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 | Change snapshot vs current configuration | `lib/record/resolve-record-configuration.ts` |
 | Change which goals survive a mode switch | `editor/model/normalize-activity-goals.ts` |
 | Add `goal_duration` / `icon` columns | `supabase/migrations/004_activity_goal_duration_and_icon.sql` |
-| Freeze record tracking/goal snapshots | `supabase/migrations/005_activity_record_configuration_snapshots.sql` |
-| Seed optimistic record snapshots | `hooks/record/build-optimistic-activity-record.ts` |
+| Add record tracking/goal snapshot columns | `supabase/migrations/005_activity_record_configuration_snapshots.sql` |
+| Apply optimistic record snapshots from the form | `hooks/record/build-optimistic-activity-record.ts` |
 | Change calendar day shape | `transform/build-calendar-days.ts` |
 | Change completion-% math | `transform/compute-task-month-progress.ts` |
 | Change DB queries | `repository/*` |

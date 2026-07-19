@@ -1,7 +1,7 @@
 /**
  * @file features/activity/quick-record/model/use-quick-record.ts
- * Orchestrates inline quick-recording for one activity-day: local optimistic
- * value + description state, a debounced absolute upsert, and delete-on-empty.
+ * Orchestrates one activity-day record form: local optimistic values,
+ * description and goals, a debounced absolute upsert, and delete-on-empty.
  *
  * Purpose: the single "shared recording flow" Home and Tasks call to record.
  *          Keeps the card dumb; owns the debounce and the empty→delete
@@ -55,6 +55,10 @@ export interface UseQuickRecordResult {
   duration: number;
   /** Local optimistic note text (`null` when empty). */
   description: string | null;
+  /** Editable per-day count goal (`null` when unbounded). */
+  goal: number | null;
+  /** Editable per-day duration goal in minutes (`null` when unbounded). */
+  goalDuration: number | null;
   /** Whether the primary tracked dimension is non-zero (boolean toggle state). */
   done: boolean;
   /** Sets the absolute count (`null` clears to `0`). */
@@ -63,10 +67,22 @@ export interface UseQuickRecordResult {
   setDuration: (value: number | null) => void;
   /** Sets the record note (`null` or blank clears the description). */
   setDescription: (value: string | null) => void;
+  /** Sets the per-day count goal. */
+  setGoal: (value: number | null) => void;
+  /** Sets the per-day duration goal in minutes. */
+  setGoalDuration: (value: number | null) => void;
   /** Flips a boolean activity between done (`1`) and not-done (`0`). */
   toggleDone: () => void;
   /** Adds minutes to the current duration (used by the Step 11 timer). */
   addMinutes: (delta: number) => void;
+}
+
+interface QuickRecordDraft {
+  count: number;
+  duration: number;
+  description: string | null;
+  goal: number | null;
+  goalDuration: number | null;
 }
 
 function normalizeDescription(value: string | null | undefined): string | null {
@@ -108,10 +124,16 @@ export function useQuickRecord({
   const [description, setDescriptionState] = useState<string | null>(
     record?.description ?? null,
   );
+  const [goal, setGoalState] = useState(configuration.goal);
+  const [goalDuration, setGoalDurationState] = useState(
+    configuration.goalDuration,
+  );
 
   const countRef = useRef(count);
   const durationRef = useRef(duration);
   const descriptionRef = useRef(description);
+  const goalRef = useRef(goal);
+  const goalDurationRef = useRef(goalDuration);
   const recordRef = useRef(record);
   const trackingModeRef = useRef(trackingMode);
   const pendingRef = useRef(false);
@@ -121,6 +143,8 @@ export function useQuickRecord({
     countRef.current = count;
     durationRef.current = duration;
     descriptionRef.current = description;
+    goalRef.current = goal;
+    goalDurationRef.current = goalDuration;
     recordRef.current = record;
     trackingModeRef.current = trackingMode;
   });
@@ -140,7 +164,11 @@ export function useQuickRecord({
     setCountState(record?.count ?? 0);
     setDurationState(record?.duration ?? 0);
     setDescriptionState(record?.description ?? null);
+    setGoalState(configuration.goal);
+    setGoalDurationState(configuration.goalDuration);
   }, [
+    configuration.goal,
+    configuration.goalDuration,
     record?.count,
     record?.description,
     record?.duration,
@@ -149,7 +177,7 @@ export function useQuickRecord({
   ]);
 
   const persist = useCallback(
-    (nextCount: number, nextDuration: number, nextDescription: string | null) => {
+    (draft: QuickRecordDraft, keepEmpty = false) => {
       pendingRef.current = true;
       clearDebounce();
 
@@ -159,25 +187,27 @@ export function useQuickRecord({
           pendingRef.current = false;
         };
 
-        const descriptionToSave = normalizeDescription(nextDescription);
+        const descriptionToSave = normalizeDescription(draft.description);
         const meaningful = isMeaningfulRecord(
-          { count: nextCount, duration: nextDuration },
+          { count: draft.count, duration: draft.duration },
           trackingModeRef.current,
         );
 
         // A non-empty note alone is enough to keep/create the row so typing in
-        // the description panel persists even before a count/minute is set.
-        if (meaningful || descriptionToSave !== null) {
+        // the description panel persists before a count/minute is set. Goal
+        // edits explicitly keep an empty row because the goal itself is the
+        // form change being saved.
+        if (meaningful || descriptionToSave !== null || keepEmpty) {
           upsertRecord(
             {
               taskId: activity.id,
               date: recordDate,
-              count: nextCount,
-              duration: nextDuration,
+              count: draft.count,
+              duration: draft.duration,
               description: descriptionToSave,
-              trackingMode: activity.trackingMode,
-              goal: activity.goal,
-              goalDuration: activity.goalDuration,
+              trackingMode: trackingModeRef.current,
+              goal: draft.goal,
+              goalDuration: draft.goalDuration,
             },
             { onSettled: settle },
           );
@@ -193,10 +223,7 @@ export function useQuickRecord({
       }, QUICK_RECORD_DEBOUNCE_MS);
     },
     [
-      activity.goal,
-      activity.goalDuration,
       activity.id,
-      activity.trackingMode,
       clearDebounce,
       deleteRecord,
       recordDate,
@@ -208,7 +235,13 @@ export function useQuickRecord({
     (value: number | null) => {
       const next = value ?? 0;
       setCountState(next);
-      persist(next, durationRef.current, descriptionRef.current);
+      persist({
+        count: next,
+        duration: durationRef.current,
+        description: descriptionRef.current,
+        goal: goalRef.current,
+        goalDuration: goalDurationRef.current,
+      });
     },
     [persist],
   );
@@ -217,7 +250,13 @@ export function useQuickRecord({
     (value: number | null) => {
       const next = value ?? 0;
       setDurationState(next);
-      persist(countRef.current, next, descriptionRef.current);
+      persist({
+        count: countRef.current,
+        duration: next,
+        description: descriptionRef.current,
+        goal: goalRef.current,
+        goalDuration: goalDurationRef.current,
+      });
     },
     [persist],
   );
@@ -225,7 +264,47 @@ export function useQuickRecord({
   const setDescription = useCallback(
     (value: string | null) => {
       setDescriptionState(value);
-      persist(countRef.current, durationRef.current, value);
+      persist({
+        count: countRef.current,
+        duration: durationRef.current,
+        description: value,
+        goal: goalRef.current,
+        goalDuration: goalDurationRef.current,
+      });
+    },
+    [persist],
+  );
+
+  const setGoal = useCallback(
+    (value: number | null) => {
+      setGoalState(value);
+      persist(
+        {
+          count: countRef.current,
+          duration: durationRef.current,
+          description: descriptionRef.current,
+          goal: value,
+          goalDuration: goalDurationRef.current,
+        },
+        true,
+      );
+    },
+    [persist],
+  );
+
+  const setGoalDuration = useCallback(
+    (value: number | null) => {
+      setGoalDurationState(value);
+      persist(
+        {
+          count: countRef.current,
+          duration: durationRef.current,
+          description: descriptionRef.current,
+          goal: goalRef.current,
+          goalDuration: value,
+        },
+        true,
+      );
     },
     [persist],
   );
@@ -233,14 +312,26 @@ export function useQuickRecord({
   const toggleDone = useCallback(() => {
     const next = countRef.current > 0 ? 0 : 1;
     setCountState(next);
-    persist(next, durationRef.current, descriptionRef.current);
+    persist({
+      count: next,
+      duration: durationRef.current,
+      description: descriptionRef.current,
+      goal: goalRef.current,
+      goalDuration: goalDurationRef.current,
+    });
   }, [persist]);
 
   const addMinutes = useCallback(
     (delta: number) => {
       const next = Math.max(0, durationRef.current + delta);
       setDurationState(next);
-      persist(countRef.current, next, descriptionRef.current);
+      persist({
+        count: countRef.current,
+        duration: next,
+        description: descriptionRef.current,
+        goal: goalRef.current,
+        goalDuration: goalDurationRef.current,
+      });
     },
     [persist],
   );
@@ -259,10 +350,14 @@ export function useQuickRecord({
     count,
     duration,
     description,
+    goal,
+    goalDuration,
     done,
     setCount,
     setDuration,
     setDescription,
+    setGoal,
+    setGoalDuration,
     toggleDone,
     addMinutes,
   };

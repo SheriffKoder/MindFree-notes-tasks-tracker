@@ -1,4 +1,6 @@
--- Freeze the tracking configuration used when each activity record is created.
+-- Per-day tracking configuration on activity records.
+-- The record form submits these columns on every upsert (seeded from the task
+-- on first create; goals remain editable afterward).
 -- Precondition: no records exist; historical configuration cannot be inferred.
 
 do $$
@@ -25,48 +27,8 @@ alter table public.mf_task_record
   );
 
 comment on column public.mf_task_record.tracking_mode_snapshot is
-  'Immutable tracking mode copied from mf_task when this daily record is first inserted.';
+  'Tracking mode submitted by the record form when this daily record is saved.';
 comment on column public.mf_task_record.goal_snapshot is
-  'Immutable count goal copied from mf_task when this daily record is first inserted.';
+  'Editable per-day count goal submitted by the record form.';
 comment on column public.mf_task_record.goal_duration_snapshot is
-  'Immutable duration goal in minutes copied from mf_task when this daily record is first inserted.';
-
-create or replace function public.mf_task_record_set_configuration_snapshot()
-returns trigger
-language plpgsql
-as $$
-declare
-  task_tracking_mode text;
-  task_goal integer;
-  task_goal_duration integer;
-begin
-  if tg_op = 'INSERT' then
-    select tracking_mode, goal, goal_duration
-      into task_tracking_mode, task_goal, task_goal_duration
-      from public.mf_task
-      where id = new.task_id
-        and user_id = new.user_id;
-
-    if not found then
-      raise exception
-        'Cannot create activity record: no owned task matches task_id %.',
-        new.task_id;
-    end if;
-
-    new.tracking_mode_snapshot = task_tracking_mode;
-    new.goal_snapshot = task_goal;
-    new.goal_duration_snapshot = task_goal_duration;
-  else
-    new.tracking_mode_snapshot = old.tracking_mode_snapshot;
-    new.goal_snapshot = old.goal_snapshot;
-    new.goal_duration_snapshot = old.goal_duration_snapshot;
-  end if;
-
-  return new;
-end;
-$$;
-
-create trigger mf_task_record_set_configuration_snapshot
-  before insert or update on public.mf_task_record
-  for each row
-  execute function public.mf_task_record_set_configuration_snapshot();
+  'Editable per-day duration goal in minutes submitted by the record form.';

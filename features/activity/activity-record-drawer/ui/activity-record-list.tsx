@@ -53,7 +53,12 @@ export function ActivityRecordList({ date }: ActivityRecordListProps) {
       ) : (
         <div className="flex flex-col gap-0.5">
           {items.map((item) => (
-            <QuickRecordCard key={item.activity.id} date={date} today={item} />
+            <QuickRecordCard
+              key={item.activity.id}
+              date={date}
+              showGoalControls
+              today={item}
+            />
           ))}
         </div>
       )}

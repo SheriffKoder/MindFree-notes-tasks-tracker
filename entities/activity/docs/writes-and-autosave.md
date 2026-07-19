@@ -108,7 +108,8 @@ manual edits use exactly the same persistence path.
 Record API surfaces (thin route → record mutation use-cases):
 
 - `POST /api/activity-records` — natural-key upsert with absolute
-  count/duration only (no snapshot fields; PostgreSQL derives them);
+  count/duration/description plus form-owned configuration snapshots
+  (`trackingModeSnapshot`, `goalSnapshot`, `goalDurationSnapshot`);
 - `DELETE /api/activity-records` — remove by `(taskId, date)`.
 
 Both mutation hooks optimistically update only the target month bucket and
@@ -116,11 +117,9 @@ restore its snapshot on error. Upsert success uses `isRemoteRecordNewer` before
 replacing the optimistic row; pending natural keys provide the future realtime
 echo-suppression seam.
 
-Optimistic rows seed `trackingModeSnapshot` / `goalSnapshot` /
-`goalDurationSnapshot` from the current activity on first create and preserve
-existing snapshots on later natural-key upserts
+Optimistic rows apply the submitted `trackingMode` / `goal` / `goalDuration`
 (`hooks/record/build-optimistic-activity-record.ts`). The server response then
-replaces those fields with database-authoritative values.
+replaces the row with persisted values.
 
 ---
 

@@ -2,7 +2,7 @@
  * @file features/activity/activity-today-card/ui/activity-today-card.tsx
  * Compact, collapsible Home Today activity row, laid out as a grid of cells:
  *
- *   [chevron] [donut(s) + title] [Count/Minutes stack] … space … [inputs]
+ *   [chevron] [donut(s) + title] [progress] … [optional goals] [inputs]
  *
  * Each cell is its own component (identity / progress / controls / note); this
  * file only composes them and owns the expand/collapse state. Dumb by design —
@@ -40,6 +40,8 @@ export interface ActivityTodayCardProps {
    * When omitted the card renders a read-only stepper (`TodayCardControls`).
    */
   recordSlot?: ReactNode;
+  /** Optional per-day goal controls injected by non-Home consumers. */
+  goalSlot?: ReactNode;
   /**
    * Controlled note text. Pair with `onDescriptionChange` so the expandable
    * textarea persists through the quick-record write path.
@@ -54,6 +56,7 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
   today,
   defaultOpen = false,
   recordSlot,
+  goalSlot,
   description,
   onDescriptionChange,
 }: ActivityTodayCardProps) {
@@ -62,11 +65,14 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
   const primaryProgress = progress.dimensions[0];
   const color =
     activity.color ?? ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.taskColorFallback;
-  const noteDescription = description ?? record?.description ?? null;
+  // `null` is a controlled cleared value; only `undefined` means fall back to
+  // the record prop for read-only card usage.
+  const noteDescription =
+    description !== undefined ? description : (record?.description ?? null);
 
   return (
     <div style={ACTIVITY_TODAY_CARD_CSS_VARS} className="mb-2">
-      <div className="group grid grid-cols-[auto_minmax(0,auto)_auto_1fr_auto] items-center gap-1.5 px-1 py-1 transition-colors duration-150 hover:[background-color:var(--today-card-hover-light)] dark:hover:[background-color:var(--today-card-hover-dark)]">
+      <div className="group grid grid-cols-[auto_minmax(0,auto)_auto_1fr_auto_auto] items-center gap-1.5 px-1 py-1 transition-colors duration-150 hover:[background-color:var(--today-card-hover-light)] dark:hover:[background-color:var(--today-card-hover-dark)]">
         <button
           aria-expanded={open}
           aria-label={open ? "Hide note" : "Show note"}
@@ -92,6 +98,8 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
         <TodayCardProgress dimensions={progress.dimensions} />
 
         <span aria-hidden />
+
+        {goalSlot}
 
         {recordSlot ?? (
           <TodayCardControls

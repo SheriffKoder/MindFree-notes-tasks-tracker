@@ -20,15 +20,22 @@ export interface QuickRecordCardProps {
   date?: string;
   /** Whether the description panel starts expanded. */
   defaultOpen?: boolean;
+  /**
+   * Stacks a goal input under each value control. Defaults off so Home stays
+   * compact; the day-records drawer opts in.
+   */
+  showGoalControls?: boolean;
 }
 
 /**
- * One hook instance drives count/duration controls and description persistence.
+ * One hook instance drives count/duration/goal controls and description
+ * persistence.
  */
 export const QuickRecordCard = memo(function QuickRecordCard({
   today,
   date,
   defaultOpen,
+  showGoalControls = false,
 }: QuickRecordCardProps) {
   const recording = useQuickRecord({
     activity: today.activity,
@@ -41,7 +48,11 @@ export const QuickRecordCard = memo(function QuickRecordCard({
       defaultOpen={defaultOpen}
       description={recording.description}
       recordSlot={
-        <QuickRecordControls activity={today.activity} recording={recording} />
+        <QuickRecordControls
+          activity={today.activity}
+          recording={recording}
+          showGoals={showGoalControls}
+        />
       }
       today={today}
       onDescriptionChange={recording.setDescription}

@@ -1,6 +1,6 @@
 /**
  * @file entities/activity/hooks/record/build-optimistic-activity-record.test.ts
- * Locks first-create snapshot seeding and natural-key snapshot preservation.
+ * Locks card-owned snapshot submission for optimistic record writes.
  */
 
 import { describe, expect, it } from "vitest";
@@ -54,7 +54,7 @@ describe("buildOptimisticActivityRecord", () => {
     expect(record.id).toMatch(/^optimistic-/);
   });
 
-  it("preserves existing snapshots on later natural-key upserts", () => {
+  it("applies submitted goal edits on later natural-key upserts", () => {
     const existing = buildExisting();
     const record = buildOptimisticActivityRecord(
       {
@@ -72,9 +72,9 @@ describe("buildOptimisticActivityRecord", () => {
 
     expect(record).toMatchObject({
       id: "record-1",
-      trackingModeSnapshot: "count",
-      goalSnapshot: 4,
-      goalDurationSnapshot: null,
+      trackingModeSnapshot: "duration",
+      goalSnapshot: null,
+      goalDurationSnapshot: 90,
       count: 3,
       duration: 0,
       description: "updated",

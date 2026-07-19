@@ -2,10 +2,8 @@
  * @file entities/activity/hooks/record/build-optimistic-activity-record.ts
  * Pure builder for optimistic activity-record cache rows.
  *
- * Purpose: seed first-create snapshots from the current activity while
- *          preserving immutable snapshots on later natural-key upserts. The
- *          HTTP body stays totals-only; these fields exist only for optimistic
- *          UI until the server response replaces them.
+ * Purpose: mirror the card-owned record form in the month cache before the
+ *          server responds. Configuration fields are submitted to HTTP too.
  * Used in: use-upsert-activity-record-mutation.ts
  */
 
@@ -14,7 +12,7 @@ import type {
   TrackingMode,
 } from "@/entities/activity/model/types";
 
-/** Activity configuration needed to seed a new optimistic record. */
+/** Configuration values submitted by the record card. */
 export interface OptimisticRecordConfiguration {
   trackingMode: TrackingMode;
   goal: number | null;
@@ -32,8 +30,9 @@ export interface BuildOptimisticActivityRecordInput
 }
 
 /**
- * Builds an optimistic `ActivityRecord`. Existing cached rows keep their
- * snapshots; new rows copy the current activity configuration.
+ * Builds an optimistic `ActivityRecord`. Identity/timestamps come from the
+ * existing row when present; submitted configuration and values replace the
+ * card's editable record fields.
  *
  * @param input - absolute totals and current activity configuration
  * @param existing - cached record for the same natural key, if any
@@ -49,15 +48,9 @@ export function buildOptimisticActivityRecord(
     id: existing?.id ?? `optimistic-${input.taskId}-${input.date}`,
     taskId: input.taskId,
     date: input.date,
-    trackingModeSnapshot:
-      existing !== undefined
-        ? existing.trackingModeSnapshot
-        : input.trackingMode,
-    goalSnapshot: existing !== undefined ? existing.goalSnapshot : input.goal,
-    goalDurationSnapshot:
-      existing !== undefined
-        ? existing.goalDurationSnapshot
-        : input.goalDuration,
+    trackingModeSnapshot: input.trackingMode,
+    goalSnapshot: input.goal,
+    goalDurationSnapshot: input.goalDuration,
     count: input.count,
     duration: input.duration,
     description: input.description ?? null,

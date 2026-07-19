@@ -109,11 +109,11 @@ export interface ActivityRecord {
   taskId: string;
   /** Recorded day (`YYYY-MM-DD`). */
   date: string;
-  /** Tracking mode frozen when this record was first created. */
+  /** Record-owned tracking mode, initially seeded from the task. */
   trackingModeSnapshot: TrackingMode;
-  /** Count goal frozen when this record was first created. */
+  /** Editable per-day count goal, initially seeded from the task. */
   goalSnapshot: number | null;
-  /** Duration goal in minutes frozen when this record was first created. */
+  /** Editable per-day duration goal, initially seeded from the task. */
   goalDurationSnapshot: number | null;
   /** Recorded count (0 when duration-only). */
   count: number;
