@@ -6,30 +6,31 @@
  * Used in: app/api/notes/*, Server Components, route handlers, server actions
  * Used for: SSR hydration, reads, and write use-cases (including date conflict errors).
  *
- * Mutation exports (Step 11):
- * - updateNote, createCalendarNote, createGeneralNote, deleteNote
- * - NoteDateConflictError
+ * Segment sources (Step 10):
+ * - `@/entities/note/queries` — read use-cases
+ * - `@/entities/note/mutations` — write use-cases
+ * - `@/entities/note/hydration` — SSR cache seeders
+ * - `@/entities/note/errors` — NoteDateConflictError
+ * - `@/entities/note/repository` — getAuthenticatedUserId
  */
 
 export {
   getCalendarNotesResponse,
-} from "@/entities/note/queries/get-calendar-notes-response";
-export {
   getGeneralNotesResponse,
-} from "@/entities/note/queries/get-general-notes-response";
-export {
   getHomeNotesResponse,
-} from "@/entities/note/queries/get-home-notes-response";
-export {
   getNotesPageInitialData,
   type NotesPageInitialData,
-} from "@/entities/note/queries/get-notes-page-initial-data";
-export { hydrateNotesPageQueries } from "@/entities/note/tanstack/hydrate-notes-page-queries";
-export { hydrateHomeNotesQueries } from "@/entities/note/tanstack/hydrate-home-notes-queries";
-export { updateNote } from "@/entities/note/mutations/update-note";
-export { createCalendarNote } from "@/entities/note/mutations/create-calendar-note";
-export { createGeneralNote } from "@/entities/note/mutations/create-general-note";
-export { createQuickNote } from "@/entities/note/mutations/create-quick-note";
-export { deleteNote } from "@/entities/note/mutations/delete-note";
-export { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";
-export { getAuthenticatedUserId } from "@/entities/note/repository/note-repository";
+} from "@/entities/note/queries";
+export {
+  seedHomeNotesCache,
+  seedNotesPageCache,
+} from "@/entities/note/hydration";
+export {
+  createCalendarNote,
+  createGeneralNote,
+  createQuickNote,
+  deleteNote,
+  updateNote,
+} from "@/entities/note/mutations";
+export { NoteDateConflictError } from "@/entities/note/errors";
+export { getAuthenticatedUserId } from "@/entities/note/repository";

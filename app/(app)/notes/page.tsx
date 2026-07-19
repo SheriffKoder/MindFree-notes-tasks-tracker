@@ -5,7 +5,7 @@
 
 import { Suspense } from "react";
 
-import { NotesHydrationSeed } from "@/app/(app)/notes/notes-hydration-seed";
+import { NotesHydrationSeed } from "@/views/notes/ui/notes-hydration-seed";
 import { NotesClient } from "@/views/notes/ui/notes-client";
 
 /**

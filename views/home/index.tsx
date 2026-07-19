@@ -3,6 +3,8 @@
  * Home dashboard composition for the protected MindFree landing route.
  */
 
+import { BookMarked, ChevronRight } from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -12,11 +14,19 @@ import {
 } from "@/components/ui/card";
 import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
+import { cn } from "@/lib/utils";
 import { HomeAsideShell } from "@/views/home/model/home-aside-drawer-context";
 import { HomeAsideContent } from "@/views/home/ui/home-aside-content";
 import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
 import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
 import { HomeRightAside } from "@/views/home/ui/home-right-aside";
+import { HomeTodayList } from "@/views/home/ui/home-today-list";
+
+export { HomeHydrationSeed } from "@/views/home/ui/home-hydration-seed";
+
+/** Shared section-header text style: h2 size, medium weight, muted. */
+const SECTION_HEADER_CLASS =
+  "text-[length:var(--text-xs)] font-medium leading-tight [color:var(--color-fg-muted)]";
 
 /**
  * Props for the protected home dashboard.
@@ -38,11 +48,7 @@ export function HomeView({ notice = null }: HomeViewProps) {
       <div className="mx-auto flex h-full w-full flex-col gap-4">
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
-            <h2 className="text-h2">MindFree</h2>
-            <p className="page-header__subtitle">
-              This route is now the real app home, ready for starred notes, today&apos;s
-              tasks, and reminders.
-            </p>
+            <h2 className="text-h2 flex items-center gap-2"><BookMarked aria-hidden className="h-6 w-6" /> MindFree</h2>
           </div>
 
           <HomeHeaderToolbar />
@@ -54,32 +60,32 @@ export function HomeView({ notice = null }: HomeViewProps) {
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             <section>
               <div className="mb-2 flex flex-col">
-                <h2 className="text-h3">Starred Notes</h2>
-                <p className="page-header__subtitle">
-                  Horizontal note cards and a quick-note default entry belong here.
-                </p>
+                <h2 className={SECTION_HEADER_CLASS}>Starred Notes</h2>
               </div>
               <HomeNotesSection />
             </section>
 
-            <Card className="app-card">
-              <CardHeader className="flex flex-col gap-2">
-                <CardTitle className="text-h3">Today&apos;s Tasks</CardTitle>
-                <CardDescription className="text-body-muted">
-                  Scheduled tasks, completion state, and quick time-entry flows go here.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-body-muted">
-                  This section is the next candidate for real task widgets once the data
-                  model lands.
-                </p>
-              </CardContent>
-            </Card>
+            <details open className="group/today">
+              <summary
+                className={cn(
+                  SECTION_HEADER_CLASS,
+                  "flex w-fit cursor-pointer list-none items-center gap-1.5 py-1 marker:content-none [&::-webkit-details-marker]:hidden",
+                )}
+              >
+                <ChevronRight
+                  aria-hidden
+                  className="h-4 w-4 shrink-0 transition-transform duration-200 group-open/today:rotate-90"
+                />
+                <span>Today&apos;s Tasks</span>
+              </summary>
+              <div className="mt-1">
+                <HomeTodayList />
+              </div>
+            </details>
 
             <Card className="app-card">
               <CardHeader className="flex flex-col gap-2">
-                <CardTitle className="text-h3">Reminders</CardTitle>
+                <CardTitle className={SECTION_HEADER_CLASS}>Reminders</CardTitle>
                 <CardDescription className="text-body-muted">
                   Vertical reminder stacks will live below today&apos;s tasks on the home
                   page.

@@ -6,4 +6,4 @@
 export {
   findNoteByIdInCache,
   findNoteOnDateInCache,
-} from "@/entities/note/lib/find-note-in-cache";
+} from "@/entities/note/cache";

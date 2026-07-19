@@ -6,18 +6,20 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  getNextNotesView,
-  getNotesViewDefinition,
-} from "@/shared/view-switcher/lib/note-views";
-import type { NotesViewId } from "@/shared/view-switcher/lib/note-views";
+  getNextView,
+  getViewDefinition,
+  type ViewConfig,
+} from "@/shared/view-switcher/lib/view-config";
 import { ViewIcon } from "@/shared/view-switcher/ui/view-icon";
 
 /**
  * Props for {@link ViewSwitcherMobile}.
  */
-export interface ViewSwitcherMobileProps {
+export interface ViewSwitcherMobileProps<Id extends string> {
+  /** Page view config. */
+  config: ViewConfig<Id>;
   /** Current active view. */
-  view: NotesViewId;
+  view: Id;
   /** Called when the user taps to cycle to the next view. */
   onCycleView: () => void;
   /** Optional wrapper class name. */
@@ -27,24 +29,20 @@ export interface ViewSwitcherMobileProps {
 /**
  * Renders a compact cycle button for mobile view switching.
  *
- * @param props - current view and cycle callback
+ * @param props - config, current view, and cycle callback
  * @returns mobile view switcher UI
  */
-export function ViewSwitcherMobile({
+export function ViewSwitcherMobile<Id extends string>({
+  config,
   view,
   onCycleView,
   className,
-}: ViewSwitcherMobileProps) {
-  const current = getNotesViewDefinition(view);
-  const next = getNotesViewDefinition(getNextNotesView(view));
+}: ViewSwitcherMobileProps<Id>) {
+  const current = getViewDefinition(config, view);
+  const next = getViewDefinition(config, getNextView(config, view));
 
   return (
-    <div
-      className={cn(
-        "flex items-center rounded-2xl shadow-sm",
-        className,
-      )}
-    >
+    <div className={cn("flex items-center rounded-2xl shadow-sm", className)}>
       <Button
         type="button"
         variant="ghost"
@@ -53,7 +51,7 @@ export function ViewSwitcherMobile({
         title={`Switch to ${next.title}`}
         onClick={onCycleView}
       >
-        <ViewIcon view={view} />
+        <ViewIcon config={config} view={view} />
         <span className="text-[10px] leading-none [color:var(--color-fg-muted)]">
           {current.label}
         </span>

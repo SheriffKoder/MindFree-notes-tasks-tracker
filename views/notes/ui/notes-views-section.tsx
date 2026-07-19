@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 
 import {
   useCalendarNotesQuery,
@@ -18,8 +18,8 @@ import { NoteListCard } from "@/features/notes/note-list-card";
 import { MonthCalendar, type CalendarCellRenderContext } from "@/shared/calendar";
 import { ListView } from "@/shared/list-view";
 import { QueryStatePanel } from "@/shared/react-query";
-import type { NotesViewId } from "@/shared/view-switcher";
 import { usePrefetchAdjacentCalendarMonths } from "@/views/notes/model/use-prefetch-adjacent-calendar-months";
+import type { NotesViewId } from "@/views/notes/lib/notes-views";
 import { resolveViewQueryState } from "@/views/notes/lib/resolve-view-query-state";
 import { getReservedMeta } from "@/views/notes/lib/reserved-meta";
 
@@ -41,7 +41,14 @@ function getNoteKey(note: Note): string {
   return note.id;
 }
 
-export function NotesViewsSection({
+/**
+ * Fetches calendar + general notes, resolves per-pane query state, and renders the
+ * responsive calendar/list body (mirrors Tasks calendar + sidebar layout).
+ *
+ * Memoized so drawer open/close in NotesClient (useNotesDrawer state) does not
+ * re-render the calendar/list tree — props stay stable across that update.
+ */
+export const NotesViewsSection = memo(function NotesViewsSection({
   month,
   view,
   highlightedDate,
@@ -200,4 +207,4 @@ export function NotesViewsSection({
       ) : null}
     </section>
   );
-}
+});

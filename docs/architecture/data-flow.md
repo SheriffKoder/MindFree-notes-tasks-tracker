@@ -2,7 +2,7 @@
 
 How a request becomes domain data — and how writes leave the UI without bloating route handlers.
 
-**Structure rules:** `app/development/guidelines/PROJECT-STRUCTURE.md`  
+**Structure rules:** [`.cursor/rules/project-structure.mdc`](../../.cursor/rules/project-structure.mdc)
 **Auth / RLS:** [guides/security.md](../guides/security.md)
 
 ---
@@ -61,10 +61,17 @@ Calendar consumers need `CalendarDay[]`, not raw SQL rows. Month length, leap ye
 
 ## Adding another entity (e.g. tasks)
 
-1. `entities/<name>/` with `queries/`, `repository/`, `tanstack/`, `server.ts`, `client.ts`
+1. Create `entities/<name>/` with only the responsibility groups it needs:
+   `queries/` for server reads, `repository/` for persistence, `client/` for
+   fetchers/keys/options/prefetch, `hooks/` for React hooks, `cache/` for cache
+   transforms and synchronization, and `hydration/` for SSR cache seeders.
 2. Thin `app/api/<name>/…` using `requireAuthenticatedUserId` + repository `user_id`
 3. View island consumes `client.ts` hooks
 4. Reuse `shared/react-query` and (if needed) `shared/offline-queue` adapters
+
+These names describe current responsibilities, not a locked folder vocabulary.
+Add another focused group when a distinct responsibility emerges; do not collect
+unrelated entity code in a generic TanStack dumping folder.
 
 Checklist also lives in [shared/react-query/README.md](../../shared/react-query/README.md).
 

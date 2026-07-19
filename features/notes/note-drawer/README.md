@@ -41,7 +41,7 @@ features/notes/note-drawer/
 ├── lib/                     # Pure helpers — no React, no I/O
 │   ├── shift-iso-date.ts    # ±1 day on YYYY-MM-DD
 │   ├── month-of-iso-date.ts # YYYY-MM from ISO date
-│   └── find-note-in-cache.ts# Lookup note by id across TanStack caches
+│   └── find-note-in-cache.ts# Convenience re-export of entity cache lookup helpers
 ├── model/                   # Drawer-specific React hooks
 │   ├── use-drawer-active-date.ts
 │   ├── use-resolved-drawer-note.ts
@@ -62,7 +62,7 @@ features/notes/note-drawer/
 | Prev/next day buttons and horizontal swipe | `model/use-drawer-date-navigation.ts` |
 | Prefetching ±1 month when `activeDate` hits a month boundary | `model/use-drawer-month-prefetch.ts` |
 | Footer layout — arrows left, last-edited right | `ui/note-drawer-footer.tsx` |
-| Pure date/cache helpers used by the hooks above | `lib/*` |
+| Pure date helpers and the feature convenience re-export of entity cache lookup helpers | `lib/*` |
 
 ## This feature is not responsible for
 
@@ -71,9 +71,12 @@ features/notes/note-drawer/
 | Form fields, validation, toggles, textarea UI | `entities/note/editor` |
 | Drawer open/close API and `NoteEditorRequest` | `views/notes/model/editor/` |
 | Generic drawer shell (overlay, panel, close button) | `shared/drawer` |
-| TanStack query keys, fetchers, SSR hydration | `entities/note/client` / `entities/note/server` |
+| Query keys, HTTP fetchers, query options, and prefetch | `entities/note/client/` |
+| Read, mutation, and realtime hooks | `entities/note/hooks/` |
+| Cache lookup, updates, synchronization, and realtime apply | `entities/note/cache/` |
+| SSR cache seeders | `entities/note/hydration/` |
 | Page URL `month` / `view` or calendar grid highlight | `views/notes` |
-| PATCH / create / delete mutations | `entities/note/mutations/` + `entities/note/tanstack/` (Steps 9–10), wired in `features/notes/note-drawer` |
+| PATCH / create / delete execution | Server write use-cases in `entities/note/mutations/`, HTTP fetchers in `entities/note/client/`, and mutation hooks in `entities/note/hooks/`; wired by this feature |
 
 ## `lib/` vs `model/` — why both?
 
@@ -81,10 +84,10 @@ Same split as the entity, but scoped to drawer behavior:
 
 | Folder | Contains | Examples |
 | ------ | -------- | -------- |
-| `lib/` | Pure functions — testable without React | `shiftIsoDate`, `findNoteByIdInCache` |
+| `lib/` | Pure feature helpers plus convenience re-exports of entity cache lookup helpers | `shiftIsoDate`, `findNoteByIdInCache` |
 | `model/` | React hooks — state, effects, TanStack subscriptions | `useDrawerActiveDate`, `useResolvedDrawerNote` |
 
-**Rule of thumb:** if it needs `useState`, `useEffect`, or `useQuery`, it goes in `model/`. If it is a pure transform or cache read, it goes in `lib/`.
+**Rule of thumb:** if drawer behavior needs `useState`, `useEffect`, or `useQuery`, it goes in `model/`. Pure drawer transforms go in `lib/`; `lib/find-note-in-cache.ts` is only a feature convenience re-export from `entities/note/cache/`, where cache lookup is owned.
 
 Compare with `entities/note/editor/`:
 
@@ -120,10 +123,11 @@ shared/drawer          ←  ui/note-drawer.tsx
 entities/note/editor   ←  ui/note-drawer.tsx
 entities/note/client   ←  model/use-resolved-drawer-note.ts
                        ←  model/use-drawer-month-prefetch.ts
+entities/note/cache    ←  lib/find-note-in-cache.ts (convenience re-export)
 views/notes/model/editor  ←  ui/note-drawer.tsx (UseNotesDrawerResult type only)
 ```
 
-- This feature imports from `entities/note/editor` and `entities/note/client`.
+- This feature imports from `entities/note/editor`, `entities/note/client`, and the entity cache lookup surface.
 - The entity editor does **not** import from this feature.
 - Page views import this feature's public `NoteDrawer` component.
 
@@ -132,11 +136,11 @@ views/notes/model/editor  ←  ui/note-drawer.tsx (UseNotesDrawerResult type onl
 ```text
 features/notes/note-drawer/pre-save-orchestrator/
 ├── evaluate-note-save.ts           # check-after-check pipeline
-├── use-pre-save-orchestrator.ts    # refs, debounce, TanStack calls
+├── use-pre-save-orchestrator.ts    # refs, debounce, entity mutation-hook calls
 └── types.ts
 ```
 
-Mutation implementations belong in `entities/note/mutations/`; this folder owns interpretation and when saves run.
+Server write use-cases belong in `entities/note/mutations/`; HTTP fetchers, mutation hooks, and cache updates belong in `entities/note/client/`, `entities/note/hooks/`, and `entities/note/cache/`. This folder owns interpretation and when saves run.
 
 ## See also
 

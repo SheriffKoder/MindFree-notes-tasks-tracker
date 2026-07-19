@@ -168,5 +168,6 @@ Use `getSafePath` / `getSafeAppPath` from `shared/lib/auth/get-safe-path.ts` for
 | `shared/lib/auth/require-authenticated-user.ts` | API route session check |
 | `shared/lib/auth/demo-login-config.ts` | Demo login feature flag + credentials |
 | `shared/lib/auth/get-safe-path.ts` | Open-redirect-safe path normalization |
-| `entities/note/repository/note-repository.ts` | Reference repository pattern |
+| `entities/note/repository/*.ts` | Split note repository operations; one focused responsibility per file |
+| `entities/note/repository/index.ts` | Public repository barrel used by server-side consumers |
 | `supabase/migrations/001_notes.sql` | Reference RLS policies |

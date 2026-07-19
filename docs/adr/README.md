@@ -16,6 +16,11 @@ Records of significant technical decisions. Each ADR is one decision — context
 | [0008](./0008-realtime-postgres-changes.md) | Realtime via `postgres_changes` | Accepted |
 | [0009](./0009-offline-writes-simple-queue.md) | Simple offline writes queue | Accepted |
 | [0010](./0010-one-domain-multiple-consumers.md) | One Notes domain, multiple consumers | Accepted |
+| [0011](./0011-one-activity-model-two-kinds.md) | One activity model, two kinds (tasks + reminders) | Accepted |
+| [0012](./0012-calendar-records-always-visible.md) | Calendar records always visible, regardless of schedule | Accepted |
+| [0013](./0013-precompute-month-progress-map.md) | Precompute month completion as a `Map<taskId, percent>` | Accepted |
+| [0014](./0014-flat-records-client-side-join.md) | Ship flat activity records, join on the client (vs. Notes) | Accepted |
+| [0015](./0015-record-configuration-snapshots.md) | Record configuration snapshots on first insert | Accepted |
 
 ## Template
 

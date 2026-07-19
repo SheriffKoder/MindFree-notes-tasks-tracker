@@ -7,8 +7,8 @@ import { getMonthRange } from "@/entities/note/lib/parse-month";
 import type {
   CalendarDay,
   CalendarNotesResponse,
-  Note,
-} from "@/entities/note/model/types";
+} from "@/entities/note/model/read-models";
+import type { Note } from "@/entities/note/model/types";
 
 /**
  * Builds one `CalendarDay` entry per day in the month.

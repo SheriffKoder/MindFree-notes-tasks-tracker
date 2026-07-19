@@ -17,17 +17,17 @@
  * 5. Insert the new calendar row and return the domain note.
  */
 
-import { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";
+import { NoteDateConflictError } from "@/entities/note/errors";
 import {
   createCalendarNoteBodySchema,
   type CreateCalendarNoteBody,
-} from "@/entities/note/mutations/create-note.schema";
+} from "@/entities/note/schema";
 import type { Note } from "@/entities/note/model/types";
 import {
   createCalendarNote as createCalendarNoteRow,
   deleteNoteById,
   findCalendarNoteByDate,
-} from "@/entities/note/repository/note-repository";
+} from "@/entities/note/repository";
 
 function splitCreateBody(data: CreateCalendarNoteBody): {
   payload: CreateCalendarNoteBody;

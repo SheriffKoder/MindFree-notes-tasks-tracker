@@ -5,6 +5,6 @@ Shared language for MindFree. Read these before diving into architecture ADRs or
 | Doc | Purpose |
 | --- | ------- |
 | [glossary.md](./glossary.md) | Product terms — note kinds, flags, read models |
-| [terminology.md](./terminology.md) | Codebase terms — FSD layers, `tanstack/`, etc. |
+| [terminology.md](./terminology.md) | Codebase terms — architectural layers and responsibility groups |
 
 **Related:** [entities/note/docs/domain-model.md](../../entities/note/docs/domain-model.md) expands note concepts with lifecycle rules.

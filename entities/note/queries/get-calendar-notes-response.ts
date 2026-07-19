@@ -4,9 +4,9 @@
  */
 
 import { parseMonthParam } from "@/entities/note/lib/parse-month";
-import type { CalendarNotesResponse } from "@/entities/note/model/types";
-import { getCalendarNotesForMonth } from "@/entities/note/repository/note-repository";
-import { buildCalendarNotesResponse } from "@/entities/note/transform/aggregate-month-notes";
+import type { CalendarNotesResponse } from "@/entities/note/model/read-models";
+import { getCalendarNotesForMonth } from "@/entities/note/repository";
+import { buildCalendarNotesResponse } from "@/entities/note/transform";
 
 /**
  * Fetches and aggregates calendar notes for a month.

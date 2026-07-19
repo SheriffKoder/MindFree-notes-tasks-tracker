@@ -3,8 +3,8 @@
  * Read use-case: all general notes for the authenticated user.
  */
 
-import type { GeneralNotesResponse } from "@/entities/note/model/types";
-import { getGeneralNotes } from "@/entities/note/repository/note-repository";
+import type { GeneralNotesResponse } from "@/entities/note/model/read-models";
+import { getGeneralNotes } from "@/entities/note/repository";
 
 /**
  * Fetches every general note (`date IS NULL`, `is_quick = false`).

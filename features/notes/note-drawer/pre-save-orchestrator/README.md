@@ -26,9 +26,9 @@ NoteDrawer (wiring only)
 | Layer | Owns | Does not own |
 | ----- | ---- | ------------ |
 | `NoteForm` / `useNoteForm` | Field state, dirty/valid meta, calendar title prefill on open | Save routing, conflict checks, mutations |
-| `usePreSaveOrchestrator` | Refs (`lastPickedDate`, `replaceConfirmed`), debounce, TanStack calls | Business rules (delegates to `evaluateNoteSave`) |
+| `usePreSaveOrchestrator` | Refs (`lastPickedDate`, `replaceConfirmed`), debounce, entity mutation-hook calls | Business rules (delegates to `evaluateNoteSave`) |
 | `evaluateNoteSave` | Date resolve, normalize, conflict gate, action choice | React, network, cache |
-| `entities/note/mutations` + API | Dumb apply of resolved payload | Interpreting title edits or picker intent |
+| Entity write layers + API | Hooks call client fetchers; server write use-cases validate and use split repositories | Interpreting title edits or picker intent |
 
 **Picker wiring (intentionally thin):**
 
@@ -49,7 +49,7 @@ NoteDrawer (wiring only)
 | ---- | ---- |
 | `evaluate-note-save.ts` | Pure pipeline — check after check (resolve → normalize → gates → action) |
 | `types.ts` | `EvaluateNoteSaveInput` / `EvaluateNoteSaveResult`, hook contracts |
-| `use-pre-save-orchestrator.ts` | React glue — refs, debounce, TanStack mutations only |
+| `use-pre-save-orchestrator.ts` | React glue — refs, debounce, entity mutation hooks only |
 | `index.ts` | Public export: `usePreSaveOrchestrator` |
 
 ---
@@ -84,7 +84,7 @@ onChange(values, meta)
             existing + empty calendar content  → delete
             existing + dirty + valid  → patch
             else  → noop
-  → if isSavingEnabled && action !== noop  → debounce → TanStack mutate
+  → if isSavingEnabled && action !== noop  → debounce → entity mutation hook
 ```
 
 **Hook steps (`handleChange`):**
@@ -110,17 +110,17 @@ createCalendarNote({ date, values });
 
 These files gained **backward-compatible** fields. Omitting `date` and `replaceExistingOnDate` behaves like before Step 11:
 
-| Area | Files | What was added (optional) |
-| ---- | ----- | ------------------------- |
-| Schemas | `update-note.schema.ts`, `create-note.schema.ts` | `date`, `replaceExistingOnDate` on PATCH/POST bodies |
-| Server use-cases | `update-note.ts`, `create-calendar-note.ts` | Conflict gate + replace-on-date branch |
-| Repository | `note-repository.ts` | `findCalendarNoteByDate`, `replaceNoteOnDate` |
-| Client fetchers | `patch-note.ts`, `post-note.ts` | Optional `date` / `replaceExistingOnDate` in JSON body |
-| TanStack | `use-update-note-mutation.ts`, `use-create-calendar-note-mutation.ts` | Date-move optimistic path via `relocateNoteInCache` when `date` is sent |
-| Cache | `note-cache-mutations.ts`, `patch-note-in-cache.ts` | `relocateNoteInCache`, date override in `mergeFormValuesIntoNote` |
+| Area | Current responsibility path | What was added (optional) |
+| ---- | --------------------------- | ------------------------- |
+| Schemas | `entities/note/schema/update-note.schema.ts`, `entities/note/schema/create-note.schema.ts` | `date`, `replaceExistingOnDate` on PATCH/POST bodies |
+| Server write use-cases | `entities/note/mutations/update-note.ts`, `entities/note/mutations/create-calendar-note.ts` | Conflict gate + replace-on-date branch |
+| Split repository | `entities/note/repository/update-note.ts`, `entities/note/repository/create-calendar-note.ts` | Date conflict lookup, replace-on-date, and calendar-note persistence |
+| Client fetchers | `entities/note/client/patch-note.ts`, `entities/note/client/post-note.ts` | Optional `date` / `replaceExistingOnDate` in JSON body |
+| Mutation hooks | `entities/note/hooks/use-update-note-mutation.ts`, `entities/note/hooks/use-create-calendar-note-mutation.ts` | Date-move optimistic flow when `date` is sent |
+| Cache | `entities/note/cache/note-cache-mutations.ts`, `entities/note/cache/patch-note-in-cache.ts` | `relocateNoteInCache`, date override in `mergeFormValuesIntoNote` |
 | Editor (UI only) | `format-calendar-note-title.ts`, `types.ts`, `note-date-picker-trigger.tsx`, form title row / toggles | `isDateFormattedTitle`, `onDatePick`, dumb picker — no save rules |
 
-**What actually breaks on revert:** wiring in `note-drawer.tsx` / `note-drawer-footer.tsx` (imports this hook, conflict banner, `onDatePick`). Not the TanStack hooks themselves.
+**What actually breaks on revert:** wiring in `note-drawer.tsx` / `note-drawer-footer.tsx` (imports this hook, conflict banner, `onDatePick`). Not the entity mutation hooks themselves.
 
 **What you would restore:** a drawer-level mutation hook (formerly `use-note-drawer-mutations.ts` + `note-mutation-rules.ts`) and read-only or parallel-state date UX if you drop the orchestrator.
 
@@ -162,5 +162,9 @@ That caused races: saves firing before pick settled, ghost notes after moves, re
 - `note-drawer.tsx` — imports `usePreSaveOrchestrator`, passes `handleChange` / `onDatePick` / conflict props
 - `note-drawer-footer.tsx` — conflict banner + day nav driven by orchestrator outputs
 - `entities/note/editor/*` — editable fields + dumb picker; no save rules
-- `entities/note/mutations/*` + API routes — dumb apply (see table above)
-- `entities/note/tanstack/*` — mutations; date fields optional
+- `entities/note/schema/*` — request validation; optional date and replace fields
+- `entities/note/repository/*` — split database access by operation
+- `entities/note/mutations/*` + API routes — server write use-cases and dumb apply (see table above)
+- `entities/note/client/*` — HTTP fetchers and query/prefetch definitions
+- `entities/note/hooks/*` — read, mutation, and realtime React hooks
+- `entities/note/cache/*` — lookup, optimistic updates, synchronization hub, and realtime apply

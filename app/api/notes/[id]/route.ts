@@ -3,8 +3,11 @@
  * PATCH autosave and DELETE for an existing note row.
  */
 
-import { deleteNote, updateNote } from "@/entities/note/server";
-import { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";
+import {
+  deleteNote,
+  NoteDateConflictError,
+  updateNote,
+} from "@/entities/note/server";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 interface RouteContext {

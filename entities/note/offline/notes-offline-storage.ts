@@ -6,23 +6,24 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
-import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
-import { fetchDeleteNote } from "@/entities/note/mutations/delete-note-client";
 import {
   buildOptimisticCalendarNote,
   buildOptimisticGeneralNote,
   buildOptimisticQuickNote,
-} from "@/entities/note/mutations/note-cache-mutations";
-import { mergeFormValuesIntoNote } from "@/entities/note/mutations/patch-note-in-cache";
-import { fetchPatchNote } from "@/entities/note/mutations/patch-note";
+  findNoteByIdInCache,
+  mergeFormValuesIntoNote,
+  synchronizeNoteCaches,
+} from "@/entities/note/cache";
+import { fetchDeleteNote } from "@/entities/note/client/delete-note";
+import { fetchPatchNote } from "@/entities/note/client/patch-note";
 import {
   fetchPostCalendarNote,
   fetchPostGeneralNote,
   fetchPostQuickNote,
-} from "@/entities/note/mutations/post-note";
-import { synchronizeNoteCaches } from "@/entities/note/mutations/synchronize-note-caches";
-import type { HomeNotesResponse, Note } from "@/entities/note/model/types";
-import { homeNotesQueryKey } from "@/entities/note/tanstack/query-keys";
+} from "@/entities/note/client/post-note";
+import type { HomeNotesResponse } from "@/entities/note/model/read-models";
+import type { Note } from "@/entities/note/model/types";
+import { homeNotesQueryKey } from "@/entities/note/client/query-keys";
 import type { OfflineEntityAdapter } from "@/shared/offline-queue";
 import {
   removeOfflineWrite,

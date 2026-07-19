@@ -24,7 +24,7 @@ Form fields and validation live in `entities/note/editor/`.
 ## Cache resolution
 
 `model/use-resolved-drawer-note.ts` — resolves `Note | null` from TanStack cache (edit by id, date mode by `activeDate`)  
-`lib/find-note-in-cache.ts` — re-exports `findNoteByIdInCache`, `findNoteOnDateInCache` from entity
+`lib/find-note-in-cache.ts` — feature convenience re-export of `findNoteByIdInCache` and `findNoteOnDateInCache`; lookup ownership remains in `entities/note/cache/`
 
 ---
 
@@ -40,9 +40,12 @@ Form fields and validation live in `entities/note/editor/`.
 
 ## Pre-save orchestrator
 
-`pre-save-orchestrator/evaluate-note-save.ts` — pure pipeline: resolve date, normalize title, conflict gate, save action  
-`pre-save-orchestrator/use-pre-save-orchestrator.ts` — refs, debounce, TanStack mutations, conflict UI state, `reevaluateFromCache`  
-`pre-save-orchestrator/types.ts` — pipeline input/output, `NoteSaveAction`, hook contracts  
+`pre-save-orchestrator/evaluate-note-save.ts` — pure pipeline: resolve date, normalize title, conflict gate, save action
+
+`pre-save-orchestrator/use-pre-save-orchestrator.ts` — refs, debounce, entity mutation hooks, conflict UI state, `reevaluateFromCache`
+
+`pre-save-orchestrator/types.ts` — pipeline input/output, `NoteSaveAction`, hook contracts
+
 `pre-save-orchestrator/README.md` — orchestrator flow, entity touchpoints, why this approach
 
 ---
@@ -53,7 +56,9 @@ Form fields and validation live in `entities/note/editor/`.
 `model/note-editor-sync-guard.ts` — singleton: block remote form pull while dirty; idle 3s → server wins  
 `model/note-realtime-drawer-bridge.ts` — forwards page realtime events to the mounted drawer
 
-Entity subscription + cache apply: `entities/note/tanstack/use-notes-realtime-sync.ts`, `apply-realtime-note-change.ts`
+Entity subscription hook: `entities/note/hooks/use-notes-realtime-sync.ts`
+
+Entity cache application: `entities/note/cache/apply-realtime-note-change.ts`
 
 ---
 
@@ -74,4 +79,7 @@ Entity subscription + cache apply: `entities/note/tanstack/use-notes-realtime-sy
 | Fix conflict banner after remote insert | `pre-save-orchestrator/use-pre-save-orchestrator.ts` (`reevaluateFromCache`) |
 | Open drawer from page | `views/notes/model/editor/use-notes-drawer.ts` |
 | Change form fields | `entities/note/editor/` |
-| Change PATCH/POST implementation | `entities/note/mutations/`, `entities/note/tanstack/` |
+| Change server PATCH/POST use-cases | `entities/note/mutations/` |
+| Change HTTP PATCH/POST fetchers | `entities/note/client/patch-note.ts`, `entities/note/client/post-note.ts` |
+| Change mutation hook behavior | `entities/note/hooks/use-update-note-mutation.ts`, `entities/note/hooks/use-create-*-mutation.ts` |
+| Change optimistic/cache synchronization | `entities/note/cache/` |

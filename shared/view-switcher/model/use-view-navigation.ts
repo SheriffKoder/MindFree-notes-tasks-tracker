@@ -9,9 +9,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 import {
-  getNextNotesView,
-  type NotesViewId,
-} from "@/shared/view-switcher/lib/note-views";
+  getNextView,
+  type ViewConfig,
+} from "@/shared/view-switcher/lib/view-config";
 
 /**
  * Options for {@link useViewNavigation}.
@@ -24,9 +24,9 @@ export interface UseViewNavigationOptions {
 /**
  * Result of {@link useViewNavigation}.
  */
-export interface UseViewNavigationResult {
+export interface UseViewNavigationResult<Id extends string> {
   /** Navigates to an explicit view, preserving other search params. */
-  onViewChange: (nextView: NotesViewId) => void;
+  onViewChange: (nextView: Id) => void;
   /** Cycles to the next view in mobile order via the URL. */
   onCycleView: () => void;
 }
@@ -35,20 +35,22 @@ export interface UseViewNavigationResult {
  * Wires view selection and cycling to the current route's search params.
  *
  * @param view - current resolved view id
+ * @param config - page view config (drives cycle order)
  * @param options - optional search param configuration
  * @returns navigation callbacks for {@link ViewSwitcher}
  */
-export function useViewNavigation(
-  view: NotesViewId,
+export function useViewNavigation<Id extends string>(
+  view: Id,
+  config: ViewConfig<Id>,
   options: UseViewNavigationOptions = {},
-): UseViewNavigationResult {
+): UseViewNavigationResult<Id> {
   const { paramName = "view" } = options;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const onViewChange = useCallback(
-    (nextView: NotesViewId) => {
+    (nextView: Id) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set(paramName, nextView);
       router.push(`${pathname}?${params.toString()}`);
@@ -57,8 +59,8 @@ export function useViewNavigation(
   );
 
   const onCycleView = useCallback(() => {
-    onViewChange(getNextNotesView(view));
-  }, [onViewChange, view]);
+    onViewChange(getNextView(config, view));
+  }, [config, onViewChange, view]);
 
   return {
     onViewChange,

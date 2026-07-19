@@ -6,8 +6,8 @@
 import {
   createCalendarNote,
   getCalendarNotesResponse,
+  NoteDateConflictError,
 } from "@/entities/note/server";
-import { NoteDateConflictError } from "@/entities/note/mutations/note-date-conflict-error";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 /**

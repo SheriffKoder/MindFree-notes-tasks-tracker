@@ -10,7 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import type { CalendarDay, Note } from "@/entities/note";
 import { useNotesRealtimeSync } from "@/entities/note/client";
-import { createNotesOfflineSyncAdapter } from "@/entities/note/offline/notes-offline-storage";
+import { createNotesOfflineSyncAdapter } from "@/entities/note/offline";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { MonthNavigator } from "@/shared/month-navigator";
@@ -20,6 +20,7 @@ import {
   useOfflineSync,
 } from "@/shared/offline-queue";
 import { ViewSwitcher } from "@/shared/view-switcher";
+import { NOTES_VIEW_CONFIG } from "@/views/notes/lib/notes-views";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
@@ -110,6 +111,7 @@ export function NotesClient() {
         />
         <div className="flex shrink-0 items-center gap-2">
           <ViewSwitcher
+            config={NOTES_VIEW_CONFIG}
             view={view}
             onViewChange={changeView}
             onCycleView={cycleView}
