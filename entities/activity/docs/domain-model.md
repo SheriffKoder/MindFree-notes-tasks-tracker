@@ -80,9 +80,9 @@ per-activity "how do I record this" config beyond it:
 | `count+duration` | both dimensions | either positive |
 
 That "done" column is exactly `lib/record/is-meaningful-record.ts`. It is the
-one predicate behind both **display** (render a completion) and the future
-**delete-on-empty** watcher (Phase 2) — completion is derived, never a stored
-flag.
+one predicate behind both **display** (render a completion) and quick-record
+**delete-on-empty** behavior — completion is derived, never a stored flag. See
+[writes-and-autosave.md](./writes-and-autosave.md#daily-record-path).
 
 ---
 
@@ -102,6 +102,8 @@ Consequences:
 
 - Editing a task's schedule never touches its records — history is
   schedule-independent ([read-models.md](./read-models.md), [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md)).
+- Record upserts carry absolute daily totals and clearing every meaningful
+  dimension deletes the row ([writes-and-autosave.md](./writes-and-autosave.md#daily-record-path)).
 - Deleting a task must purge its records from every cached month
   (`cache/purge-activity-records-in-cache.ts`).
 

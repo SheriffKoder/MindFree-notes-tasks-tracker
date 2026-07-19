@@ -10,8 +10,8 @@ page, Home Today, and Progress are consumers, not forks
 | ---- | ----- |
 | Why one model / kinds / lifecycle | [`docs/domain-model.md`](./docs/domain-model.md) |
 | Recurrence + validity window + status | [`docs/scheduling.md`](./docs/scheduling.md) |
-| Caches, calendar join, month progress | [`docs/read-models.md`](./docs/read-models.md) |
-| Create / patch / archive / delete + autosave | [`docs/writes-and-autosave.md`](./docs/writes-and-autosave.md) |
+| Caches, calendar/Home joins, progress | [`docs/read-models.md`](./docs/read-models.md) |
+| Definition autosave + daily record writes | [`docs/writes-and-autosave.md`](./docs/writes-and-autosave.md) |
 | File lookup by responsibility | [`docs/responsibilities.md`](./docs/responsibilities.md) |
 | Layer / folder names | [`docs/concepts/terminology.md`](../../docs/concepts/terminology.md) |
 
@@ -45,15 +45,15 @@ model / schema / lib / transform / repository
 entities/activity/
 ├── docs/         # WHY (domain, scheduling, read models, writes)
 ├── model/        # Types + read-model payloads
-├── schema/       # Zod contracts (form, create, update)
-├── lib/          # Pure helpers (month, schedule, record, mapping)
+├── schema/       # Zod contracts (form, definitions, record writes)
+├── lib/          # Pure helpers (month, schedule, record, today, mapping)
 ├── transform/    # Calendar join, month progress, record shaping
-├── repository/   # Supabase CRUD (RLS-scoped)
+├── repository/   # Supabase definition + record CRUD (RLS-scoped)
 ├── queries/      # Server read use-cases
-├── mutations/    # Server write use-cases
-├── cache/        # Pure cache updaters + sync hub
-├── client/       # TanStack keys, fetchers, hydrate
-├── hooks/        # Read queries + write mutations
+├── mutations/    # Server definition + record write use-cases
+├── cache/        # Pure definition/record cache updaters + sync hub
+├── client/       # TanStack keys, fetchers, SSR seed
+├── hooks/        # Read selectors/queries + write mutations
 └── editor/       # Reusable config form (no save routing)
 ```
 
@@ -75,5 +75,6 @@ Autosave decision + orchestrator:
 | `app/(app)/tasks` hydrate | `server.ts` |
 | `app/api/activities/*` | `server.ts` |
 | `views/tasks` (client) | `client.ts` |
+| `views/home` (client) | `client.ts` |
 | `features/activity/*` | `client.ts`, `editor/`, `index.ts` |
 | Shared types | `index.ts` |

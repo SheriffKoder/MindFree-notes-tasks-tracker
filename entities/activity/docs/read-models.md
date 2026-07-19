@@ -110,6 +110,31 @@ writer alongside other entities. After hydration every island shares one browser
 
 ---
 
+## Home Today join
+
+`hooks/use-home-today-query.ts` is a memoized selector over task definitions and
+the current month's records. It builds the record lookup once, then calls
+`lib/today/build-today-activities.ts` for today's `YYYY-MM-DD`.
+
+An unarchived task appears when **either**:
+
+- today's record exists — history remains visible after schedule edits; or
+- `isActiveOnDay(activity, today)` — an empty task is due today.
+
+Each `TodayActivity` carries `{ activity, record, done, progress }`.
+`lib/record/derive-today-progress.ts` derives the primary value, goal,
+remaining value, percent, and goal-aware `done` state. `duration` uses minutes;
+other modes use count as the primary goal dimension. The card may additionally
+render count and duration as separate presentation segments for
+`count+duration`.
+
+There is no `homeActivities` query key. A record upsert/delete changes the
+current `activityRecords` month bucket, and the selector recomputes
+automatically. See
+[views/home/docs/today-list.md](../../../views/home/docs/today-list.md).
+
+---
+
 ## Home & Progress derive, they don't fork
 
 There is no separate "Home activities" or "Progress" cache. Home Today and the
@@ -127,6 +152,7 @@ Home branch — updating the shared caches updates every consumer at once. See
 | [domain-model.md](./domain-model.md) | Records as `(taskId, date)` aggregates |
 | [scheduling.md](./scheduling.md) | `isActiveOnDay` behind the join denominator |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Keeping both caches consistent |
+| [views/home/docs/today-list.md](../../../views/home/docs/today-list.md) | Home's layout, query mount, and inline-recording boundary |
 | [views/tasks/docs/data-flow.md](../../../views/tasks/docs/data-flow.md) | Server fetch → caches → calendar/list endpoints |
 | [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md) · [0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md) | History-always-visible · precomputed progress map |
 | [0014-flat-records-client-side-join.md](../../../docs/adr/0014-flat-records-client-side-join.md) | Why records ship flat + join on the client (vs. Notes) |

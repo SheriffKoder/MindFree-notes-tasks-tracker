@@ -1,10 +1,11 @@
 # Writes and autosave
 
-How the config drawer decides **what** to write (create / patch / noop), how
-archive/restore/delete fire, and how one change fans out to every cache.
+How definition autosave and inline daily recording decide **what** to write,
+and how each change fans out to every Activity consumer.
 
 **Decision (pure):** `features/activity/activity-drawer/pre-save-orchestrator/evaluate-activity-save.ts`
 **Orchestrator (hook):** `features/activity/activity-drawer/model/use-config-orchestrator.ts`
+**Record orchestrator:** `features/activity/quick-record/model/use-quick-record.ts`
 **Cache hub:** `entities/activity/cache/synchronize-activity-caches.ts`
 
 ---
@@ -23,7 +24,7 @@ archive/restore/delete fire, and how one change fans out to every cache.
 
 ---
 
-## Actions
+## Definition actions
 
 `evaluateActivitySave` is deliberately simpler than the Notes orchestrator —
 **no date routing, no conflict gate, no auto-delete:**
@@ -67,6 +68,52 @@ found, 500 otherwise.
 
 ---
 
+## Daily record path
+
+Home's inline controls edit the aggregate record identified by the natural key
+`(taskId, date)`. Values are absolute daily totals, not increment commands, so
+retries remain idempotent.
+
+```text
+QuickRecord control
+  → useQuickRecord updates local count/duration immediately
+  → debounce 500 ms
+       meaningful for trackingMode → useUpsertActivityRecordMutation
+       empty existing record       → useDeleteActivityRecordMutation
+       empty with no record        → no write
+  → POST or DELETE /api/activity-records
+  → synchronizeActivityCaches
+  → ["activityRecords", YYYY-MM]
+  → Home Today + Tasks calendar + Progress recompute
+```
+
+`features/activity/quick-record/model/use-quick-record.ts` owns the **when**
+(debounce) and **whether** (upsert/delete/noop). It preserves the other tracked
+dimension and record description while changing one control. The entity
+mutation hooks remain single-write executors.
+
+`isMeaningfulRecord` is the one delete-on-empty predicate:
+
+- `boolean` / `count` — count is positive;
+- `duration` — duration is positive;
+- `count+duration` — either dimension is positive.
+
+The timer adds one minute through `useQuickRecord.addMinutes`, so timed and
+manual edits use exactly the same persistence path.
+
+Record API surfaces (thin route → record mutation use-cases):
+
+- `POST /api/activity-records` — natural-key upsert with absolute
+  count/duration;
+- `DELETE /api/activity-records` — remove by `(taskId, date)`.
+
+Both mutation hooks optimistically update only the target month bucket and
+restore its snapshot on error. Upsert success uses `isRemoteRecordNewer` before
+replacing the optimistic row; pending natural keys provide the future realtime
+echo-suppression seam.
+
+---
+
 ## The cache hub
 
 Every write source maps its event into one `ActivityChange` and calls
@@ -77,45 +124,51 @@ ActivityChange =
   | create | update | archive | restore   → upsert definition in ["activities", kind]
   | delete                                → remove definition + purge records
                                             from every ["activityRecords", *] month
+  | record-upsert                         → upsert record in its YYYY-MM bucket
+  | record-delete                         → remove record from its YYYY-MM bucket
 ```
 
 The fan-out is intentionally small. Home Today and Progress derive from the same
 two caches ([read-models.md](./read-models.md)), so there is **no separate Home
-patch branch** — upserting the definition updates every consumer. Only `delete`
-touches records, purging the task from all cached months
-(`purge-activity-records-in-cache`), because its history no longer has an owner.
+patch branch**. A record change touches one month bucket; a definition change
+touches its kind bucket. Definition `delete` additionally purges the task from
+all cached months (`purge-activity-records-in-cache`), because its history no
+longer has an owner.
 
 Pure cache updaters (`cache/activity-cache-mutations.ts`,
-`purge-activity-records-in-cache.ts`) take no `QueryClient` — the hub loops them
-over cache entries, keeping them unit-testable in isolation
+`cache/record/*`, `purge-activity-records-in-cache.ts`) take no `QueryClient` —
+the hub applies them to the relevant cache entries, keeping them unit-testable
+in isolation
 (`synchronize-activity-caches.test.ts`).
 
 ---
 
 ## Newer-wins reconciliation
 
-`onSuccess` re-applies the server row only when `isRemoteActivityNewer`
-(strict `updatedAt` compare) says it is newer than what's cached. This stops a
-slow create/patch response from clobbering a later edit, and is the same gate a
-realtime adapter will reuse (Phase 5).
+Definition `onSuccess` re-applies the server row only when
+`isRemoteActivityNewer` says it is newer than what's cached. Record upserts use
+the equivalent `isRemoteRecordNewer` gate for `(taskId, date)`. Both compare
+`updatedAt`, preventing a slow response from clobbering a later edit and
+providing the same gate a realtime adapter will reuse (Phase 5).
 
-`hooks/activity-mutation-pending.ts` tracks in-flight ids so a future realtime
-subscription can skip echoing its own writes.
+`hooks/activity-mutation-pending.ts` tracks in-flight definition ids;
+`hooks/record/record-mutation-pending.ts` tracks in-flight record natural keys,
+so a future realtime subscription can skip echoing its own writes.
 
 ---
 
 ## Offline & realtime (deferred)
 
-Both are inert seams in Phase 1:
+Both remain inert seams:
 
 - **Realtime (Phase 5)** — a `postgres_changes` subscription would map events to
-  the same `ActivityChange` hub, gated by `isRemoteActivityNewer` +
-  `activity-mutation-pending`.
+  the same `ActivityChange` hub, gated by the matching definition/record
+  newer-wins check and mutation-pending registry.
 - **Offline (Phase 6)** — a queue adapter would persist pending writes and flush
   them through the same hub.
 
-The mount points are commented in `views/tasks/ui/tasks-client.tsx`; no throwaway
-code exists yet.
+The mount points are commented in `views/tasks/ui/tasks-client.tsx` and
+`views/home/ui/home-today-list.tsx`; no throwaway code exists yet.
 
 ---
 
@@ -126,3 +179,4 @@ code exists yet.
 | [domain-model.md](./domain-model.md) | Lifecycle: create → archive/restore → delete |
 | [read-models.md](./read-models.md) | The two caches the hub keeps consistent |
 | [responsibilities.md](./responsibilities.md) | `mutations/`, `cache/`, `hooks/` file map |
+| [views/home/docs/today-list.md](../../../views/home/docs/today-list.md) | Home's inline-recording consumer boundary |

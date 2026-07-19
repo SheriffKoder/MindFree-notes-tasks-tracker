@@ -18,7 +18,7 @@ noted. For the *why* behind these, see the WHY docs in this folder
 ## Domain model
 
 `model/types.ts` — `Activity`, `ActivityRecord`, row types, `ActivityKind`, `TrackingMode`, `ScheduleType`, `ScheduleConfig`, `ActivityStatus`, `WEEKDAYS`
-`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`, `TaskCalendarDay`, `TasksPageData`
+`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`, `TaskCalendarDay`, `TasksPageData`, `TodayActivity`, `TodayProgress`
 
 ---
 
@@ -27,6 +27,11 @@ noted. For the *why* behind these, see the WHY docs in this folder
 `schema/activity-form.schema.ts` — base editable fields, enum/config validators, `addScheduleConfigIssues`, `addWindowIssues`
 `schema/create-activity.schema.ts` — POST body (`+ kind`) + response
 `schema/update-activity.schema.ts` — PATCH body (partial `+ archivedAt`) + response
+`schema/record/upsert-activity-record.schema.ts` — natural-key record upsert body + response
+
+New record write files use an asymmetric `record/` subfolder inside each layer;
+existing definition and read files remain flat. Layer barrels re-export the
+record surface so consumers never deep-import these implementation paths.
 
 ---
 
@@ -39,6 +44,9 @@ noted. For the *why* behind these, see the WHY docs in this folder
 `lib/schedule/activity-status.ts` — `getActivityStatus` (archived → upcoming → expired → active)
 `lib/record/is-meaningful-record.ts` — `isMeaningfulRecord` (done per tracking mode)
 `lib/record/build-record-lookup.ts` — `recordKey`, `buildRecordLookup` (`byTaskDate` / `byTaskId`)
+`lib/record/derive-today-progress.ts` — goal-aware value / remaining / percent for one day
+`lib/record/is-remote-record-newer.ts` — record newer-wins `updatedAt` gate
+`lib/today/build-today-activities.ts` — definitions + today's lookup → `TodayActivity[]`
 `lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (row → domain; repository-only)
 `lib/is-remote-activity-newer.ts` — `isRemoteActivityNewer` (newer-wins `updatedAt` gate)
 
@@ -60,6 +68,8 @@ noted. For the *why* behind these, see the WHY docs in this folder
 `repository/create-activity.ts` — insert a definition
 `repository/update-activity.ts` — `updateActivityById` (edit / archive / restore), `archiveActivityById`
 `repository/delete-activity.ts` — `deleteActivityById`
+`repository/record/upsert-record.ts` — natural-key `(taskId, date)` upsert
+`repository/record/delete-record.ts` — natural-key record delete
 
 ---
 
@@ -77,8 +87,12 @@ noted. For the *why* behind these, see the WHY docs in this folder
 `mutations/update-activity.ts` — parse `updateActivityBodySchema` → repo update
 `mutations/archive-activity.ts` — archive/restore via `archivedAt`
 `mutations/delete-activity.ts` — hard delete (404 when missing)
+`mutations/record/upsert-activity-record.ts` — validate + upsert one daily aggregate
+`mutations/record/delete-activity-record.ts` — validate natural key + delete
 
-API routes (outside entity): `app/api/activities/route.ts` (GET/POST), `app/api/activities/[id]/route.ts` (PATCH/DELETE).
+API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
+`app/api/activities/[id]/route.ts` (PATCH/DELETE), and
+`app/api/activity-records/route.ts` (GET/POST/DELETE).
 
 ---
 
@@ -88,6 +102,7 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST), `app/api/
 `client/activities-query.ts` — `fetchActivities`, `activitiesQueryOptions`
 `client/activity-records-query.ts` — `fetchActivityRecords`, `activityRecordsQueryOptions`
 `client/post-activity.ts` / `patch-activity.ts` / `delete-activity.ts` — write fetchers
+`client/record/activity-records-mutation.ts` — POST upsert + DELETE record fetchers
 `client/seed-activity-caches.ts` — `seedActivityCaches(qc, data)`: write both caches from SSR (void; caller dehydrates)
 
 ---
@@ -95,9 +110,12 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST), `app/api/
 ## Cache updates (`cache/`, pure + hub)
 
 `cache/activity-cache-mutations.ts` — `upsertActivityInCache`, `removeActivityFromCache`
+`cache/record/upsert-record-in-cache.ts` — upsert one record in its flat month
+`cache/record/remove-record-from-cache.ts` — remove by `(taskId, date)`
+`cache/record/record-month-key.ts` — derive `YYYY-MM` from a record date
 `cache/purge-activity-records-in-cache.ts` — drop one task's records from a month bucket
 `cache/find-activity-in-cache.ts` — `findActivityByIdInCache`
-`cache/synchronize-activity-caches.ts` — the `ActivityChange` fan-out hub (single write entry point)
+`cache/synchronize-activity-caches.ts` — definition + record `ActivityChange` fan-out hub
 
 ---
 
@@ -105,11 +123,15 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST), `app/api/
 
 `hooks/use-activities-query.ts` — `useActivitiesQuery(kind)`
 `hooks/use-activity-records-query.ts` — `useActivityRecordsQuery(month)`
+`hooks/use-home-today-query.ts` — memoized selector over task + current-month caches
 `hooks/use-create-activity-mutation.ts` — create + optimistic upsert + rollback
 `hooks/use-update-activity-mutation.ts` — patch autosave + optimistic + newer-wins
 `hooks/use-archive-activity-mutation.ts` — `useArchiveActivityMutation`, `useRestoreActivityMutation`
 `hooks/use-delete-activity-mutation.ts` — delete + cache removal + record purge
 `hooks/activity-mutation-pending.ts` — in-flight ids (realtime echo skip, Phase 5)
+`hooks/record/use-upsert-activity-record-mutation.ts` — absolute upsert + optimistic + newer-wins
+`hooks/record/use-delete-activity-record-mutation.ts` — optimistic delete + rollback
+`hooks/record/record-mutation-pending.ts` — in-flight natural keys (realtime echo skip)
 
 ---
 
@@ -148,11 +170,15 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST), `app/api/
 | Change what "due today" means | `lib/schedule/resolve-schedule.ts`, `matches-recurrence.ts` |
 | Change lifecycle status rules | `lib/schedule/activity-status.ts` |
 | Change what counts as "done" | `lib/record/is-meaningful-record.ts` |
+| Change Home Today membership | `lib/today/build-today-activities.ts` |
+| Change Home Today goal/progress math | `lib/record/derive-today-progress.ts` |
 | Change calendar day shape | `transform/build-calendar-days.ts` |
 | Change completion-% math | `transform/compute-task-month-progress.ts` |
 | Change DB queries | `repository/*` |
 | Change GET/POST/PATCH/DELETE server logic | `queries/*`, `mutations/*` |
-| Fix optimistic UI after save | `cache/synchronize-activity-caches.ts`, `activity-cache-mutations.ts` |
+| Fix optimistic record writes | `hooks/record/*`, `cache/record/*` |
+| Change quick-record debounce/delete-on-empty | `features/activity/quick-record/model/use-quick-record.ts` |
+| Fix optimistic UI after save | `cache/synchronize-activity-caches.ts`, `activity-cache-mutations.ts`, `cache/record/*` |
 | Fix list/calendar not updating | `hooks/use-activities-query.ts`, `use-activity-records-query.ts` |
 | Change autosave decision | `features/activity/activity-drawer/pre-save-orchestrator/evaluate-activity-save.ts` |
 | Wire drawer save routing | `features/activity/activity-drawer/model/use-config-orchestrator.ts` |

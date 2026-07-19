@@ -53,8 +53,9 @@ data into the records payload and pick one output shape.
   for progress, recording, and Home.
 - **Decoupled caches.** Flat records keep definitions/records on independent
   lifetimes and keep month nav cheap.
-- **Tiny write path.** `synchronizeActivityCaches` only upserts a definition or
-  purges a task's flat records; it never reshapes day-buckets.
+- **Tiny write path.** `synchronizeActivityCaches` upserts/removes a record in
+  one flat month bucket, or updates a definition (purging all record buckets
+  only when that definition is deleted); it never reshapes day-buckets.
 - **Free filtering/progress.** The per-task filter, "hide not-done", and the
   percent recompute locally with no network round-trip.
 - **No payload win.** A month is ≤31 days × a few tasks; pre-aggregating
@@ -74,8 +75,8 @@ Rejected:
 Positive:
 
 - Definition edits and filter toggles are instant and network-free.
-- Recording (Phase 2) writes a single `(taskId, date)` row into a flat list —
-  the natural optimistic target.
+- Recording writes a single `(taskId, date)` row into a flat list — the natural
+  optimistic target.
 - The same records back calendar, progress, and Home without new payloads.
 
 Trade-offs:
