@@ -49,7 +49,9 @@ export function ActivityRecordDrawer({
   return (
     <AppDrawer
       ariaLabel={
-        selectedDate ? `Records for ${selectedDate}` : "Day records"
+        selectedDate
+          ? `${kind === "task" ? "Task" : "Reminder"} records for ${selectedDate}`
+          : `${kind === "task" ? "Task" : "Reminder"} day records`
       }
       open={isOpen}
       onOpenChange={handleOpenChange}

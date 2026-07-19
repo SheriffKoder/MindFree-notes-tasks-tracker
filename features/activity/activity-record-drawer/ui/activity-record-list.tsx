@@ -26,6 +26,8 @@ export function ActivityRecordList({ date, kind }: ActivityRecordListProps) {
     date,
     kind,
   );
+  // Goal editors are task-only; reminders are boolean (toggle) with null goals.
+  const showGoalControls = kind === "task";
 
   if (isError) {
     return (
@@ -41,7 +43,11 @@ export function ActivityRecordList({ date, kind }: ActivityRecordListProps) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-h2">{date}</h2>
-        <ActivityRecordTaskPicker candidates={candidates} date={date} />
+        <ActivityRecordTaskPicker
+          candidates={candidates}
+          date={date}
+          kind={kind}
+        />
       </div>
 
       {items.length === 0 ? (
@@ -54,7 +60,7 @@ export function ActivityRecordList({ date, kind }: ActivityRecordListProps) {
             <QuickRecordCard
               key={item.activity.id}
               date={date}
-              showGoalControls
+              showGoalControls={showGoalControls}
               today={item}
             />
           ))}
