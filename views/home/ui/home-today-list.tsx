@@ -19,6 +19,11 @@ import { QueryStatePanel } from "@/shared/react-query";
  * whitespace + hover, not dividers (styling preference, `2-home-today-plan.md`).
  */
 export function HomeTodayList() {
+  // Phase 5 — mount useActivityRealtimeSync(...) here (mirrors
+  // useNotesRealtimeSync in views/home/ui/home-notes-section.tsx).
+  // Phase 6 — mount useOfflineSync(userId, [activityOfflineAdapter]) here
+  // (mirrors createNotesOfflineSyncAdapter + useOfflineSync in the same file).
+
   const { today, isPending, isError } = useHomeTodayQuery();
 
   if (isError) {
