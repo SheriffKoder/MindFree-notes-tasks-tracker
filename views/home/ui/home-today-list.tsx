@@ -10,8 +10,7 @@
 "use client";
 
 import { useHomeTodayQuery } from "@/entities/activity/client";
-import { ActivityTodayCard } from "@/features/activity/activity-today-card";
-import { QuickRecord } from "@/features/activity/quick-record";
+import { QuickRecordCard } from "@/features/activity/quick-record";
 import { QueryStatePanel } from "@/shared/react-query";
 
 /**
@@ -47,11 +46,7 @@ export function HomeTodayList() {
   return (
     <div className="flex flex-col gap-0.5">
       {today.map((item) => (
-        <ActivityTodayCard
-          key={item.activity.id}
-          recordSlot={<QuickRecord today={item} />}
-          today={item}
-        />
+        <QuickRecordCard key={item.activity.id} today={item} />
       ))}
     </div>
   );

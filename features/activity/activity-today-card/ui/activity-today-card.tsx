@@ -40,6 +40,13 @@ export interface ActivityTodayCardProps {
    * When omitted the card renders a read-only stepper (`TodayCardControls`).
    */
   recordSlot?: ReactNode;
+  /**
+   * Controlled note text. Pair with `onDescriptionChange` so the expandable
+   * textarea persists through the quick-record write path.
+   */
+  description?: string | null;
+  /** Debounced description persist handler from `useQuickRecord`. */
+  onDescriptionChange?: (value: string | null) => void;
 }
 
 /** Skips re-render when `today` and `defaultOpen` are referentially equal. */
@@ -47,12 +54,15 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
   today,
   defaultOpen = false,
   recordSlot,
+  description,
+  onDescriptionChange,
 }: ActivityTodayCardProps) {
   const { activity, progress, record } = today;
   const [open, setOpen] = useState(defaultOpen);
   const primaryProgress = progress.dimensions[0];
   const color =
     activity.color ?? ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.taskColorFallback;
+  const noteDescription = description ?? record?.description ?? null;
 
   return (
     <div style={ACTIVITY_TODAY_CARD_CSS_VARS} className="mb-2">
@@ -93,7 +103,11 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
       </div>
 
       {open ? (
-        <TodayCardNote description={record?.description ?? null} title={activity.title} />
+        <TodayCardNote
+          description={noteDescription}
+          title={activity.title}
+          onChange={onDescriptionChange}
+        />
       ) : null}
     </div>
   );

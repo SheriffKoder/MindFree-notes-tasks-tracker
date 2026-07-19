@@ -19,8 +19,7 @@ import {
   useActivitiesQuery,
   useActivityRecordsQuery,
 } from "@/entities/activity/client";
-import { ActivityTodayCard } from "@/features/activity/activity-today-card";
-import { QuickRecord } from "@/features/activity/quick-record";
+import { QuickRecordCard } from "@/features/activity/quick-record";
 import { QueryStatePanel } from "@/shared/react-query";
 
 export interface ActivityRecordListProps {
@@ -72,11 +71,7 @@ export function ActivityRecordList({ date }: ActivityRecordListProps) {
   return (
     <div className="flex flex-col gap-0.5">
       {items.map((item) => (
-        <ActivityTodayCard
-          key={item.activity.id}
-          recordSlot={<QuickRecord date={date} today={item} />}
-          today={item}
-        />
+        <QuickRecordCard key={item.activity.id} date={date} today={item} />
       ))}
     </div>
   );
