@@ -18,7 +18,9 @@ noted. For the *why* behind these, see the WHY docs in this folder
 ## Domain model
 
 `model/types.ts` — `Activity`, `ActivityRecord`, row types, `ActivityKind`, `TrackingMode`, `ScheduleType`, `ScheduleConfig`, `ActivityStatus`, `WEEKDAYS`
-`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`, `TaskCalendarDay`, `ActivityPageData`, `TasksPageData` (alias), `TodayActivity`, `TodayProgress`, `TodayProgressDimension`
+`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`,
+`TaskCalendarDay`, `ActivityPageData`, `HomeActivityData`, `TasksPageData`
+(deprecated alias), `TodayActivity`, `TodayProgress`, `TodayProgressDimension`
 
 ---
 
@@ -48,6 +50,8 @@ record surface so consumers never deep-import these implementation paths.
 `lib/record/derive-today-progress.ts` — per-dimension goal-aware value / remaining / percent / `done`
 `lib/record/is-remote-record-newer.ts` — record newer-wins `updatedAt` gate
 `lib/today/build-today-activities.ts` — definitions + today's lookup → `TodayActivity[]`
+`lib/definition/normalize-activity-definition.ts` — canonical task goals and
+enforced reminder fields (`boolean`, no color/goals)
 `lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (incl. record snapshots, `goalDuration`, `icon`)
 `lib/is-remote-activity-newer.ts` — `isRemoteActivityNewer` (newer-wins `updatedAt` gate)
 
@@ -79,6 +83,8 @@ record surface so consumers never deep-import these implementation paths.
 `queries/get-activities-response.ts` — definitions payload
 `queries/get-activity-records-response.ts` — month records payload
 `queries/get-activity-page-initial-data.ts` — parallel definitions + current-month records for activity-page SSR (`kind`)
+`queries/get-home-activity-initial-data.ts` — task definitions + reminder
+definitions + one shared current-month records response for Home SSR
 
 ---
 
@@ -137,7 +143,8 @@ reminders + one records fetch)
 
 `hooks/use-activities-query.ts` — `useActivitiesQuery(kind)`
 `hooks/use-activity-records-query.ts` — `useActivityRecordsQuery(month)`
-`hooks/use-home-today-query.ts` — memoized selector over task + current-month caches
+`hooks/use-home-today-query.ts` — `useHomeTodayQuery(kind)`, a memoized selector
+over the matching definitions bucket + shared current-month records
 `hooks/use-create-activity-mutation.ts` — create + optimistic upsert + rollback
 `hooks/use-update-activity-mutation.ts` — patch autosave + optimistic + newer-wins
 `hooks/use-archive-activity-mutation.ts` — `useArchiveActivityMutation`, `useRestoreActivityMutation`
@@ -174,6 +181,37 @@ reminders + one records fetch)
 `editor/lib/form-labels.ts` — field labels / option lists
 `editor/lib/form-classes.ts` — shared Tailwind + menu z-index classes
 `editor/lib/toggle-chip-value.ts` — add/remove a value from a chip array
+
+---
+
+## Shared Tasks / Reminders page (`features/activity/activity-page/`)
+
+This feature owns the reusable page workflow. `views/tasks` and
+`views/reminders` are thin route-specific wrappers that provide `kind`, title,
+subtitle, and their matching SSR seed; they do not fork calendar, list, filter,
+selection, or drawer logic.
+
+- `ui/activity-page-client.tsx` — shared shell: month/view URL state, selection,
+  filter provider, Add action, definition drawer, and selected-day records
+  drawer
+- `ui/activity-views-section.tsx` — kind-scoped definition query + shared month
+  records query; resolves loading/error states and mounts calendar/list panes
+- `ui/activity-calendar-pane.tsx` / `activity-list-pane.tsx` — calendar join and
+  grouped definition-list endpoints
+- `model/use-activity-page-url-state.ts`,
+  `use-activity-page-selection.ts`, `use-activity-definition-drawer.ts`, and
+  `use-activity-records-drawer.ts` — page interaction state
+- `model/activity-filter-context.tsx` — calendar-only definition visibility and
+  incomplete-record filter
+- `lib/activity-page-copy.ts` / `activity-views.ts` — kind-aware labels and view
+  configuration
+- `lib/activity-filter.ts` / `resolve-view-query-state.ts` — pure visibility and
+  query-state decisions
+- `index.ts` — public surface; consumers do not deep-import internals
+
+`kind` is the only domain switch. Tasks retain colors/goals/progress; reminders
+use theme-neutral presentation and boolean done/not-done records. Shared month
+records remain keyed independently of kind.
 
 ---
 

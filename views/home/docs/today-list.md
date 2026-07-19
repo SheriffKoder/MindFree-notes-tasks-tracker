@@ -1,7 +1,7 @@
 # Home Today list
 
-Why Home renders today's tasks as an inline recording surface — and what the
-Home view must not own.
+Why Home renders today's tasks and reminders as inline recording surfaces — and
+what the Home view must not own.
 
 **Activity model:** [entities/activity/docs/domain-model.md](../../../entities/activity/docs/domain-model.md)  
 **Read models:** [entities/activity/docs/read-models.md](../../../entities/activity/docs/read-models.md)  
@@ -13,17 +13,24 @@ Home view must not own.
 ## What you see
 
 ```text
-Home "Today's Tasks"
-  └─ HomeTodayList
+Home
+  ├─ "Today's Tasks"
+  │    └─ HomeTodayList ─────── useHomeTodayQuery("task")
+  └─ "Today's Reminders"
+       └─ HomeRemindersList ─── useHomeTodayQuery("reminder")
+
+Both lists
+  └─ QuickRecordCard
        └─ ActivityTodayCard
-            ├─ identity + derived progress
-            ├─ inline QuickRecord controls
+            ├─ identity + entity-derived progress
+            ├─ mode-appropriate QuickRecord controls
             └─ optional record description
 ```
 
 The cards edit the activity's record for today inline. They do not open the
 activity-definition drawer or introduce a record drawer. Definition editing
-stays on `/tasks`.
+stays on `/tasks` or `/reminders`; selected-day editing stays in those pages'
+shared records drawer.
 
 ---
 
@@ -32,24 +39,30 @@ stays on `/tasks`.
 | Owns | Does not own |
 | ---- | ------------ |
 | Section/card composition and layout | Activity or record domain rules |
-| Mount `useHomeTodayQuery` | A Home-only query key or cache |
-| Inject `QuickRecord` into each card | Record API calls or cache mutation logic |
+| Mount `useHomeTodayQuery(kind)` for each section | A Home-only query key or cache |
+| Render `QuickRecordCard` for each item | Record API calls or cache mutation logic |
 | Render pending, error, and empty states | A second save/sync pipeline |
 | Future realtime/offline mount points | Activity-definition editing |
 
-`useHomeTodayQuery` is a memoized selector over
-`["activities", "task"]` and `["activityRecords", currentMonth]`. The Home
-route seeds those same canonical caches during SSR, so the list has no private
-Home payload and no initial client refetch flash.
+`useHomeTodayQuery(kind)` is a memoized selector over the matching
+`["activities", kind]` bucket and `["activityRecords", currentMonth]`. Tasks and
+reminders therefore share one month-record cache without mixing their
+definitions.
+
+The Home route fetches both definition kinds and one records month through
+`getHomeActivityInitialData`, then `seedHomeActivityCaches` writes all three
+canonical keys during SSR. Neither list has a private Home cache or an initial
+client-refetch flash.
 
 ---
 
 ## Today membership and progress
 
-`buildTodayActivities` joins task definitions with today's record. An
-unarchived task appears when it is scheduled today or already has a record for
+`buildTodayActivities` joins one kind's definitions with today's records. An
+unarchived activity appears when it is scheduled today or already has a record
 today. The record wins over later schedule edits, matching the calendar's
-history-always-visible rule.
+history-always-visible rule. Passing a kind-scoped definitions bucket makes the
+same membership rule serve both Home sections.
 
 `deriveTodayProgress` owns per-dimension value / goal / remaining / percent and
 goal-aware `done`, using `resolveRecordConfiguration` so recorded days keep
@@ -61,6 +74,9 @@ their frozen mode/goals. Home cards render those dimensions as:
   only; completion stays per-dimension in the entity).
 
 Home does not recalculate domain completion or invent a second progress model.
+Tasks render their numeric dimensions and donut. Reminders are normalized to
+boolean tracking with no goals, so they render done/not-done without numeric
+goal progress.
 
 ---
 
@@ -78,8 +94,18 @@ snapshot when present, otherwise `activity.trackingMode`):
 record upsert for 500 ms. Count and duration edits preserve the other
 dimension. Returning all meaningful dimensions to zero deletes an existing
 record instead. The entity mutation hooks own optimistic cache updates,
-rollback, and server reconciliation; PostgreSQL captures immutable tracking/goal
-snapshots on first insert.
+rollback, and server reconciliation.
+
+Record configuration snapshots are **form-owned**, not populated by a
+PostgreSQL trigger. Every upsert submits `trackingMode`, `goal`, and
+`goalDuration`; optimistic rows use those submitted values and the server
+persists them. The selected-day records drawer may edit per-record goals while
+tracking mode remains unchanged by the UI. Deleting and recreating a record
+seeds snapshots from the activity's then-current configuration.
+
+For reminders, the boolean toggle sets count to `1` when checked. Unchecking
+returns count to `0` and deletes the row when it has no note or other meaningful
+content.
 
 The duration timer is client-local. While running it adds one minute every
 60 seconds through the same `useQuickRecord` path. Stopping preserves the
@@ -96,7 +122,7 @@ QuickRecord
   → record mutation hook
   → synchronizeActivityCaches
   → ["activityRecords", month]
-  → Home Today + Tasks calendar + Progress recompute
+  → Home Today + Tasks/Reminders calendars + Progress recompute
 ```
 
 Home does not have a branch in the synchronization hub. Every consumer derives

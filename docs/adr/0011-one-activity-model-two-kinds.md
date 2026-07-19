@@ -29,13 +29,18 @@ This mirrors the Notes decision (ADR 0010) — one domain, multiple consumers.
 2. A **`kind` discriminator** (`"task" | "reminder"`) decides the surface and
    presentation — never a separate type or table.
 3. `kind` is **set by the creating page**, never asked in the drawer: the Tasks
-   page creates `task`s, the Reminders page (Phase 3) creates `reminder`s. The
-   create schema takes `kind` from the caller
+   page creates `task`s and the Reminders page creates `reminder`s. The create
+   schema takes `kind` from the caller
    (`schema/create-activity.schema.ts`).
 4. Definitions are **cached per kind** (`["activities", kind]`), so each surface
    reads its own list without cross-talk.
-5. Presentation differences (`color`, `goal`) are **nullable fields keyed off
-   `kind`**, not subtypes.
+5. Reminder fields are canonical invariants:
+   `trackingMode="boolean"`, `color=null`, `goal=null`, and
+   `goalDuration=null`. `normalizeActivityDefinition` enforces them at server
+   create/PATCH and optimistic-client write boundaries.
+6. Tasks and Reminders mount the same
+   `features/activity/activity-page/` composition. Their view and route modules
+   are thin wrappers that supply `kind`, copy, and the matching SSR seed.
 
 ### Why
 
@@ -59,16 +64,20 @@ Rejected:
 
 Positive:
 
-- Reminders (Phase 3) ship as a page + `kind="reminder"` wiring, reusing the
-  entire entity.
+- `/tasks` and `/reminders` reuse one calendar/list/filter/drawer workflow via
+  `ActivityPageClient`; fixes to that workflow apply to both surfaces.
+- Reminder definitions cannot retain task-only tracking, color, or goal values,
+  even when a client bypasses the hidden form controls.
 - Progress/Home read models add without new write paths.
 
 Trade-offs:
 
 - Every query/cache that lists definitions must pass `kind` — forgetting it
   mixes surfaces.
-- Field nullability (`color`, `goal`) must be respected per kind in UI, not
-  assumed present.
+- Shared components must branch on `kind` only where presentation truly differs
+  (theme/progress/copy), while keeping data flow and interactions shared.
+- Reminder nullability must still be respected by readers even though write
+  normalization guarantees canonical persisted values.
 
 ### Follow-up
 

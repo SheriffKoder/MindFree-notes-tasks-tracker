@@ -119,10 +119,16 @@ one browser `QueryClient`.
 and the current month's records. It builds the record lookup once, then calls
 `lib/today/build-today-activities.ts` for today's `YYYY-MM-DD`.
 
-An unarchived task appears when **either**:
+For either kind, an unarchived activity appears in its Home section when
+**either**:
 
 - today's record exists — history remains visible after schedule edits; or
-- `isActiveOnDay(activity, today)` — an empty task is due today.
+- `isActiveOnDay(activity, today)` — an empty task/reminder is due today.
+
+`useHomeTodayQuery(kind)` supplies only the matching definition bucket, so the
+same membership join produces Today's Tasks from `["activities","task"]` and
+Today's Reminders from `["activities","reminder"]`. Both selectors share the
+single `["activityRecords", currentMonth]` cache.
 
 Each `TodayActivity` carries `{ activity, record, done, progress }`.
 `lib/record/derive-today-progress.ts` returns per-dimension progress using
@@ -143,6 +149,18 @@ Each dimension has `value`, `goal`, `remaining`, and `percent` (`null` when
 unbounded). `done` is true when every **configured** dimension reaches its
 goal, or — if no goals are set — when the record is meaningful under the
 effective tracking mode.
+
+Reminders are normalized to `trackingMode="boolean"` with no goals. Their
+completion therefore has one rule:
+
+```text
+no record / count = 0 → not done
+record count > 0      → done
+```
+
+The boolean quick-record toggle writes `count=1` when checked and deletes the
+day record when unchecked. Calendar pills and Home rows render this as
+done/not-done only; reminders never expose numeric goal progress.
 
 Home presentation stays dumb: stacked `value/goal` labels (with `Count` /
 `Minutes` prefixes only for `count+duration`), and one donut that averages
