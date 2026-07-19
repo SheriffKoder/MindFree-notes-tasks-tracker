@@ -4,6 +4,10 @@
  *
  * Presentation-only: does not fetch or mutate records. Mirrors Notes' day-click
  * drawer ownership (`useNotesDrawer` + `selectDate`) for the Tasks calendar.
+ *
+ * `TasksClient` owns this hook because calendar clicks and the two Tasks
+ * drawers must coordinate. The feature drawer receives the returned object as
+ * props; its record list independently reads canonical query caches.
  */
 
 "use client";
@@ -36,6 +40,8 @@ const INITIAL_STATE: TaskRecordsDrawerState = {
  * Manages Tasks selected-day records drawer visibility and active date.
  */
 export function useTaskRecordsDrawer(): UseTaskRecordsDrawerResult {
+  // Keep date and visibility together so opening another day is one atomic
+  // state change rather than an open render followed by a date render.
   const [state, setState] = useState<TaskRecordsDrawerState>(INITIAL_STATE);
 
   const openForDate = useCallback((date: string) => {

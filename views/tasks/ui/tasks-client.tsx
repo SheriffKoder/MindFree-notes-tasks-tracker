@@ -41,6 +41,10 @@ export function TasksClient() {
   const { highlightedDate, selectDate, clearSelection } =
     useTasksPageSelection(month);
 
+  // The page coordinates two independent drawers:
+  // - `drawer` edits task definitions from Add/list-card interactions.
+  // - `recordsDrawer` edits records belonging to one clicked calendar day.
+  // Record data is not stored here; ActivityRecordList reads canonical caches.
   const drawer = useTasksDrawer();
   const recordsDrawer = useTaskRecordsDrawer();
 
@@ -54,6 +58,8 @@ export function TasksClient() {
 
   const handleDaySelect = useCallback(
     (date: string) => {
+      // One calendar click updates the cell highlight and opens the selected-day
+      // drawer. Close the definition editor so both portals cannot overlap.
       selectDate(date);
       drawer.close();
       recordsDrawer.openForDate(date);

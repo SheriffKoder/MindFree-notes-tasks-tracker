@@ -56,7 +56,11 @@ export {
 } from "@/entities/activity/lib/record";
 export type { RecordLookup } from "@/entities/activity/lib/record";
 export { buildTodayActivities } from "@/entities/activity/lib/today";
-export { buildRecordedDayActivities } from "@/entities/activity/lib/day";
+export {
+  buildRecordedDayActivities,
+  buildRecordTaskCandidates,
+} from "@/entities/activity/lib/day";
+export type { RecordTaskCandidates } from "@/entities/activity/lib/day";
 export {
   buildTaskCalendarDays,
   computeTaskMonthProgress,
