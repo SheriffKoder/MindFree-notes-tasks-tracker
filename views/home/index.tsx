@@ -5,13 +5,6 @@
 
 import { BookMarked, ChevronRight } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
 import { cn } from "@/lib/utils";
@@ -19,6 +12,7 @@ import { HomeAsideShell } from "@/views/home/model/home-aside-drawer-context";
 import { HomeAsideContent } from "@/views/home/ui/home-aside-content";
 import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
 import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
+import { HomeRemindersList } from "@/views/home/ui/home-reminders-list";
 import { HomeRightAside } from "@/views/home/ui/home-right-aside";
 import { HomeTodayList } from "@/views/home/ui/home-today-list";
 
@@ -48,7 +42,9 @@ export function HomeView({ notice = null }: HomeViewProps) {
       <div className="mx-auto flex h-full w-full flex-col gap-4">
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
-            <h2 className="text-h2 flex items-center gap-2"><BookMarked aria-hidden className="h-6 w-6" /> MindFree</h2>
+            <h2 className="text-h2 flex items-center gap-2">
+              <BookMarked aria-hidden className="h-6 w-6" /> MindFree
+            </h2>
           </div>
 
           <HomeHeaderToolbar />
@@ -83,21 +79,23 @@ export function HomeView({ notice = null }: HomeViewProps) {
               </div>
             </details>
 
-            <Card className="app-card">
-              <CardHeader className="flex flex-col gap-2">
-                <CardTitle className={SECTION_HEADER_CLASS}>Reminders</CardTitle>
-                <CardDescription className="text-body-muted">
-                  Vertical reminder stacks will live below today&apos;s tasks on the home
-                  page.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-body-muted">
-                  The shell is now only responsible for structure, so this view can evolve
-                  into the true dashboard without shared layout logic mixed in.
-                </p>
-              </CardContent>
-            </Card>
+            <details open className="group/reminders">
+              <summary
+                className={cn(
+                  SECTION_HEADER_CLASS,
+                  "flex w-fit cursor-pointer list-none items-center gap-1.5 py-1 marker:content-none [&::-webkit-details-marker]:hidden",
+                )}
+              >
+                <ChevronRight
+                  aria-hidden
+                  className="h-4 w-4 shrink-0 transition-transform duration-200 group-open/reminders:rotate-90"
+                />
+                <span>Today&apos;s Reminders</span>
+              </summary>
+              <div className="mt-1">
+                <HomeRemindersList />
+              </div>
+            </details>
           </div>
 
           <HomeRightAside>
