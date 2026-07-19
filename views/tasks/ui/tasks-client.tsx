@@ -17,10 +17,12 @@ import { useCallback } from "react";
 import type { Activity } from "@/entities/activity";
 import { useActivitiesQuery } from "@/entities/activity/client";
 import { ActivityDrawer } from "@/features/activity/activity-drawer";
+import { ActivityRecordDrawer } from "@/features/activity/activity-record-drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { ViewSwitcherMobile } from "@/shared/view-switcher";
 import { TASKS_VIEW_CONFIG } from "@/views/tasks/lib/tasks-views";
 import { TasksFilterProvider } from "@/views/tasks/model/tasks-filter-context";
+import { useTaskRecordsDrawer } from "@/views/tasks/model/use-task-records-drawer";
 import { useTasksDrawer } from "@/views/tasks/model/use-tasks-drawer";
 import { useTasksPageSelection } from "@/views/tasks/model/use-tasks-page-selection";
 import { useTasksUrlState } from "@/views/tasks/model/use-tasks-url-state";
@@ -40,6 +42,7 @@ export function TasksClient() {
     useTasksPageSelection(month);
 
   const drawer = useTasksDrawer();
+  const recordsDrawer = useTaskRecordsDrawer();
 
   // Phase 5 — mount useActivityRealtimeSync(...) here (mirrors
   // useNotesRealtimeSync in views/notes/ui/notes-client.tsx).
@@ -49,16 +52,27 @@ export function TasksClient() {
   const { data } = useActivitiesQuery("task");
   const tasks = data?.activities ?? [];
 
+  const handleDaySelect = useCallback(
+    (date: string) => {
+      selectDate(date);
+      drawer.close();
+      recordsDrawer.openForDate(date);
+    },
+    [drawer.close, recordsDrawer.openForDate, selectDate],
+  );
+
   const handleAddTask = useCallback(() => {
     clearSelection();
+    recordsDrawer.close();
     drawer.openCreate();
-  }, [clearSelection, drawer.openCreate]);
+  }, [clearSelection, drawer.openCreate, recordsDrawer.close]);
 
   const handleActivityClick = useCallback(
     (activity: Activity) => {
+      recordsDrawer.close();
       drawer.openEdit(activity.id);
     },
-    [drawer.openEdit],
+    [drawer.openEdit, recordsDrawer.close],
   );
 
   return (
@@ -107,7 +121,7 @@ export function TasksClient() {
                 month={month}
                 view={view}
                 highlightedDate={highlightedDate}
-                onDaySelect={selectDate}
+                onDaySelect={handleDaySelect}
                 onActivityClick={handleActivityClick}
               />
             </div>
@@ -115,6 +129,10 @@ export function TasksClient() {
         </div>
 
         <ActivityDrawer drawer={drawer} onDismiss={clearSelection} />
+        <ActivityRecordDrawer
+          drawer={recordsDrawer}
+          onDismiss={clearSelection}
+        />
       </div>
     </TasksFilterProvider>
   );
