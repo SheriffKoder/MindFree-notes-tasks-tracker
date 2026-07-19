@@ -14,6 +14,9 @@ import { upsertActivityRecordBodySchema } from "@/entities/activity/schema/recor
 /**
  * Upserts a day's completion record for the authenticated user (RLS-scoped).
  *
+ * Validates mutable totals only. Snapshot fields are absent from the body;
+ * the repository response includes the database-authoritative snapshots.
+ *
  * @param userId - authenticated user id
  * @param body - raw request body (validated here)
  * @returns the upserted domain record

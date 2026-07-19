@@ -47,7 +47,9 @@ export { isRemoteActivityNewer } from "@/entities/activity/lib/is-remote-activit
 export {
   deriveTodayProgress,
   isMeaningfulRecord,
+  resolveRecordConfiguration,
 } from "@/entities/activity/lib/record";
+export type { RecordConfiguration } from "@/entities/activity/lib/record";
 export {
   buildRecordLookup,
   recordKey,

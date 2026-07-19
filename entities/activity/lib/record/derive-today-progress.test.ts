@@ -38,6 +38,9 @@ function buildRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {
     id: "record-1",
     taskId: "task-1",
     date: "2026-07-15",
+    trackingModeSnapshot: "boolean",
+    goalSnapshot: null,
+    goalDurationSnapshot: null,
     count: 0,
     duration: 0,
     description: null,
@@ -68,7 +71,11 @@ describe("deriveTodayProgress", () => {
 
   it("derives an unbounded count dimension and falls back to meaningful completion", () => {
     const activity = buildActivity({ trackingMode: "count", goal: null });
-    const record = buildRecord({ count: 3 });
+    const record = buildRecord({
+      trackingModeSnapshot: "count",
+      goalSnapshot: null,
+      count: 3,
+    });
 
     expect(deriveTodayProgress(activity, record)).toEqual({
       done: true,
@@ -108,7 +115,12 @@ describe("deriveTodayProgress", () => {
       trackingMode: "duration",
       goalDuration: 60,
     });
-    const record = buildRecord({ count: 99, duration: 25 });
+    const record = buildRecord({
+      trackingModeSnapshot: "duration",
+      goalDurationSnapshot: 60,
+      count: 99,
+      duration: 25,
+    });
 
     expect(deriveTodayProgress(activity, record)).toEqual({
       done: false,
@@ -131,7 +143,13 @@ describe("deriveTodayProgress", () => {
       goal: 4,
       goalDuration: 60,
     });
-    const record = buildRecord({ count: 2, duration: 30 });
+    const record = buildRecord({
+      trackingModeSnapshot: "count+duration",
+      goalSnapshot: 4,
+      goalDurationSnapshot: 60,
+      count: 2,
+      duration: 30,
+    });
 
     expect(deriveTodayProgress(activity, record)).toEqual({
       done: false,
@@ -162,17 +180,22 @@ describe("deriveTodayProgress", () => {
       goal: 4,
       goalDuration: 30,
     });
+    const snapshots = {
+      trackingModeSnapshot: "count+duration" as const,
+      goalSnapshot: 4,
+      goalDurationSnapshot: 30,
+    };
 
     expect(
       deriveTodayProgress(
         activity,
-        buildRecord({ count: 4, duration: 29 }),
+        buildRecord({ ...snapshots, count: 4, duration: 29 }),
       ).done,
     ).toBe(false);
     expect(
       deriveTodayProgress(
         activity,
-        buildRecord({ count: 4, duration: 30 }),
+        buildRecord({ ...snapshots, count: 4, duration: 30 }),
       ).done,
     ).toBe(true);
   });
@@ -187,7 +210,13 @@ describe("deriveTodayProgress", () => {
     expect(
       deriveTodayProgress(
         activity,
-        buildRecord({ count: 0, duration: 30 }),
+        buildRecord({
+          trackingModeSnapshot: "count+duration",
+          goalSnapshot: null,
+          goalDurationSnapshot: 30,
+          count: 0,
+          duration: 30,
+        }),
       ).done,
     ).toBe(true);
   });
@@ -198,17 +227,22 @@ describe("deriveTodayProgress", () => {
       goal: null,
       goalDuration: null,
     });
+    const snapshots = {
+      trackingModeSnapshot: "count+duration" as const,
+      goalSnapshot: null,
+      goalDurationSnapshot: null,
+    };
 
     expect(
       deriveTodayProgress(
         activity,
-        buildRecord({ count: 0, duration: 0 }),
+        buildRecord({ ...snapshots, count: 0, duration: 0 }),
       ).done,
     ).toBe(false);
     expect(
       deriveTodayProgress(
         activity,
-        buildRecord({ count: 0, duration: 1 }),
+        buildRecord({ ...snapshots, count: 0, duration: 1 }),
       ).done,
     ).toBe(true);
   });
@@ -221,7 +255,13 @@ describe("deriveTodayProgress", () => {
     });
     const progress = deriveTodayProgress(
       activity,
-      buildRecord({ count: 7, duration: 45 }),
+      buildRecord({
+        trackingModeSnapshot: "count+duration",
+        goalSnapshot: 5,
+        goalDurationSnapshot: 30,
+        count: 7,
+        duration: 45,
+      }),
     );
 
     expect(progress.done).toBe(true);
@@ -229,5 +269,34 @@ describe("deriveTodayProgress", () => {
       { kind: "count", remaining: 0, percent: 100 },
       { kind: "duration", remaining: 0, percent: 100 },
     ]);
+  });
+
+  it("keeps recorded progress when the activity mode and goals later change", () => {
+    const activity = buildActivity({
+      trackingMode: "duration",
+      goal: null,
+      goalDuration: 90,
+    });
+    const record = buildRecord({
+      trackingModeSnapshot: "count",
+      goalSnapshot: 4,
+      goalDurationSnapshot: null,
+      count: 2,
+      duration: 99,
+    });
+
+    expect(deriveTodayProgress(activity, record)).toEqual({
+      done: false,
+      dimensions: [
+        {
+          kind: "count",
+          label: "Count",
+          value: 2,
+          goal: 4,
+          remaining: 2,
+          percent: 50,
+        },
+      ],
+    });
   });
 });

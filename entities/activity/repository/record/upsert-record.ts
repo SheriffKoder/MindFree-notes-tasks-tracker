@@ -15,12 +15,21 @@ import { createClient } from "@/shared/lib/supabase/server";
 /**
  * Writes or updates exactly one record per `(taskId, date)` (RLS-scoped).
  *
- * Values are absolute — the row is replaced with the payload's totals. The
+ * The repository writes only mutable daily totals (`count`, `duration`,
+ * `description`). PostgreSQL owns immutable configuration snapshots:
+ * - on first insert, a trigger copies `tracking_mode` / `goal` /
+ *   `goal_duration` from the owned task;
+ * - on natural-key conflict, the same trigger restores the persisted
+ *   snapshots so later upserts cannot reinterpret history.
+ *
+ * Values are absolute — the row's totals are replaced with the payload. The
  * write resolves against the `mf_task_record_task_date_unique` constraint.
+ * `.select("*")` returns the full row, including those database-derived
+ * snapshots, which `mapActivityRecordRow` exposes on the domain record.
  *
  * @param userId - authenticated user id
- * @param payload - validated absolute record body
- * @returns the upserted domain record
+ * @param payload - validated absolute record body (no snapshot fields)
+ * @returns the upserted domain record with authoritative snapshots
  */
 export async function upsertRecord(
   userId: string,

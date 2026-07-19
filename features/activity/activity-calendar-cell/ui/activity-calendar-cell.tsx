@@ -6,7 +6,11 @@
 import { memo, useMemo } from "react";
 
 import type { TaskCalendarDay } from "@/entities/activity";
-import { deriveTodayProgress, isMeaningfulRecord } from "@/entities/activity";
+import {
+  deriveTodayProgress,
+  isMeaningfulRecord,
+  resolveRecordConfiguration,
+} from "@/entities/activity";
 import { ACTIVITY_CALENDAR_CELL_CSS_VARS, ACTIVITY_CALENDAR_CELL_STYLE_CONFIG } from "@/features/activity/activity-calendar-cell/lib/cell-style-config";
 import { formatPillProgress } from "@/features/activity/activity-calendar-cell/lib/format-pill-progress";
 import { ActivityTaskPill } from "@/features/activity/activity-calendar-cell/ui/activity-task-pill";
@@ -70,14 +74,17 @@ export const ActivityCalendarCell = memo(function ActivityCalendarCell({
         <div className="grid min-h-0 w-full min-w-0 flex-1 grid-cols-1 content-start gap-0.5 pb-4 pr-5">
           {visibleActivities.map(({ activity, record }) => {
             const progress = deriveTodayProgress(activity, record);
+            const { trackingMode } = resolveRecordConfiguration(
+              activity,
+              record,
+            );
 
             return (
               <ActivityTaskPill
                 key={activity.id}
                 color={activity.color ?? fallbackColor}
                 isDone={
-                  record !== null &&
-                  isMeaningfulRecord(record, activity.trackingMode)
+                  record !== null && isMeaningfulRecord(record, trackingMode)
                 }
                 progressLabel={formatPillProgress(progress.dimensions)}
                 title={activity.title}

@@ -50,8 +50,9 @@ Rejected:
 
 - **Gate cells purely by schedule** — hides completed history on any cadence
   change; the reported bug.
-- **Snapshot the schedule per record** — heavy, and records already are the
-  snapshot of what happened.
+- **Snapshot the schedule per record** — heavy for membership; records already
+  prove what happened. (Tracking-mode and goal snapshots are a separate
+  decision: [0015-record-configuration-snapshots.md](./0015-record-configuration-snapshots.md).)
 - **Filter history in the view instead of the join** — every consumer would
   reimplement the rule; belongs in the shared transform.
 

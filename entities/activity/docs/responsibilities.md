@@ -43,11 +43,12 @@ record surface so consumers never deep-import these implementation paths.
 `lib/schedule/resolve-schedule.ts` — `isActiveOnDay`, `isActiveInMonth` (window + recurrence)
 `lib/schedule/activity-status.ts` — `getActivityStatus` (archived → upcoming → expired → active)
 `lib/record/is-meaningful-record.ts` — `isMeaningfulRecord` (done per tracking mode)
+`lib/record/resolve-record-configuration.ts` — snapshot vs current activity configuration
 `lib/record/build-record-lookup.ts` — `recordKey`, `buildRecordLookup` (`byTaskDate` / `byTaskId`)
 `lib/record/derive-today-progress.ts` — per-dimension goal-aware value / remaining / percent / `done`
 `lib/record/is-remote-record-newer.ts` — record newer-wins `updatedAt` gate
 `lib/today/build-today-activities.ts` — definitions + today's lookup → `TodayActivity[]`
-`lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (row → domain; repository-only; includes `goalDuration`, `icon`)
+`lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (incl. record snapshots, `goalDuration`, `icon`)
 `lib/is-remote-activity-newer.ts` — `isRemoteActivityNewer` (newer-wins `updatedAt` gate)
 
 ---
@@ -135,6 +136,7 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 `hooks/use-delete-activity-mutation.ts` — delete + cache removal + record purge
 `hooks/activity-mutation-pending.ts` — in-flight ids (realtime echo skip, Phase 5)
 `hooks/record/use-upsert-activity-record-mutation.ts` — absolute upsert + optimistic + newer-wins
+`hooks/record/build-optimistic-activity-record.ts` — seed/preserve configuration snapshots for optimistic rows
 `hooks/record/use-delete-activity-record-mutation.ts` — optimistic delete + rollback
 `hooks/record/record-mutation-pending.ts` — in-flight natural keys (realtime echo skip)
 
@@ -178,8 +180,11 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 | Change what counts as "done" | `lib/record/is-meaningful-record.ts` |
 | Change Home Today membership | `lib/today/build-today-activities.ts` |
 | Change Home Today goal/progress math | `lib/record/derive-today-progress.ts` |
+| Change snapshot vs current configuration | `lib/record/resolve-record-configuration.ts` |
 | Change which goals survive a mode switch | `editor/model/normalize-activity-goals.ts` |
 | Add `goal_duration` / `icon` columns | `supabase/migrations/004_activity_goal_duration_and_icon.sql` |
+| Freeze record tracking/goal snapshots | `supabase/migrations/005_activity_record_configuration_snapshots.sql` |
+| Seed optimistic record snapshots | `hooks/record/build-optimistic-activity-record.ts` |
 | Change calendar day shape | `transform/build-calendar-days.ts` |
 | Change completion-% math | `transform/compute-task-month-progress.ts` |
 | Change DB queries | `repository/*` |

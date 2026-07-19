@@ -19,6 +19,10 @@ import { synchronizeActivityCaches } from "@/entities/activity/cache/synchronize
 import { fetchUpsertActivityRecord } from "@/entities/activity/client/record";
 import { activityRecordsQueryKey } from "@/entities/activity/client/query-keys";
 import {
+  buildOptimisticActivityRecord,
+  type OptimisticRecordConfiguration,
+} from "@/entities/activity/hooks/record/build-optimistic-activity-record";
+import {
   clearRecordMutationPending,
   markRecordMutationPending,
 } from "@/entities/activity/hooks/record/record-mutation-pending";
@@ -26,7 +30,8 @@ import { isRemoteRecordNewer } from "@/entities/activity/lib/record/is-remote-re
 import type { ActivityRecordsResponse } from "@/entities/activity/model/read-models";
 import type { ActivityRecord } from "@/entities/activity/model/types";
 
-export interface UpsertActivityRecordMutationInput {
+export interface UpsertActivityRecordMutationInput
+  extends OptimisticRecordConfiguration {
   /** Owning activity id. */
   taskId: string;
   /** Record day (`YYYY-MM-DD`). */
@@ -54,26 +59,13 @@ function findCachedRecord(
   );
 }
 
-function buildOptimisticRecord(
-  input: UpsertActivityRecordMutationInput,
-  existing: ActivityRecord | undefined,
-): ActivityRecord {
-  const now = new Date().toISOString();
-
-  return {
-    id: existing?.id ?? `optimistic-${input.taskId}-${input.date}`,
-    taskId: input.taskId,
-    date: input.date,
-    count: input.count,
-    duration: input.duration,
-    description: input.description ?? null,
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
-  };
-}
-
 /**
  * POST upsert record — optimistically writes `["activityRecords", month]`.
+ *
+ * HTTP stays totals-only. `trackingMode` / `goal` / `goalDuration` seed the
+ * optimistic cache row on first create and are ignored once a cached record
+ * already holds snapshots. The server response replaces optimistic snapshots
+ * with database-authoritative values via newer-wins.
  */
 export function useUpsertActivityRecordMutation() {
   const queryClient = useQueryClient();
@@ -100,7 +92,7 @@ export function useUpsertActivityRecordMutation() {
 
       synchronizeActivityCaches(queryClient, {
         type: "record-upsert",
-        record: buildOptimisticRecord(input, existing),
+        record: buildOptimisticActivityRecord(input, existing),
       });
 
       return {

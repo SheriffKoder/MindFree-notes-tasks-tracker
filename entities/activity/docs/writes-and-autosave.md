@@ -78,9 +78,9 @@ retries remain idempotent.
 QuickRecord control
   → useQuickRecord updates local count/duration immediately
   → debounce 500 ms
-       meaningful for trackingMode → useUpsertActivityRecordMutation
-       empty existing record       → useDeleteActivityRecordMutation
-       empty with no record        → no write
+       meaningful for effective trackingMode → useUpsertActivityRecordMutation
+       empty existing record                 → useDeleteActivityRecordMutation
+       empty with no record                  → no write
   → POST or DELETE /api/activity-records
   → synchronizeActivityCaches
   → ["activityRecords", YYYY-MM]
@@ -88,11 +88,15 @@ QuickRecord control
 ```
 
 `features/activity/quick-record/model/use-quick-record.ts` owns the **when**
-(debounce) and **whether** (upsert/delete/noop). It preserves the other tracked
-dimension and record description while changing one control. The entity
-mutation hooks remain single-write executors.
+(debounce) and **whether** (upsert/delete/noop). It resolves the **effective**
+tracking mode via `resolveRecordConfiguration` (record snapshots when present,
+otherwise the activity's current mode) for controls, boolean `done`, and
+delete-on-empty. It preserves the other tracked dimension and record
+description while changing one control. The entity mutation hooks remain
+single-write executors.
 
-`isMeaningfulRecord` is the one delete-on-empty predicate:
+`isMeaningfulRecord` is the one delete-on-empty predicate (called with the
+effective mode):
 
 - `boolean` / `count` — count is positive;
 - `duration` — duration is positive;
@@ -104,13 +108,19 @@ manual edits use exactly the same persistence path.
 Record API surfaces (thin route → record mutation use-cases):
 
 - `POST /api/activity-records` — natural-key upsert with absolute
-  count/duration;
+  count/duration only (no snapshot fields; PostgreSQL derives them);
 - `DELETE /api/activity-records` — remove by `(taskId, date)`.
 
 Both mutation hooks optimistically update only the target month bucket and
 restore its snapshot on error. Upsert success uses `isRemoteRecordNewer` before
 replacing the optimistic row; pending natural keys provide the future realtime
 echo-suppression seam.
+
+Optimistic rows seed `trackingModeSnapshot` / `goalSnapshot` /
+`goalDurationSnapshot` from the current activity on first create and preserve
+existing snapshots on later natural-key upserts
+(`hooks/record/build-optimistic-activity-record.ts`). The server response then
+replaces those fields with database-authoritative values.
 
 ---
 

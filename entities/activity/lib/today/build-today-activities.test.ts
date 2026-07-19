@@ -42,6 +42,9 @@ function buildRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {
     id: "record-1",
     taskId: "task-1",
     date: TODAY,
+    trackingModeSnapshot: "boolean",
+    goalSnapshot: null,
+    goalDurationSnapshot: null,
     count: 1,
     duration: 0,
     description: null,
@@ -108,7 +111,12 @@ describe("buildTodayActivities", () => {
       trackingMode: "count",
       goal: 5,
     });
-    const record = buildRecord({ taskId: "task-1", count: 3 });
+    const record = buildRecord({
+      taskId: "task-1",
+      trackingModeSnapshot: "count",
+      goalSnapshot: 5,
+      count: 3,
+    });
 
     const today = buildTodayActivities(
       [counted],
@@ -141,6 +149,9 @@ describe("buildTodayActivities", () => {
     });
     const record = buildRecord({
       taskId: "task-1",
+      trackingModeSnapshot: "count+duration",
+      goalSnapshot: 4,
+      goalDurationSnapshot: 60,
       count: 2,
       duration: 30,
     });
@@ -172,6 +183,48 @@ describe("buildTodayActivities", () => {
         },
       ],
     });
+  });
+
+  it("keeps both snapshotted goals when the activity later changes", () => {
+    const combined = buildActivity({
+      id: "task-1",
+      trackingMode: "duration",
+      goal: null,
+      goalDuration: 120,
+    });
+    const record = buildRecord({
+      taskId: "task-1",
+      trackingModeSnapshot: "count+duration",
+      goalSnapshot: 4,
+      goalDurationSnapshot: 60,
+      count: 2,
+      duration: 30,
+    });
+
+    const today = buildTodayActivities(
+      [combined],
+      buildRecordLookup([record]),
+      TODAY,
+    );
+
+    expect(today[0].progress.dimensions).toEqual([
+      {
+        kind: "count",
+        label: "Count",
+        value: 2,
+        goal: 4,
+        remaining: 2,
+        percent: 50,
+      },
+      {
+        kind: "duration",
+        label: "Minutes",
+        value: 30,
+        goal: 60,
+        remaining: 30,
+        percent: 50,
+      },
+    ]);
   });
 
   it("ignores records for other dates when pairing", () => {

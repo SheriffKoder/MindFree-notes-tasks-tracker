@@ -60,12 +60,16 @@ boolean / goal-less count  → null  → ✓ when isDone, else empty
 ```
 
 Domain math stays in the entity; the feature only formats the compact label.
+Recorded days use snapshotted goals, so editing the parent task does not change
+existing pill labels
+([0015-record-configuration-snapshots.md](../../../../docs/adr/0015-record-configuration-snapshots.md)).
 
 ### Done vs not-done
 
-`isDone` = the day's record is `isMeaningfulRecord` for the activity's tracking
-mode. It **does not hide** anything — it only dims the pill to
-`incompleteOpacity` (0.55). Two distinct concerns:
+`isDone` = the day's record is `isMeaningfulRecord` for the **effective**
+tracking mode (`resolveRecordConfiguration` — snapshot when present). It
+**does not hide** anything — it only dims the pill to `incompleteOpacity`
+(0.55). Two distinct concerns:
 
 | Concern | Where |
 | ------- | ----- |
@@ -97,3 +101,4 @@ history-preserving per ADR 0012 — the cell never decides visibility.
 | [scheduling.md](../../../../entities/activity/docs/scheduling.md) | What "due" (empty slot) means |
 | [0012-calendar-records-always-visible.md](../../../../docs/adr/0012-calendar-records-always-visible.md) | History-always-visible |
 | [0013-precompute-month-progress-map.md](../../../../docs/adr/0013-precompute-month-progress-map.md) | Month-% map (Progress page / list; not pill cue) |
+| [0015-record-configuration-snapshots.md](../../../../docs/adr/0015-record-configuration-snapshots.md) | First-insert freezes tracking/goal snapshots |

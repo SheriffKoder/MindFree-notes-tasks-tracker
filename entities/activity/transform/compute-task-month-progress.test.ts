@@ -40,6 +40,9 @@ function buildRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {
     id: "record-1",
     taskId: "task-1",
     date: "2026-07-15",
+    trackingModeSnapshot: "boolean",
+    goalSnapshot: null,
+    goalDurationSnapshot: null,
     count: 1,
     duration: 0,
     description: null,
@@ -135,5 +138,29 @@ describe("computeTaskMonthProgress", () => {
     expect(progress.get("daily")).toBe(0);
     expect(progress.get("once")).toBe(100);
     expect(progress.size).toBe(2);
+  });
+
+  it("interprets each record with its own tracking-mode snapshot", () => {
+    const activity = buildActivity({
+      id: "task-1",
+      trackingMode: "duration",
+      goalDuration: 30,
+      scheduleType: "once",
+      scheduleConfig: "2026-07-10",
+    });
+    const lookup = buildRecordLookup([
+      buildRecord({
+        taskId: "task-1",
+        date: "2026-07-10",
+        trackingModeSnapshot: "count",
+        goalSnapshot: 5,
+        count: 1,
+        duration: 0,
+      }),
+    ]);
+
+    expect(computeTaskMonthProgress("2026-07", [activity], lookup).get("task-1")).toBe(
+      100,
+    );
   });
 });

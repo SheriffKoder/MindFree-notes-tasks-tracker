@@ -10,15 +10,24 @@
  * Used in: features/activity/quick-record/ui/quick-record.tsx
  *
  * Values are absolute (the day's totals). The mutation hooks stay pure; the
- * *when* (debounce) and *whether-to-delete* live here.
+ * *when* (debounce) and *whether-to-delete* live here. Existing records use
+ * their frozen tracking-mode snapshot for controls and meaningfulness; empty
+ * slots use the activity's current mode.
  */
 
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { Activity, ActivityRecord } from "@/entities/activity";
-import { isMeaningfulRecord } from "@/entities/activity";
+import type {
+  Activity,
+  ActivityRecord,
+  TrackingMode,
+} from "@/entities/activity";
+import {
+  isMeaningfulRecord,
+  resolveRecordConfiguration,
+} from "@/entities/activity";
 import {
   useDeleteActivityRecordMutation,
   useUpsertActivityRecordMutation,
@@ -28,7 +37,7 @@ import { getTodayIsoDate } from "@/shared/calendar";
 const QUICK_RECORD_DEBOUNCE_MS = 500;
 
 export interface UseQuickRecordOptions {
-  /** Activity being recorded (drives the tracking-mode logic). */
+  /** Activity being recorded (current definition; snapshots win when recorded). */
   activity: Activity;
   /** Today's record for the activity, or `null` when nothing is recorded. */
   record: ActivityRecord | null;
@@ -37,6 +46,8 @@ export interface UseQuickRecordOptions {
 }
 
 export interface UseQuickRecordResult {
+  /** Effective tracking mode (record snapshot, else current activity). */
+  trackingMode: TrackingMode;
   /** Local optimistic count (updates instantly, persisted after debounce). */
   count: number;
   /** Local optimistic duration in minutes. */
@@ -55,9 +66,10 @@ export interface UseQuickRecordResult {
 
 /**
  * Owns local value state seeded from the cache record, and debounces an
- * absolute upsert per edit. When an edit empties the record for its mode it
- * fires a delete instead. External cache changes re-seed the local state while
- * no edit is pending, so optimistic echoes and remote updates flow back in.
+ * absolute upsert per edit. When an edit empties the record for its effective
+ * mode it fires a delete instead. External cache changes re-seed the local
+ * state while no edit is pending, so optimistic echoes and remote updates flow
+ * back in.
  *
  * @param options - activity, its current record, and the target day
  * @returns current values plus edit handlers
@@ -71,12 +83,19 @@ export function useQuickRecord({
   const { mutate: upsertRecord } = useUpsertActivityRecordMutation();
   const { mutate: deleteRecord } = useDeleteActivityRecordMutation();
 
+  const configuration = useMemo(
+    () => resolveRecordConfiguration(activity, record),
+    [activity, record],
+  );
+  const trackingMode = configuration.trackingMode;
+
   const [count, setCountState] = useState(record?.count ?? 0);
   const [duration, setDurationState] = useState(record?.duration ?? 0);
 
   const countRef = useRef(count);
   const durationRef = useRef(duration);
   const recordRef = useRef(record);
+  const trackingModeRef = useRef(trackingMode);
   const pendingRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -84,6 +103,7 @@ export function useQuickRecord({
     countRef.current = count;
     durationRef.current = duration;
     recordRef.current = record;
+    trackingModeRef.current = trackingMode;
   });
 
   const clearDebounce = useCallback(() => {
@@ -115,10 +135,12 @@ export function useQuickRecord({
 
         const meaningful = isMeaningfulRecord(
           { count: nextCount, duration: nextDuration },
-          activity.trackingMode,
+          trackingModeRef.current,
         );
 
         if (meaningful) {
+          // Seed config is current activity only; existing optimistic/server
+          // rows keep their snapshots inside buildOptimisticActivityRecord.
           upsertRecord(
             {
               taskId: activity.id,
@@ -126,6 +148,9 @@ export function useQuickRecord({
               count: nextCount,
               duration: nextDuration,
               description: existing?.description ?? null,
+              trackingMode: activity.trackingMode,
+              goal: activity.goal,
+              goalDuration: activity.goalDuration,
             },
             { onSettled: settle },
           );
@@ -141,6 +166,8 @@ export function useQuickRecord({
       }, QUICK_RECORD_DEBOUNCE_MS);
     },
     [
+      activity.goal,
+      activity.goalDuration,
       activity.id,
       activity.trackingMode,
       clearDebounce,
@@ -190,9 +217,10 @@ export function useQuickRecord({
   }, [clearDebounce]);
 
   const done =
-    activity.trackingMode === "duration" ? duration > 0 : count > 0;
+    trackingMode === "duration" ? duration > 0 : count > 0;
 
   return {
+    trackingMode,
     count,
     duration,
     done,

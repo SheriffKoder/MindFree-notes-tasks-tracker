@@ -52,7 +52,8 @@ today. The record wins over later schedule edits, matching the calendar's
 history-always-visible rule.
 
 `deriveTodayProgress` owns per-dimension value / goal / remaining / percent and
-goal-aware `done`. Home cards render those dimensions as:
+goal-aware `done`, using `resolveRecordConfiguration` so recorded days keep
+their frozen mode/goals. Home cards render those dimensions as:
 
 - stacked `value/goal` lines (`Xm/Ym` for minutes);
 - `Count:` / `Minutes:` prefixes only when both dimensions are present;
@@ -65,7 +66,8 @@ Home does not recalculate domain completion or invent a second progress model.
 
 ## Inline recording
 
-`QuickRecord` dispatches controls from `trackingMode`:
+`QuickRecord` dispatches controls from the **effective** tracking mode (record
+snapshot when present, otherwise `activity.trackingMode`):
 
 - `boolean` — done toggle;
 - `count` — count stepper;
@@ -76,7 +78,8 @@ Home does not recalculate domain completion or invent a second progress model.
 record upsert for 500 ms. Count and duration edits preserve the other
 dimension. Returning all meaningful dimensions to zero deletes an existing
 record instead. The entity mutation hooks own optimistic cache updates,
-rollback, and server reconciliation.
+rollback, and server reconciliation; PostgreSQL captures immutable tracking/goal
+snapshots on first insert.
 
 The duration timer is client-local. While running it adds one minute every
 60 seconds through the same `useQuickRecord` path. Stopping preserves the

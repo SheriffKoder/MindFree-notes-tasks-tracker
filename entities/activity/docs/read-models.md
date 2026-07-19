@@ -84,8 +84,9 @@ computeTaskMonthProgress(month, activities, lookup) → Map<taskId, percent>
 percent = round(completedActiveDays / scheduledActiveDays * 100)
 ```
 
-- Denominator = days where `isActiveOnDay` (scheduled).
-- Numerator = those days whose record is `isMeaningfulRecord` for the mode.
+- Denominator = days where `isActiveOnDay` (scheduled) — **current** schedule.
+- Numerator = those days whose record is `isMeaningfulRecord` for the record's
+  **tracking-mode snapshot** (via `resolveRecordConfiguration`).
 - No scheduled days → `0`.
 
 The calendar pane computes this map once and each pill reads its value by
@@ -122,22 +123,31 @@ An unarchived task appears when **either**:
 - `isActiveOnDay(activity, today)` — an empty task is due today.
 
 Each `TodayActivity` carries `{ activity, record, done, progress }`.
-`lib/record/derive-today-progress.ts` returns per-dimension progress:
+`lib/record/derive-today-progress.ts` returns per-dimension progress using
+`resolveRecordConfiguration`:
 
-| Mode | `progress.dimensions` |
-| ---- | --------------------- |
+```text
+record exists → record trackingMode / goal / goalDuration snapshots
+no record     → current activity trackingMode / goal / goalDuration
+```
+
+| Effective mode | `progress.dimensions` |
+| -------------- | --------------------- |
 | `boolean` / `count` | one `Count` dimension (`goal`) |
 | `duration` | one `Minutes` dimension (`goalDuration`) |
 | `count+duration` | both, independently |
 
 Each dimension has `value`, `goal`, `remaining`, and `percent` (`null` when
 unbounded). `done` is true when every **configured** dimension reaches its
-goal, or — if no goals are set — when the record is meaningful.
+goal, or — if no goals are set — when the record is meaningful under the
+effective tracking mode.
 
 Home presentation stays dumb: stacked `value/goal` labels (with `Count` /
 `Minutes` prefixes only for `count+duration`), and one donut that averages
 bounded percents. Domain math stays in the entity; the card does not invent a
-second completion rule.
+second completion rule. Editing the activity's mode or goals therefore does not
+change already-recorded Home rows
+([0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md)).
 
 There is no `homeActivities` query key. A record upsert/delete changes the
 current `activityRecords` month bucket, and the selector recomputes
@@ -167,3 +177,4 @@ Home branch — updating the shared caches updates every consumer at once. See
 | [views/tasks/docs/data-flow.md](../../../views/tasks/docs/data-flow.md) | Server fetch → caches → calendar/list endpoints |
 | [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md) · [0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md) | History-always-visible · precomputed progress map |
 | [0014-flat-records-client-side-join.md](../../../docs/adr/0014-flat-records-client-side-join.md) | Why records ship flat + join on the client (vs. Notes) |
+| [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | First-insert freezes tracking/goal snapshots |

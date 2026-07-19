@@ -5,7 +5,14 @@
 
 import { describe, expect, it } from "vitest";
 
-import type { TodayProgressDimension } from "@/entities/activity";
+import {
+  deriveTodayProgress,
+  type TodayProgressDimension,
+} from "@/entities/activity";
+import type {
+  Activity,
+  ActivityRecord,
+} from "@/entities/activity/model/types";
 import { formatPillProgress } from "@/features/activity/activity-calendar-cell/lib/format-pill-progress";
 
 function count(
@@ -42,9 +49,11 @@ describe("formatPillProgress", () => {
   });
 
   it("formats bounded count as value/goal", () => {
-    expect(formatPillProgress([count({ value: 1, goal: 2, remaining: 1, percent: 50 })])).toBe(
-      "1/2",
-    );
+    expect(
+      formatPillProgress([
+        count({ value: 1, goal: 2, remaining: 1, percent: 50 }),
+      ]),
+    ).toBe("1/2");
   });
 
   it("formats bounded duration with m suffixes", () => {
@@ -66,5 +75,44 @@ describe("formatPillProgress", () => {
         duration({ value: 5, goal: 5, remaining: 0, percent: 100 }),
       ]),
     ).toBe("1/2 · 5m/5m");
+  });
+
+  it("keeps historical pill labels when activity goals later change", () => {
+    const activity = {
+      id: "task-1",
+      kind: "task",
+      title: "Task",
+      description: null,
+      color: null,
+      trackingMode: "count",
+      scheduleType: "daily",
+      scheduleConfig: null,
+      goal: 10,
+      goalDuration: null,
+      icon: null,
+      startsAt: null,
+      endsAt: null,
+      archivedAt: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    } satisfies Activity;
+
+    const record = {
+      id: "record-1",
+      taskId: "task-1",
+      date: "2026-07-15",
+      trackingModeSnapshot: "count",
+      goalSnapshot: 2,
+      goalDurationSnapshot: null,
+      count: 1,
+      duration: 0,
+      description: null,
+      createdAt: "2026-07-15T00:00:00.000Z",
+      updatedAt: "2026-07-15T00:00:00.000Z",
+    } satisfies ActivityRecord;
+
+    const progress = deriveTodayProgress(activity, record);
+
+    expect(formatPillProgress(progress.dimensions)).toBe("1/2");
   });
 });

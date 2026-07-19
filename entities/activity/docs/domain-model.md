@@ -89,9 +89,10 @@ per-activity "how do I record this" config beyond it:
 
 `lib/record/is-meaningful-record.ts` decides whether a daily row is worth
 keeping (quick-record delete-on-empty + month progress numerator). Home Today
-completion uses `lib/record/derive-today-progress.ts`: when goals are set, every
-configured dimension must reach its target; when none are set, it falls back to
-meaningful. Completion is derived, never a stored flag. See
+and calendar progress use `lib/record/derive-today-progress.ts` with
+configuration from `resolveRecordConfiguration`: when goals are set, every
+configured dimension must reach its target; when none are set, completion falls
+back to meaningful. Completion is derived, never a stored flag. See
 [writes-and-autosave.md](./writes-and-autosave.md#daily-record-path) and
 [read-models.md](./read-models.md#home-today-join).
 
@@ -107,16 +108,42 @@ mode-consistent on save.
 mf_task_record natural key = (taskId, date)
 ```
 
-A record is a **daily aggregate** for one activity: `count`, `duration`, and an
-optional note. There is no stored `isCompleted` — whether a day counts is
-derived from the record values and the activity's `trackingMode`
-(`is-meaningful-record`). Records travel flat over the wire; the client derives
-O(1) lookup maps from them (see [read-models.md](./read-models.md)).
+A record is a **daily aggregate** for one activity: `count`, `duration`, an
+optional note, and **immutable configuration snapshots** taken when the row is
+first inserted:
+
+| Snapshot field | Source on first insert |
+| -------------- | ---------------------- |
+| `trackingModeSnapshot` | `mf_task.tracking_mode` |
+| `goalSnapshot` | `mf_task.goal` |
+| `goalDurationSnapshot` | `mf_task.goal_duration` |
+
+PostgreSQL owns those snapshots (migration `005`): a trigger copies them from
+the owned task on `INSERT` and restores `OLD` on every `UPDATE`, so natural-key
+upserts cannot reinterpret history. The client never sends authoritative
+snapshot values. Delete then recreate intentionally captures the task's
+then-current configuration.
+
+There is no stored `isCompleted` — whether a day counts is derived from the
+record values and the **effective** tracking mode via
+`resolveRecordConfiguration` (record snapshots when present, otherwise the
+activity's current fields). Records travel flat over the wire; the client
+derives O(1) lookup maps from them (see [read-models.md](./read-models.md)).
+
+Live vs historical:
+
+| Concern | Source |
+| ------- | ------ |
+| Title, color, schedule | current activity definition |
+| How a recorded day is interpreted | record snapshots |
+| Count / duration / note | mutable record values |
 
 Consequences:
 
 - Editing a task's schedule never touches its records — history is
   schedule-independent ([read-models.md](./read-models.md), [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md)).
+- Editing a task's mode or goals never reinterprets already-recorded days —
+  [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md).
 - Record upserts carry absolute daily totals and clearing every meaningful
   dimension deletes the row ([writes-and-autosave.md](./writes-and-autosave.md#daily-record-path)).
 - Deleting a task must purge its records from every cached month
@@ -164,3 +191,4 @@ Write path (create/patch/archive/restore/delete) and autosave:
 | [read-models.md](./read-models.md) | How definitions/records are cached and joined |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Create/patch/archive/delete + autosave |
 | [responsibilities.md](./responsibilities.md) | Where each concern's code lives |
+| [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | First-insert freezes tracking/goal snapshots |

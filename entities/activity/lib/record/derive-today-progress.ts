@@ -6,13 +6,17 @@
  *          must live in the entity so no consumer recomputes it
  *          (home-page.md: "The Home page should never calculate these values
  *          independently"). Completion is derived — there is no stored flag.
- * Used in: Home Today derivation (`build-today-activities`); quick-record slot copy.
+ * Used in: Home Today derivation (`build-today-activities`); calendar pills.
  *
  * Function index:
  * - deriveTodayProgress: activity + record → { done, dimensions[] }
  */
 
 import { isMeaningfulRecord } from "@/entities/activity/lib/record/is-meaningful-record";
+import {
+  resolveRecordConfiguration,
+  type RecordConfiguration,
+} from "@/entities/activity/lib/record/resolve-record-configuration";
 import type {
   TodayProgress,
   TodayProgressDimension,
@@ -41,31 +45,33 @@ function buildDimension(
 }
 
 function buildDimensions(
-  activity: Activity,
+  config: RecordConfiguration,
   record: ActivityRecord | null,
 ): TodayProgressDimension[] {
   const count = record?.count ?? 0;
   const duration = record?.duration ?? 0;
 
-  switch (activity.trackingMode) {
+  switch (config.trackingMode) {
     case "duration":
-      return [buildDimension("duration", duration, activity.goalDuration)];
+      return [buildDimension("duration", duration, config.goalDuration)];
     case "count+duration":
       return [
-        buildDimension("count", count, activity.goal),
-        buildDimension("duration", duration, activity.goalDuration),
+        buildDimension("count", count, config.goal),
+        buildDimension("duration", duration, config.goalDuration),
       ];
     case "boolean":
     case "count":
-      return [buildDimension("count", count, activity.goal)];
+      return [buildDimension("count", count, config.goal)];
   }
 }
 
 /**
- * Derives one day's progress for an activity. When any goals are configured,
- * `done` requires every configured dimension to reach its own target.
- * Unbounded dimensions do not gate completion. With no goals, completion falls
- * back to `isMeaningfulRecord`.
+ * Derives one day's progress for an activity. Configuration comes from
+ * `resolveRecordConfiguration` (record snapshots when present, otherwise the
+ * current activity). When any goals are configured, `done` requires every
+ * configured dimension to reach its own target. Unbounded dimensions do not
+ * gate completion. With no goals, completion falls back to `isMeaningfulRecord`
+ * using the effective tracking mode.
  *
  * @param activity - activity definition
  * @param record - the day's record, or `null` when nothing is recorded
@@ -75,7 +81,8 @@ export function deriveTodayProgress(
   activity: Activity,
   record: ActivityRecord | null,
 ): TodayProgress {
-  const dimensions = buildDimensions(activity, record);
+  const config = resolveRecordConfiguration(activity, record);
+  const dimensions = buildDimensions(config, record);
   const boundedDimensions = dimensions.filter(
     (dimension) => dimension.goal !== null,
   );
@@ -86,7 +93,7 @@ export function deriveTodayProgress(
           (dimension) =>
             dimension.goal !== null && dimension.value >= dimension.goal,
         )
-      : isMeaningfulRecord(record, activity.trackingMode));
+      : isMeaningfulRecord(record, config.trackingMode));
 
   return { done, dimensions };
 }

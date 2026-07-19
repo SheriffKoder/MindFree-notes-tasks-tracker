@@ -22,6 +22,9 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /**
  * Absolute record write body. `count`/`duration` are the day's totals, not
  * increments; `(taskId, date)` is the natural key the repository upserts on.
+ *
+ * Tracking-mode and goal snapshots are **not** part of this contract —
+ * PostgreSQL derives and preserves them from the owning task on first insert.
  */
 export const upsertActivityRecordBodySchema = z.object({
   taskId: z.string().uuid(),

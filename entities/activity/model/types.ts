@@ -109,6 +109,12 @@ export interface ActivityRecord {
   taskId: string;
   /** Recorded day (`YYYY-MM-DD`). */
   date: string;
+  /** Tracking mode frozen when this record was first created. */
+  trackingModeSnapshot: TrackingMode;
+  /** Count goal frozen when this record was first created. */
+  goalSnapshot: number | null;
+  /** Duration goal in minutes frozen when this record was first created. */
+  goalDurationSnapshot: number | null;
   /** Recorded count (0 when duration-only). */
   count: number;
   /** Recorded duration in minutes (0 when count-only). */
@@ -152,6 +158,9 @@ export interface ActivityRecordRow {
   user_id: string;
   task_id: string;
   date: string;
+  tracking_mode_snapshot: TrackingMode;
+  goal_snapshot: number | null;
+  goal_duration_snapshot: number | null;
   count: number;
   duration: number;
   description: string | null;

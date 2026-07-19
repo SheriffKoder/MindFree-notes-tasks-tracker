@@ -17,6 +17,7 @@ import {
   type RecordLookup,
 } from "@/entities/activity/lib/record/build-record-lookup";
 import { isMeaningfulRecord } from "@/entities/activity/lib/record/is-meaningful-record";
+import { resolveRecordConfiguration } from "@/entities/activity/lib/record/resolve-record-configuration";
 import { isActiveOnDay } from "@/entities/activity/lib/schedule/resolve-schedule";
 import type { Activity } from "@/entities/activity/model/types";
 
@@ -24,6 +25,9 @@ import type { Activity } from "@/entities/activity/model/types";
  * Computes each task's month completion rate as a whole-number percent
  * (`completed active days / scheduled active days × 100`). Tasks with no
  * scheduled days in the month map to `0`.
+ *
+ * Denominator uses the current schedule (`isActiveOnDay`). Numerator interprets
+ * each existing record with its own tracking-mode snapshot.
  *
  * @param month - `YYYY-MM` month key
  * @param activities - task definitions
@@ -54,7 +58,13 @@ export function computeTaskMonthProgress(
 
       const record = recordLookup.byTaskDate.get(recordKey(activity.id, date));
 
-      if (record !== undefined && isMeaningfulRecord(record, activity.trackingMode)) {
+      if (record === undefined) {
+        continue;
+      }
+
+      const { trackingMode } = resolveRecordConfiguration(activity, record);
+
+      if (isMeaningfulRecord(record, trackingMode)) {
         completedDays += 1;
       }
     }

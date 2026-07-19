@@ -10,7 +10,10 @@
  */
 
 import type { Activity, ActivityRecord } from "@/entities/activity";
-import { isMeaningfulRecord } from "@/entities/activity";
+import {
+  isMeaningfulRecord,
+  resolveRecordConfiguration,
+} from "@/entities/activity";
 
 /**
  * Whether a task's records should render given the hidden set.
@@ -51,14 +54,16 @@ export function toggleHiddenTask(
 /**
  * Whether a scheduled day-activity entry should render on the calendar.
  * Incomplete entries (no meaningful record) are hidden unless `showIncomplete`.
+ * Existing records use their tracking-mode snapshot; empty slots stay hidden
+ * unless incomplete are shown.
  *
- * @param activity - activity definition (tracking mode)
+ * @param activity - activity definition (current fallback configuration)
  * @param record - day's record, or `null` when not recorded
  * @param showIncomplete - when true, incomplete entries are visible
  * @returns true when the pill should render
  */
 export function isDayActivityShown(
-  activity: Pick<Activity, "trackingMode">,
+  activity: Pick<Activity, "trackingMode" | "goal" | "goalDuration">,
   record: ActivityRecord | null,
   showIncomplete: boolean,
 ): boolean {
@@ -66,7 +71,11 @@ export function isDayActivityShown(
     return true;
   }
 
-  return (
-    record !== null && isMeaningfulRecord(record, activity.trackingMode)
-  );
+  if (record === null) {
+    return false;
+  }
+
+  const { trackingMode } = resolveRecordConfiguration(activity, record);
+
+  return isMeaningfulRecord(record, trackingMode);
 }

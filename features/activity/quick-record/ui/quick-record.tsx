@@ -1,6 +1,8 @@
 /**
  * @file features/activity/quick-record/ui/quick-record.tsx
- * Inline recording controls for one Home Today row. Switches on `trackingMode`:
+ * Inline recording controls for one Home Today row. Switches on the effective
+ * tracking mode (record snapshot when present, otherwise the activity's
+ * current mode):
  *
  *   boolean        → done toggle
  *   count          → count stepper
@@ -38,12 +40,18 @@ export const QuickRecord = memo(function QuickRecord({
   date,
 }: QuickRecordProps) {
   const { activity, record } = today;
-  const { count, duration, done, setCount, setDuration, toggleDone, addMinutes } =
-    useQuickRecord({ activity, record, date });
+  const {
+    trackingMode,
+    count,
+    duration,
+    done,
+    setCount,
+    setDuration,
+    toggleDone,
+    addMinutes,
+  } = useQuickRecord({ activity, record, date });
 
-  const mode = activity.trackingMode;
-
-  if (mode === "boolean") {
+  if (trackingMode === "boolean") {
     return (
       <QuickRecordToggle
         done={done}
@@ -53,8 +61,9 @@ export const QuickRecord = memo(function QuickRecord({
     );
   }
 
-  const { showCount, showDuration } = getQuickRecordControlVisibility(mode);
-  const showLabels = mode === "count+duration";
+  const { showCount, showDuration } =
+    getQuickRecordControlVisibility(trackingMode);
+  const showLabels = trackingMode === "count+duration";
 
   return (
     <div className="flex shrink-0 items-center gap-2">

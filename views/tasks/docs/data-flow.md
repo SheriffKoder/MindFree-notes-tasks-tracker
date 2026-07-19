@@ -125,13 +125,17 @@ MonthCalendar.renderCell(day)
 - **Join** (`buildTaskCalendarDays`): a record always shows; the schedule only
   adds empty due slots — [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md).
 - **Day progress**: entity `deriveTodayProgress` + feature
-  `formatPillProgress` — compact `value/goal` (with `m` for minutes). Boolean /
-  goal-less count keeps a check when meaningful.
+  `formatPillProgress` — compact `value/goal` (with `m` for minutes), using
+  record configuration snapshots when a record exists
+  ([0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md)).
+  Boolean / goal-less count keeps a check when meaningful.
 - **Filter** happens here, in the pane, not in the join: `isShown` (per-task
-  toggle) + `isDayActivityShown` (hide not-done). Pill visuals:
+  toggle) + `isDayActivityShown` (hide not-done; also snapshot-aware). Pill
+  visuals:
   [calendar-cell.md](../../../features/activity/activity-calendar-cell/docs/calendar-cell.md).
 - Month-% map (`computeTaskMonthProgress`, ADR 0013) remains available for the
-  Progress page / list; calendar pills no longer consume it.
+  Progress page / list; calendar pills no longer consume it. Its numerator uses
+  each record's tracking-mode snapshot.
 
 ---
 
