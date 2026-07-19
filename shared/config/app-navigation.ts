@@ -6,7 +6,12 @@
 /**
  * Icon names supported by the protected app navigation.
  */
-export type AppNavigationIcon = "home" | "notes" | "tasks" | "progress";
+export type AppNavigationIcon =
+  | "home"
+  | "notes"
+  | "tasks"
+  | "reminders"
+  | "progress";
 
 /**
  * Config shape for a protected app navigation item.
@@ -43,6 +48,12 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
     href: "/tasks",
     label: "Tasks",
     icon: "tasks",
+  },
+  {
+    id: "reminders",
+    href: "/reminders",
+    label: "Reminders",
+    icon: "reminders",
   },
   {
     id: "progress",
