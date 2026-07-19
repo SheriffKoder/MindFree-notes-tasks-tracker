@@ -12,8 +12,11 @@ Short definitions for folder and layer names used across MindFree. Product terms
 | **`server.ts`** | Entity barrel for RSC / API / actions only |
 | **`client.ts`** | Entity barrel for `"use client"` — hooks, fetchers |
 | **`queries/`** | Server read use-cases |
-| **`mutations/`** | Server write use-cases + pure cache helpers |
-| **`tanstack/`** | Client cache keys, hooks, hydrate, realtime |
+| **`mutations/`** | Server write use-cases |
+| **`client/`** | Client fetchers, query keys/options, and prefetch helpers |
+| **`hooks/`** | React query, mutation, and synchronization hooks |
+| **`cache/`** | Pure cache transforms and cache synchronization |
+| **`hydration/`** | SSR cache seeders; the caller owns dehydration |
 | **`repository/`** | Supabase (or DB) access, always `user_id`-aware |
 | **`transform/`** | Pure reshape (rows → calendar days, etc.) |
 | **Read model** | API/cache shape for one consumer question (calendar month, home strip…) |
@@ -21,5 +24,8 @@ Short definitions for folder and layer names used across MindFree. Product terms
 | **Hydration** | Seeding TanStack from SSR so client `useQuery` starts warm |
 | **ADR** | Architecture Decision Record under `docs/adr/` |
 
-**Folder rules:** `app/development/guidelines/PROJECT-STRUCTURE.md`  
+Responsibility-group names describe current boundaries; they are extensible,
+not a locked vocabulary.
+
+**Folder rules:** [`.cursor/rules/project-structure.mdc`](../../.cursor/rules/project-structure.mdc)
 **Doc layout:** `app/development/workflow/documentation/doc-structure.md`

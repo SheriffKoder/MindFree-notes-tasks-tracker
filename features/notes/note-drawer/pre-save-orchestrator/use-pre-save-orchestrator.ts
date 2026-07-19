@@ -36,7 +36,7 @@ import type {
 } from "@/entities/note/editor/model/types";
 import { formatCalendarNoteTitle } from "@/entities/note/editor/lib/format-calendar-note-title";
 import type { Note } from "@/entities/note";
-import { saveNoteOfflinePending } from "@/entities/note/offline/notes-offline-storage";
+import { saveNoteOfflinePending } from "@/entities/note/offline";
 import { findNoteOnDateInCache } from "@/features/notes/note-drawer/lib/find-note-in-cache";
 import { isOnline } from "@/shared/offline-queue";
 import {

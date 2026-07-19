@@ -96,14 +96,19 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 
 ---
 
-## Client fetchers + cache (`client/`)
+## Client requests (`client/`)
 
 `client/query-keys.ts` — `activitiesQueryKey(kind)`, `activityRecordsQueryKey(month)`
 `client/activities-query.ts` — `fetchActivities`, `activitiesQueryOptions`
 `client/activity-records-query.ts` — `fetchActivityRecords`, `activityRecordsQueryOptions`
 `client/post-activity.ts` / `patch-activity.ts` / `delete-activity.ts` — write fetchers
 `client/record/activity-records-mutation.ts` — POST upsert + DELETE record fetchers
-`client/seed-activity-caches.ts` — `seedActivityCaches(qc, data)`: write both caches from SSR (void; caller dehydrates)
+
+---
+
+## SSR cache seeding (`hydration/`)
+
+`hydration/seed-activity-caches.ts` — `seedActivityCaches(qc, data)`: write both caches from SSR (void; caller dehydrates)
 
 ---
 

@@ -1,6 +1,6 @@
 /**
  * @file entities/note/model/types.ts
- * Domain and API response types for notes.
+ * Domain and database-row types for notes.
  */
 
 /**
@@ -23,48 +23,6 @@ export interface Note {
   isQuick: boolean;
   /** Last edit timestamp (ISO). */
   lastEditedAt: string;
-}
-
-/**
- * One day in a prepared month calendar grid.
- */
-export interface CalendarDay {
-  /** Day of month (1–31). */
-  day: number;
-  /** ISO date (`YYYY-MM-DD`). */
-  date: string;
-  /** Calendar note for the day, or `null` when empty. */
-  note: Note | null;
-}
-
-/**
- * Aggregated calendar payload for a single month.
- */
-export interface CalendarNotesResponse {
-  /** Month key (`YYYY-MM`). */
-  month: string;
-  /** One entry per day in the month. */
-  calendarDays: CalendarDay[];
-  /** Flat list of calendar notes in the month (list view). */
-  monthNotes: Note[];
-}
-
-/**
- * All general notes for the authenticated user (month-independent).
- */
-export interface GeneralNotesResponse {
-  /** Notes where `date IS NULL` and `is_quick = false`. */
-  generalNotes: Note[];
-}
-
-/**
- * Home dashboard payload — quick-note slot plus starred carousel.
- */
-export interface HomeNotesResponse {
-  /** Single quick note (`date IS NULL`, `is_quick = true`), or `null` before lazy create. */
-  quickNote: Note | null;
-  /** Starred notes (`starred = true`, `is_quick = false`), most recently edited first. */
-  starredNotes: Note[];
 }
 
 /**

@@ -13,7 +13,7 @@ import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useNotesRealtimeSync, type Note } from "@/entities/note/client";
-import { createNotesOfflineSyncAdapter } from "@/entities/note/offline/notes-offline-storage";
+import { createNotesOfflineSyncAdapter } from "@/entities/note/offline";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { useAuthUserId, useOfflineSync } from "@/shared/offline-queue";

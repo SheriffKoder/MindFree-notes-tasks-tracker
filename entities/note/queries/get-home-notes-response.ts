@@ -3,11 +3,11 @@
  * Read use-case: quick note slot and starred carousel for the Home page.
  */
 
-import type { HomeNotesResponse } from "@/entities/note/model/types";
+import type { HomeNotesResponse } from "@/entities/note/model/read-models";
 import {
   getQuickNote,
   getStarredNotes,
-} from "@/entities/note/repository/note-repository";
+} from "@/entities/note/repository";
 
 /**
  * Fetches the home notes payload in parallel.

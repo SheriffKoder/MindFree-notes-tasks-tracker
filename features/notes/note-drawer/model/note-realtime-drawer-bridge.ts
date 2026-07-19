@@ -3,7 +3,7 @@
  * Lets the notes page realtime hook notify the open drawer island.
  */
 
-import type { RealtimeNoteChangePayload } from "@/entities/note/tanstack/use-notes-realtime-sync";
+import type { RealtimeNoteChangePayload } from "@/entities/note/client";
 
 type NoteDrawerRealtimeHandler = (payload: RealtimeNoteChangePayload) => void;
 

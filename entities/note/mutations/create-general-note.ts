@@ -6,9 +6,9 @@
 import {
   createGeneralNoteBodySchema,
   type CreateGeneralNoteBody,
-} from "@/entities/note/mutations/create-note.schema";
+} from "@/entities/note/schema";
 import type { Note } from "@/entities/note/model/types";
-import { createGeneralNote as createGeneralNoteRow } from "@/entities/note/repository/note-repository";
+import { createGeneralNote as createGeneralNoteRow } from "@/entities/note/repository";
 
 /**
  * Inserts a general note (`date IS NULL`, `is_quick = false`) for the user.

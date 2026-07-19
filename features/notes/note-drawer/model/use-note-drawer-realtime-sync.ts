@@ -22,7 +22,7 @@ import type {
   NoteFormChangeMeta,
   NoteFormValues,
 } from "@/entities/note/editor/model/types";
-import type { RealtimeNoteChangePayload } from "@/entities/note/tanstack/use-notes-realtime-sync";
+import type { RealtimeNoteChangePayload } from "@/entities/note/client";
 import {
   registerNoteEditorSyncState,
   shouldSyncRemoteIntoForm,

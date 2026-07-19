@@ -10,7 +10,7 @@ import {
   getNotesPageInitialData,
   seedNotesPageCache,
 } from "@/entities/note/server";
-import { getAuthenticatedUserId } from "@/entities/note/repository/note-repository";
+import { getAuthenticatedUserId } from "@/entities/note/repository";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**

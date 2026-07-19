@@ -1,51 +1,52 @@
 /**
  * @file entities/note/client.ts
- * Client-side TanStack Query exports for note read caches.
+ * Client-side TanStack Query exports for note read caches + write mutations.
  *
  * Import from here in `"use client"` modules — no server/repository code.
+ *
+ * Segment sources (Step 10):
+ * - `@/entities/note/client/index` — keys, fetchers, options, prefetch
+ * - `@/entities/note/hooks` — read + mutation hooks, realtime sync
+ * - model types / read-models
  */
 
 export {
   calendarNotesQueryKey,
-  generalNotesQueryKey,
-  homeNotesQueryKey,
-} from "@/entities/note/tanstack/query-keys";
-export {
   calendarNotesQueryOptions,
   fetchCalendarNotes,
-  useCalendarNotesQuery,
-} from "@/entities/note/tanstack/calendar-notes-query";
-export {
-  generalNotesQueryOptions,
   fetchGeneralNotes,
-  useGeneralNotesQuery,
-} from "@/entities/note/tanstack/general-notes-query";
-export {
-  homeNotesQueryOptions,
   fetchHomeNotes,
+  generalNotesQueryKey,
+  generalNotesQueryOptions,
+  homeNotesQueryKey,
+  homeNotesQueryOptions,
+  prefetchAdjacentCalendarMonths,
+  prefetchCalendarMonth,
+} from "@/entities/note/client/index";
+export {
+  useCalendarNotesQuery,
+  useCreateCalendarNoteMutation,
+  useCreateGeneralNoteMutation,
+  useCreateQuickNoteMutation,
+  useDeleteNoteMutation,
+  useGeneralNotesQuery,
   useHomeNotesQuery,
-} from "@/entities/note/tanstack/home-notes-query";
-export { prefetchCalendarMonth } from "@/entities/note/tanstack/prefetch-calendar-month";
-export { prefetchAdjacentCalendarMonths } from "@/entities/note/tanstack/prefetch-adjacent-calendar-months";
-export { useUpdateNoteMutation } from "@/entities/note/tanstack/use-update-note-mutation";
-export type { UpdateNoteMutationInput } from "@/entities/note/tanstack/use-update-note-mutation";
-export { useCreateCalendarNoteMutation } from "@/entities/note/tanstack/use-create-calendar-note-mutation";
-export type { CreateCalendarNoteMutationInput } from "@/entities/note/tanstack/use-create-calendar-note-mutation";
-export { useCreateGeneralNoteMutation } from "@/entities/note/tanstack/use-create-general-note-mutation";
-export type { CreateGeneralNoteMutationInput } from "@/entities/note/tanstack/use-create-general-note-mutation";
-export { useCreateQuickNoteMutation } from "@/entities/note/tanstack/use-create-quick-note-mutation";
-export type { CreateQuickNoteMutationInput } from "@/entities/note/tanstack/use-create-quick-note-mutation";
-export { useDeleteNoteMutation } from "@/entities/note/tanstack/use-delete-note-mutation";
-export type { DeleteNoteMutationInput } from "@/entities/note/tanstack/use-delete-note-mutation";
-export { useNotesRealtimeSync } from "@/entities/note/tanstack/use-notes-realtime-sync";
+  useNotesRealtimeSync,
+  useUpdateNoteMutation,
+} from "@/entities/note/hooks";
 export type {
+  CreateCalendarNoteMutationInput,
+  CreateGeneralNoteMutationInput,
+  CreateQuickNoteMutationInput,
+  DeleteNoteMutationInput,
   RealtimeNoteChangePayload,
+  UpdateNoteMutationInput,
   UseNotesRealtimeSyncOptions,
-} from "@/entities/note/tanstack/use-notes-realtime-sync";
+} from "@/entities/note/hooks";
+export type { Note } from "@/entities/note/model/types";
 export type {
   CalendarDay,
   CalendarNotesResponse,
   GeneralNotesResponse,
   HomeNotesResponse,
-  Note,
-} from "@/entities/note/model/types";
+} from "@/entities/note/model/read-models";

@@ -2,8 +2,9 @@
 
 Why Notes exposes **three** API payloads (and three TanStack caches) instead of one “all notes” response.
 
-**Types:** `CalendarNotesResponse`, `GeneralNotesResponse`, `HomeNotesResponse` in `entities/note/model/types.ts`  
-**Keys:** `entities/note/tanstack/query-keys.ts`
+- **Domain and DB-row types:** `entities/note/model/types.ts`
+- **Response types:** `entities/note/model/read-models.ts`
+- **Keys:** `entities/note/client/query-keys.ts`
 
 ---
 
@@ -20,6 +21,23 @@ Each surface asks a different question:
 If month navigation refetched general notes every time, general list would flash and waste work. If Home reused calendar month payloads, starring across months would be awkward. Separate caches keep each consumer coherent.
 
 Writes still go through one domain (mutations + `synchronizeNoteCaches`) so all caches stay aligned.
+
+## Where each client responsibility lives
+
+The old combined TanStack folder was split so framework lifecycle does not get
+mixed with transport, cache policy, or SSR composition:
+
+| Responsibility | Location | Why |
+| -------------- | -------- | --- |
+| Query keys | `client/query-keys.ts` | Gives fetchers, cache helpers, and seeders one canonical cache identity |
+| Browser fetchers + query options | `client/*-notes-query.ts` | Keeps HTTP behavior beside the reusable TanStack configuration for that request |
+| React read hooks | `hooks/use-*-notes-query.ts` | Keeps React lifecycle separate from request definitions |
+| Calendar prefetch | `client/prefetch-*.ts` | Reuses query options without requiring a React hook |
+| SSR cache seeders | `hydration/seed-*-cache.ts` | Seeds already-fetched server data into entity-owned keys; the caller dehydrates once |
+| Cross-model cache policy | `cache/` | Lets mutations, realtime, and offline changes share the same membership rules |
+
+Consumers normally import these through stable `client.ts` or `server.ts`
+instead of deep-importing their implementation files.
 
 ---
 
@@ -86,10 +104,14 @@ POST on `/api/notes/home` supports lazy quick-note create when the slot is empty
 
 | Page | Seed |
 | ---- | ---- |
-| `/notes` | Current calendar month + general → `seedNotesPageCache` |
-| `/` (Home) | Home payload → `seedHomeNotesCache` (composed into one Home seed) |
+| `/notes` | Current calendar month + general → `hydration/seed-notes-page-cache.ts` |
+| `/` (Home) | Home payload → `hydration/seed-home-notes-cache.ts` |
 
-Hydration seeds TanStack so the first paint doesn’t wait for a client round-trip when data was already fetched on the server. After that, all islands share the same browser `QueryClient`.
+Hydration seeds TanStack so the first paint doesn’t wait for a client round-trip
+when data was already fetched on the server. Each seeder writes only its
+entity-owned keys; the route-level seed component can compose multiple entities
+and dehydrate the per-request `QueryClient` once. After hydration, all client
+islands share the same browser `QueryClient`.
 
 Details: [docs/architecture/caching.md](../../../docs/architecture/caching.md), [shared/react-query/README.md](../../../shared/react-query/README.md).
 
@@ -103,7 +125,9 @@ Any create / update / delete (mutation, realtime, offline flush) should update *
 - General list (enter/leave undated non-quick)
 - Home (quick slot, starred membership)
 
-That is the job of `synchronizeNoteCaches` (entity mutations). Callers map their event into a `NoteChange` and call the hub once — they do not scatter `setQueryData` for Home in one place and calendar in another.
+That is the job of `cache/synchronize-note-caches.ts`. Callers map their event
+into a `NoteChange` and call the hub once — they do not scatter `setQueryData`
+for Home in one place and calendar in another.
 
 ---
 
@@ -113,4 +137,4 @@ That is the job of `synchronizeNoteCaches` (entity mutations). Callers map their
 | --- | --- |
 | [domain-model.md](./domain-model.md) | Kinds and flags behind the filters |
 | [caching.md](../../../docs/architecture/caching.md) | Why TanStack owns server state after hydrate |
-| [RESPONSIBILITIES.md](../RESPONSIBILITIES.md) | `queries/`, `tanstack/`, hydrate helpers |
+| [RESPONSIBILITIES.md](../RESPONSIBILITIES.md) | `queries/`, `client/`, `hooks/`, `cache/`, and `hydration/` navigation |

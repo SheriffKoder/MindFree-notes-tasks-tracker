@@ -3,7 +3,7 @@
  * Server use-case for deleting an existing note row.
  */
 
-import { deleteNoteById } from "@/entities/note/repository/note-repository";
+import { deleteNoteById } from "@/entities/note/repository";
 
 /**
  * Deletes one note row owned by the authenticated user (RLS-scoped).

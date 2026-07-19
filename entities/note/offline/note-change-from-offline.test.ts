@@ -7,7 +7,7 @@ import type { Note } from "@/entities/note/model/types";
 import {
   generalNotesQueryKey,
   homeNotesQueryKey,
-} from "@/entities/note/tanstack/query-keys";
+} from "@/entities/note/client/query-keys";
 
 function buildNote(overrides: Partial<Note> = {}): Note {
   return {

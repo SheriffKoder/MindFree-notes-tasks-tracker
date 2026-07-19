@@ -12,9 +12,9 @@ export {
   parseMonthParam,
 } from "@/entities/note/lib/parse-month";
 export type { MonthRange } from "@/entities/note/lib/parse-month";
+export type { Note } from "@/entities/note/model/types";
 export type {
   CalendarDay,
   CalendarNotesResponse,
   GeneralNotesResponse,
-  Note,
-} from "@/entities/note/model/types";
+} from "@/entities/note/model/read-models";

@@ -53,6 +53,22 @@ Trade-offs:
 - Optimistic + realtime + form local state need careful gates (remote sync key, dirty guard)
 - Developers must import `client.ts` vs `server.ts` correctly or they will bundle server code
 
+### Current-state follow-up (2026-07-19)
+
+The decision above is retained as the historical record. Its original
+colocated `tanstack/` implementation was later refined into responsibility
+groups: `client/` owns fetchers, query keys/options, and prefetching; `hooks/`
+owns React hooks; `cache/` owns cache transforms and synchronization; and
+`hydration/` owns SSR cache seeders. These names are extensible responsibility
+labels, not a mandatory vocabulary for every entity.
+
+The architectural decision itself remains accepted: pages are RSC-first, one
+browser `QueryClient` is hydrated from server-fetched data, and client islands
+continue through the entity cache rather than a parallel page-props store. See
+the [project structure rule](../../.cursor/rules/project-structure.mdc) and
+[data-flow documentation](../architecture/data-flow.md) for the current
+organization.
+
 ### Follow-up
 
 - [docs/architecture/caching.md](../architecture/caching.md)

@@ -7,7 +7,7 @@ import { parseMonthParam } from "@/entities/note/lib/parse-month";
 import type {
   CalendarNotesResponse,
   GeneralNotesResponse,
-} from "@/entities/note/model/types";
+} from "@/entities/note/model/read-models";
 import { getCalendarNotesResponse } from "@/entities/note/queries/get-calendar-notes-response";
 import { getGeneralNotesResponse } from "@/entities/note/queries/get-general-notes-response";
 

@@ -10,7 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import type { CalendarDay, Note } from "@/entities/note";
 import { useNotesRealtimeSync } from "@/entities/note/client";
-import { createNotesOfflineSyncAdapter } from "@/entities/note/offline/notes-offline-storage";
+import { createNotesOfflineSyncAdapter } from "@/entities/note/offline";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { MonthNavigator } from "@/shared/month-navigator";

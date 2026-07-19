@@ -5,8 +5,10 @@
 
 import type { QueryClient } from "@tanstack/react-query";
 
-import { findNoteByIdInCache } from "@/entities/note/lib/find-note-in-cache";
-import type { NoteChange } from "@/entities/note/mutations/synchronize-note-caches";
+import {
+  findNoteByIdInCache,
+  type NoteChange,
+} from "@/entities/note/cache";
 import type { Note } from "@/entities/note/model/types";
 
 import type { NoteOfflinePayload } from "./notes-offline-storage";
