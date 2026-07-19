@@ -3,6 +3,7 @@
  * Presentational task/reminder list card (definition metadata only).
  */
 
+import { Bell } from "lucide-react";
 import { memo } from "react";
 
 import type { Activity, ActivityStatus, ScheduleType } from "@/entities/activity";
@@ -40,12 +41,10 @@ export const ActivityListCard = memo(function ActivityListCard({
   onClick,
 }: ActivityListCardProps) {
   const status = getActivityStatus(activity, todayIso);
-  // Reminders (and any definition without a color) stay theme-neutral — no
-  // task-color accent dot.
+  const isReminder = activity.kind === "reminder";
+  // Reminders stay theme-neutral — no task-color accent dot.
   const colorAccent =
-    activity.kind !== "reminder" && activity.color !== null
-      ? activity.color
-      : null;
+    !isReminder && activity.color !== null ? activity.color : null;
 
   return (
     <article
@@ -59,7 +58,14 @@ export const ActivityListCard = memo(function ActivityListCard({
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-start gap-2">
-          {colorAccent ? (
+          {isReminder ? (
+            // Icons sit before the title. Bell is the placeholder while
+            // `activity.icon` is null / unmapped.
+            <Bell
+              aria-hidden
+              className="mt-0.5 h-4 w-4 shrink-0 [color:var(--activity-card-muted)]"
+            />
+          ) : colorAccent ? (
             <span
               aria-hidden
               className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
@@ -74,6 +80,7 @@ export const ActivityListCard = memo(function ActivityListCard({
           <p
             className={cn(
               "mt-1.5 line-clamp-2 text-caption [color:var(--activity-card-muted)]",
+              isReminder && "pl-6",
               colorAccent && "pl-[18px]",
             )}
           >
