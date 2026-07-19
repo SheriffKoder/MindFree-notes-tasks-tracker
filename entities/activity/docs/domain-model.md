@@ -28,23 +28,37 @@ Pages and Home are **consumers** of this one domain, not separate domains.
 
 ```text
 kind = "task"      → Tasks page, colored cards, goals, calendar completion
-kind = "reminder"  → Reminders surface (Phase 3), no color/goal
+kind = "reminder"  → Reminders page, theme-neutral cards, boolean completion
 ```
 
 `kind` is set by the **creating page**, never asked in the drawer — the Tasks
-page creates `task`s, the Reminders page will create `reminder`s. This is why
+page creates `task`s and the Reminders page creates `reminder`s. This is why
 the create schema takes `kind` from the caller rather than a form field
 (`schema/create-activity.schema.ts`), and why definitions are cached per kind
 (`["activities", kind]`).
 
-Presentation differences fall out of `kind`, not separate types:
+Reminder fields are canonical invariants, not presentation conventions:
 
 | Field | Task | Reminder |
 | ----- | ---- | -------- |
-| `color` | set (card accent) | `null` |
+| `color` | optional card accent | **always `null`** |
 | `goal` / `goalDuration` | optional count / minute targets | `null` |
 | `icon` | reserved (`null` for now) | `null` |
-| `trackingMode` | drives recording UI | typically `boolean` |
+| `trackingMode` | drives recording UI | **always `"boolean"`** |
+
+`lib/definition/normalize-activity-definition.ts` enforces these values. It runs
+at both trust boundaries:
+
+- **Server create/PATCH:** `mutations/create-activity.ts` normalizes the
+  submitted kind; `mutations/update-activity.ts` loads the owned row first and
+  normalizes against its persisted kind (PATCH does not accept `kind`).
+- **Optimistic client create/update:** the mutation hooks normalize before
+  writing cache state and before sending the request, so optimistic UI matches
+  the eventual server row.
+
+The reminder form also hides color, goal, and tracking-mode controls, but that
+is only presentation. The write-boundary normalization is what guarantees that
+crafted or stale payloads cannot persist task-only values on reminders.
 
 ---
 

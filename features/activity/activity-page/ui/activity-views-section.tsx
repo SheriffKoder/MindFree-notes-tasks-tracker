@@ -1,35 +1,38 @@
 /**
- * @file views/tasks/ui/tasks-views-section.tsx
- * Tasks page views container — owns query calls and mounts calendar/list panes.
+ * @file features/activity/activity-page/ui/activity-views-section.tsx
+ * Activity page views container — owns query calls and mounts calendar/list panes.
  */
 
 "use client";
 
 import { memo } from "react";
 
-import type { Activity, ActivityRecord } from "@/entities/activity";
+import type { Activity, ActivityKind, ActivityRecord } from "@/entities/activity";
 import {
   useActivitiesQuery,
   useActivityRecordsQuery,
 } from "@/entities/activity/client";
-import { cn } from "@/lib/utils";
-import { QueryStatePanel } from "@/shared/react-query";
+import type { ActivityPageCopy } from "@/features/activity/activity-page/lib/activity-page-copy";
+import type { ActivityViewId } from "@/features/activity/activity-page/lib/activity-views";
 import {
   resolveViewQueryState,
   type ViewQueryState,
-} from "@/views/tasks/lib/resolve-view-query-state";
-import type { TasksViewId } from "@/views/tasks/lib/tasks-views";
-import { TasksCalendarPane } from "@/views/tasks/ui/tasks-calendar-pane";
-import { TasksListPane } from "@/views/tasks/ui/tasks-list-pane";
+} from "@/features/activity/activity-page/lib/resolve-view-query-state";
+import { ActivityCalendarPane } from "@/features/activity/activity-page/ui/activity-calendar-pane";
+import { ActivityListPane } from "@/features/activity/activity-page/ui/activity-list-pane";
+import { cn } from "@/lib/utils";
+import { QueryStatePanel } from "@/shared/react-query";
 
-export interface TasksViewsSectionProps {
+export interface ActivityViewsSectionProps {
+  kind: ActivityKind;
   month: string;
-  view: TasksViewId;
+  view: ActivityViewId;
+  copy: ActivityPageCopy;
   /** In-month highlight for the calendar grid (from page selection hook). */
   highlightedDate?: string;
   /** Snaps page selection to the clicked calendar day. */
   onDaySelect: (date: string) => void;
-  /** Opens the config drawer for a list card (Step 11). */
+  /** Opens the config drawer for a list card. */
   onActivityClick?: (activity: Activity) => void;
 }
 
@@ -60,7 +63,7 @@ function CalendarPaneContent({
   }
 
   return (
-    <TasksCalendarPane
+    <ActivityCalendarPane
       month={month}
       activities={activities}
       records={records}
@@ -72,12 +75,14 @@ function CalendarPaneContent({
 
 interface ListPaneContentProps {
   activities: Activity[];
+  activeEmptyLabel: string;
   queryState: ViewQueryState;
   onActivityClick?: (activity: Activity) => void;
 }
 
 function ListPaneContent({
   activities,
+  activeEmptyLabel,
   queryState,
   onActivityClick,
 }: ListPaneContentProps) {
@@ -91,8 +96,9 @@ function ListPaneContent({
   }
 
   return (
-    <TasksListPane
+    <ActivityListPane
       activities={activities}
+      activeEmptyLabel={activeEmptyLabel}
       onActivityClick={onActivityClick}
     />
   );
@@ -100,30 +106,41 @@ function ListPaneContent({
 
 /**
  * Fetches activities + records, resolves per-pane query state, and renders the
- * responsive calendar/list body (mirrors Notes calendar + sidebar layout).
+ * responsive calendar/list body.
  *
- * Memoized so drawer open/close in TasksClient (useTasksDrawer state) does not
- * re-render the calendar/list tree — props stay stable across that update.
+ * Memoized so drawer open/close in the page client does not re-render the
+ * calendar/list tree — props stay stable across that update.
  */
-export const TasksViewsSection = memo(function TasksViewsSection({
+export const ActivityViewsSection = memo(function ActivityViewsSection({
+  kind,
   month,
   view,
+  copy,
   highlightedDate,
   onDaySelect,
   onActivityClick,
-}: TasksViewsSectionProps) {
-  const activitiesQuery = useActivitiesQuery("task");
+}: ActivityViewsSectionProps) {
+  const activitiesQuery = useActivitiesQuery(kind);
   const recordsQuery = useActivityRecordsQuery(month);
+
+  const queryMessages = {
+    activitiesError: copy.loadActivitiesError,
+    activitiesLoading: copy.loadActivitiesLoading,
+    recordsError: copy.loadRecordsError,
+    recordsLoading: copy.loadRecordsLoading,
+  };
 
   const calendarQueryState = resolveViewQueryState(
     "calendar",
     activitiesQuery,
     recordsQuery,
+    queryMessages,
   );
   const listQueryState = resolveViewQueryState(
     "list",
     activitiesQuery,
     recordsQuery,
+    queryMessages,
   );
 
   const activities = activitiesQuery.data?.activities ?? [];
@@ -131,23 +148,22 @@ export const TasksViewsSection = memo(function TasksViewsSection({
 
   return (
     <>
-      {/* Mobile list — full width; desktop uses the sidebar below. */}
       {view === "list" ? (
         <section
-          aria-label="Tasks list"
+          aria-label={copy.listAriaLabel}
           className="flex min-h-0 flex-1 flex-col md:hidden"
         >
           <ListPaneContent
             activities={activities}
+            activeEmptyLabel={copy.activeEmptyLabel}
             queryState={listQueryState}
             onActivityClick={onActivityClick}
           />
         </section>
       ) : null}
 
-      {/* Calendar + desktop sidebar — mobile calendar scrolls horizontally. */}
       <section
-        aria-label="Tasks calendar"
+        aria-label={copy.calendarAriaLabel}
         className={cn(
           view === "calendar"
             ? "flex h-full min-h-[600px] flex-col"
@@ -167,12 +183,13 @@ export const TasksViewsSection = memo(function TasksViewsSection({
           </div>
 
           <div
-            aria-label="Tasks list"
+            aria-label={copy.listAriaLabel}
             className="hidden h-full min-h-0 w-[30vw] max-w-[400px] shrink-0 flex-col overflow-hidden md:flex"
           >
             <div className="min-h-0 flex-1 overflow-y-auto px-4">
               <ListPaneContent
                 activities={activities}
+                activeEmptyLabel={copy.activeEmptyLabel}
                 queryState={listQueryState}
                 onActivityClick={onActivityClick}
               />

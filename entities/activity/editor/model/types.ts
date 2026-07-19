@@ -9,7 +9,7 @@
 
 import type { z } from "zod";
 
-import type { Activity } from "@/entities/activity/model/types";
+import type { Activity, ActivityKind } from "@/entities/activity/model/types";
 import { activityFormObject } from "@/entities/activity/schema/activity-form.schema";
 
 /** Editable definition fields managed by the config form. */
@@ -38,6 +38,8 @@ export interface ActivityFormFooterMeta {
 export interface ActivityFormProps {
   /** Existing activity to edit, or `null` for create / empty draft. */
   activity: Activity | null;
+  /** Page-owned definition kind; controls kind-specific form presentation. */
+  kind: ActivityKind;
   /**
    * Identifies the active editor context (activity id or draft slot).
    * Changing it resets local field state without reacting to cache writes.

@@ -16,7 +16,10 @@
 import { ChevronRight } from "lucide-react";
 import { memo, useState, type ReactNode } from "react";
 
-import type { TodayActivity } from "@/entities/activity";
+import {
+  resolveRecordConfiguration,
+  type TodayActivity,
+} from "@/entities/activity";
 import {
   ACTIVITY_TODAY_CARD_CSS_VARS,
   ACTIVITY_TODAY_CARD_STYLE_CONFIG,
@@ -63,6 +66,7 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
   const { activity, progress, record } = today;
   const [open, setOpen] = useState(defaultOpen);
   const primaryProgress = progress.dimensions[0];
+  const { trackingMode } = resolveRecordConfiguration(activity, record);
   const color =
     activity.color ?? ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.taskColorFallback;
   // `null` is a controlled cleared value; only `undefined` means fall back to
@@ -92,11 +96,15 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
         <TodayCardIdentity
           color={color}
           dimensions={progress.dimensions}
+          icon={activity.icon}
+          kind={activity.kind}
           title={activity.title}
         />
 
-        <TodayCardProgress dimensions={progress.dimensions} />
-
+        <TodayCardProgress
+          dimensions={progress.dimensions}
+          trackingMode={trackingMode}
+        />
         <span aria-hidden />
 
         {goalSlot}

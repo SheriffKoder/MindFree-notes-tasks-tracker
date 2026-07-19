@@ -58,7 +58,8 @@ autosave and fire immediately, each flipping the drawer's save status.
 
 API surfaces (thin routes → `server.ts` use-cases):
 
-- `POST /api/activities` — create (`kind` from the route/page, not the body)
+- `POST /api/activities` — create (`kind` is supplied by the mounting page,
+  never chosen in the form)
 - `PATCH /api/activities/:id` — field edits **and** archive/restore (via
   `archivedAt`)
 - `DELETE /api/activities/:id` — hard delete
@@ -66,13 +67,34 @@ API surfaces (thin routes → `server.ts` use-cases):
 Status codes match the Notes API: 400 invalid body, 401 unauthenticated, 404 not
 found, 500 otherwise.
 
+### Kind normalization
+
+`normalizeActivityDefinition(kind, values)` canonicalizes every definition
+write before persistence:
+
+```text
+task     → selected tracking mode + mode-compatible goals
+reminder → trackingMode="boolean", color=null, goal=null, goalDuration=null
+```
+
+Create already carries the page-owned `kind`, so the server normalizes the
+parsed payload directly. PATCH deliberately cannot change `kind`; the update
+use-case first loads the owned row, then normalizes the merged values against
+that persisted kind. This prevents a crafted or stale PATCH from adding task
+fields to a reminder.
+
+The create/update hooks apply the same normalization before optimistic cache
+writes and before sending HTTP. That is not the security boundary—the server
+remains authoritative—but it prevents the optimistic row from briefly
+displaying values the server will discard.
+
 ---
 
 ## Daily record path
 
-Home's inline controls edit the aggregate record identified by the natural key
-`(taskId, date)`. Values are absolute daily totals, not increment commands, so
-retries remain idempotent.
+Home and the selected-day drawer edit the aggregate record identified by the
+natural key `(taskId, date)`. Values are absolute daily totals, not increment
+commands, so retries remain idempotent.
 
 ```text
 QuickRecord control
@@ -84,7 +106,7 @@ QuickRecord control
   → POST or DELETE /api/activity-records
   → synchronizeActivityCaches
   → ["activityRecords", YYYY-MM]
-  → Home Today + Tasks calendar + Progress recompute
+  → Home Today + Tasks/Reminders calendars + Progress recompute
 ```
 
 `features/activity/quick-record/model/use-quick-record.ts` owns the **when**
@@ -101,6 +123,12 @@ effective mode):
 - `boolean` / `count` — count is positive;
 - `duration` — duration is positive;
 - `count+duration` — either dimension is positive.
+
+Reminders are always boolean. Checking a reminder changes its local count to
+`1`, then debounces a natural-key upsert for that day. Unchecking changes count
+to `0`; with no meaningful value or note, an existing row is deleted (and no
+row means no write). A non-empty record description can intentionally keep the
+row even when count is zero.
 
 The timer adds one minute through `useQuickRecord.addMinutes`, so timed and
 manual edits use exactly the same persistence path.
@@ -176,8 +204,12 @@ Both remain inert seams:
 - **Offline (Phase 6)** — a queue adapter would persist pending writes and flush
   them through the same hub.
 
-The mount points are commented in `views/tasks/ui/tasks-client.tsx` and
-`views/home/ui/home-today-list.tsx`; no throwaway code exists yet.
+The shared page mount point is
+`features/activity/activity-page/ui/activity-page-client.tsx`, covering both
+`/tasks` and `/reminders`. Home activity islands live in
+`views/home/ui/home-today-list.tsx` and
+`views/home/ui/home-reminders-list.tsx`; realtime/offline work should reuse one
+kind-aware integration rather than fork task and reminder synchronization.
 
 ---
 

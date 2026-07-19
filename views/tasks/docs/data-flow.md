@@ -1,9 +1,12 @@
-# Tasks page data flow
+# Activity page data flow
 
-How task data travels from the server fetch to the two render endpoints — the
-**calendar cell / pill** and the **activity list card**.
+How Tasks and Reminders travel from kind-scoped SSR hydration to the shared
+calendar/list endpoints. This file remains under `views/tasks/docs/` for
+historical continuity; the implemented page workflow lives in
+`features/activity/activity-page/`.
 
 **Read models:** [entities/activity/docs/read-models.md](../../../entities/activity/docs/read-models.md)
+**Shared ownership:** [entities/activity/docs/responsibilities.md](../../../entities/activity/docs/responsibilities.md)
 **App-wide pattern:** [docs/architecture/data-flow.md](../../../docs/architecture/data-flow.md)
 
 ---
@@ -12,160 +15,214 @@ How task data travels from the server fetch to the two render endpoints — the
 
 ```mermaid
 flowchart TD
-  subgraph SRV["Server (RSC)"]
-    Page["app/(app)/tasks/page.tsx<br/>Suspense × 2 (parallel)"]
-    Seed["TasksHydrationSeed"]
-    Init["getTasksPageInitialData(userId, month)<br/>definitions + records in parallel"]
-    Repo["repository (RLS: user_id)<br/>+ transform"]
-    Hyd["seedActivityCaches → dehydrate → QueryHydration"]
+  subgraph ROUTES["Thin route + view wrappers"]
+    TasksRoute["/tasks"]
+    RemindersRoute["/reminders"]
+    TasksSeed["TasksHydrationSeed<br/>kind = task"]
+    RemindersSeed["RemindersHydrationSeed<br/>kind = reminder"]
+    TasksClient["TasksClient<br/>ActivityPageClient(kind=task)"]
+    RemindersClient["RemindersClient<br/>ActivityPageClient(kind=reminder)"]
   end
 
-  subgraph CACHE["TanStack cache (browser)"]
-    Defs["['activities','task']<br/>stable"]
-    Recs["['activityRecords', month]<br/>month-scoped"]
+  subgraph SERVER["Server reads + hydration"]
+    Initial["getActivityPageInitialData<br/>(userId, month, kind)"]
+    Definitions["getActivitiesResponse<br/>(userId, kind)"]
+    Records["getActivityRecordsResponse<br/>(userId, month)"]
+    Seed["seedActivityCaches<br/>dehydrate → QueryHydration"]
   end
 
-  subgraph CLI["Client island"]
-    TC["TasksClient<br/>URL state · drawer · FilterProvider"]
-    VS["TasksViewsSection (memo)<br/>useActivitiesQuery + useActivityRecordsQuery<br/>resolveViewQueryState"]
+  subgraph CACHE["Canonical TanStack caches"]
+    DefinitionCache["activities, kind<br/>stable per kind"]
+    RecordCache["activityRecords, month<br/>shared across kinds"]
   end
 
-  subgraph CAL["Calendar branch — filter consumer"]
-    CP["TasksCalendarPane · useTasksFilter"]
-    LK["buildRecordLookup(records)"]
-    DY["buildTaskCalendarDays<br/>→ filter isShown + showIncomplete"]
-    CELL["ActivityCalendarCell<br/>deriveTodayProgress + formatPillProgress"]
-    PILL["ActivityTaskPill ◀ endpoint"]
+  subgraph PAGE["Shared activity-page feature"]
+    PageClient["ActivityPageClient<br/>URL state · selection · drawers · filter"]
+    Views["ActivityViewsSection<br/>kind-scoped query owner"]
+    Calendar["ActivityCalendarPane<br/>record lookup · day join · filter"]
+    List["ActivityListPane<br/>ActivityGroups"]
+    CalendarCell["ActivityCalendarCell<br/>ActivityTaskPill"]
+    ListCard["ActivityListCard"]
+    DefinitionDrawer["ActivityDrawer"]
+    RecordDrawer["ActivityRecordDrawer"]
   end
 
-  subgraph LST["List branch — NOT a filter consumer"]
-    LP["TasksListPane (memo)"]
-    GRP["ActivityGroups → groupActivities(today)"]
-    CARD["ActivityListCard ◀ endpoint"]
-  end
+  TasksRoute --> TasksSeed
+  TasksRoute --> TasksClient
+  RemindersRoute --> RemindersSeed
+  RemindersRoute --> RemindersClient
 
-  Page --> Seed --> Init --> Repo --> Hyd
-  Page --> TC
-  Hyd --> Defs
-  Hyd --> Recs
-  TC --> VS
-  Defs --> VS
-  Recs --> VS
-  VS -->|view=calendar| CP
-  VS -->|view=list| LP
+  TasksSeed --> Initial
+  RemindersSeed --> Initial
+  Initial --> Definitions
+  Initial --> Records
+  Definitions --> Seed
+  Records --> Seed
+  Seed --> DefinitionCache
+  Seed --> RecordCache
 
-  CP --> LK --> DY --> CELL --> PILL
-  Defs --> CP
-  Recs --> CP
-
-  LP --> GRP --> CARD
-  Defs -. definitions only .-> LP
+  TasksClient --> PageClient
+  RemindersClient --> PageClient
+  PageClient --> Views
+  PageClient --> DefinitionDrawer
+  PageClient --> RecordDrawer
+  DefinitionCache --> Views
+  RecordCache --> Views
+  Views --> Calendar
+  Views --> List
+  Calendar --> CalendarCell
+  List --> ListCard
+  DefinitionDrawer -. mutations .-> DefinitionCache
+  RecordDrawer -. mutations .-> RecordCache
 ```
 
 ---
 
-## Server → cache (once, on load)
+## Thin wrappers, one page workflow
 
 ```text
-page.tsx
-  ├─ <TasksHydrationSeed>   (server, non-blocking sibling)
-  │     getAuthenticatedUserId()
-  │     getTasksPageInitialData(userId, null)      // month defaults to current
-  │        ├─ getActivitiesResponse(userId,"task")  ─┐ parallel
-  │        └─ getActivityRecordsResponse(userId,mo) ─┘
-  │            → repository (user_id + RLS) → transform (sort)
-  │     seedActivityCaches(qc, data)
-  │        setQueryData(['activities','task'],   definitions)
-  │        setQueryData(['activityRecords', mo], records)
-  │     → <QueryHydration state={dehydrate(qc)}>
-  └─ <TasksClient>          (client shell, renders in parallel)
+/tasks
+  ├─ TasksHydrationSeed
+  │    └─ getActivityPageInitialData(userId, null, "task")
+  └─ TasksClient
+       └─ ActivityPageClient(kind="task", copy...)
+
+/reminders
+  ├─ RemindersHydrationSeed
+  │    └─ getActivityPageInitialData(userId, null, "reminder")
+  └─ RemindersClient
+       └─ ActivityPageClient(kind="reminder", copy...)
 ```
 
-The route is a **thin shell** ([project-structure §7](../../../.cursor/rules/project-structure.mdc)):
-it only composes the two Suspense children. All fetching lives in the entity
-(`server.ts` use-cases), so first paint reads from the hydrated cache with no
-client round-trip.
+The route files only compose server hydration and the client wrapper as
+parallel Suspense siblings. The two view clients provide `kind`, title, and
+subtitle; they do not own separate calendar, list, filter, selection, or drawer
+implementations.
+
+`ActivityPageClient` owns the reusable workflow:
+
+- month/view URL state and selected day;
+- definition and selected-day records drawer state;
+- kind-aware labels and Add behavior;
+- the calendar-only filter provider;
+- responsive calendar/list composition.
 
 ---
 
-## Cache → view shell
+## Server → canonical caches
 
-`TasksClient` owns URL state (`month` / `view`), page selection, the drawer, and
-wraps everything in `TasksFilterProvider`. It renders a **memoized**
-`TasksViewsSection`, which is the single owner of the query reads:
+`getActivityPageInitialData(userId, monthParam, kind)` fetches in parallel:
 
 ```text
-useActivitiesQuery("task")       → ['activities','task']    (definitions)
-useActivityRecordsQuery(month)   → ['activityRecords', mo]   (records)
-resolveViewQueryState(view, …)   → loading | error | ready
+getActivitiesResponse(userId, kind)
+getActivityRecordsResponse(userId, resolvedMonth)
 ```
 
-`ready` hands `activities` + `records` to whichever branch the current `view`
-selects. Only one branch renders per view on mobile; on desktop the calendar and
-list sit side by side.
-
----
-
-## Endpoint A — calendar cell / pill
-
-`TasksCalendarPane` is the **filter consumer**. It derives three memoized values,
-then renders the shared `MonthCalendar` with a per-day cell renderer:
+`seedActivityCaches(queryClient, data)` then writes:
 
 ```text
-records   → buildRecordLookup                     → recordLookup
-+ month   → buildTaskCalendarDays(recordLookup)    → calendarDays       (ADR 0012)
-              → .filter(isShown && isDayActivityShown(showIncomplete))
-MonthCalendar.renderCell(day)
-  → ActivityCalendarCell(day)
-      → deriveTodayProgress(activity, record)
-      → formatPillProgress(dimensions) → "1/2" | "5m/5m" | …
-      → ActivityTaskPill(color, progressLabel, isDone)   ◀ endpoint
+["activities", data.kind]          → definitions for this surface
+["activityRecords", data.month]    → records shared across both kinds
 ```
 
-- **Join** (`buildTaskCalendarDays`): a record always shows; the schedule only
-  adds empty due slots — [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md).
-- **Day progress**: entity `deriveTodayProgress` + feature
-  `formatPillProgress` — compact `value/goal` (with `m` for minutes), using
-  record configuration snapshots when a record exists
-  ([0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md)).
-  Boolean / goal-less count keeps a check when meaningful.
-- **Filter** happens here, in the pane, not in the join: `isShown` (per-task
-  toggle) + `isDayActivityShown` (hide not-done; also snapshot-aware). Pill
-  visuals:
-  [calendar-cell.md](../../../features/activity/activity-calendar-cell/docs/calendar-cell.md).
-- Month-% map (`computeTaskMonthProgress`, ADR 0013) remains available for the
-  Progress page / list; calendar pills no longer consume it. Its numerator uses
-  each record's tracking-mode snapshot.
+The seed component dehydrates once into `QueryHydration`. First paint therefore
+reads canonical cache data without a client round-trip. Definitions stay stable
+while month navigation changes only the records key.
+
+Home uses the related `getHomeActivityInitialData` /
+`seedHomeActivityCaches` pair because it needs both definition kinds but still
+only one current-month records response.
 
 ---
 
-## Endpoint B — activity list card
+## Cache → `ActivityViewsSection`
 
-`TasksListPane` uses **definitions only** (no records) and is deliberately **not**
-a filter consumer:
+`ActivityViewsSection` is the shared query owner:
 
 ```text
-activities → ActivityGroups
-               → groupActivities(activities, today)      (uses getActivityStatus)
-                   active   = active + upcoming   → expanded section
-                   inactive = expired + archived  → collapsed <details>
-               → ListView (one per row)
-                   → ActivityListCard(activity, todayIso)   ◀ endpoint
+useActivitiesQuery(kind)       → ["activities", kind]
+useActivityRecordsQuery(month) → ["activityRecords", month]
+resolveViewQueryState(...)     → loading | error | ready
 ```
 
-Grouping is by derived lifecycle status
-([scheduling.md](../../../entities/activity/docs/scheduling.md)); the card shows
-title, description, and a small schedule/status line — no completion numbers.
+On mobile it mounts the selected calendar or list view. On desktop the calendar
+and list render side by side. The component is memoized so opening either drawer
+does not re-render the view tree when its props remain stable.
 
 ---
 
-## Cross-cutting: why the two branches are isolated
+## Calendar endpoint
+
+`ActivityCalendarPane` is the filter consumer:
+
+```text
+records → buildRecordLookup
+month + definitions + lookup
+  → buildTaskCalendarDays
+  → filter by isShown + isDayActivityShown(showIncomplete)
+  → MonthCalendar
+  → ActivityCalendarCell
+  → ActivityTaskPill
+```
+
+The legacy `TaskCalendarDay` / `buildTaskCalendarDays` names describe the domain
+shape, not page ownership; both activity kinds use them.
+
+- A persisted record always keeps its day visible; schedule matching only adds
+  empty due slots
+  ([ADR 0012](../../../docs/adr/0012-calendar-records-always-visible.md)).
+- Task pills use `deriveTodayProgress` + `formatPillProgress` for compact
+  `1/2`, `5m/5m`, or combined labels.
+- Reminder pills suppress numeric progress and show boolean done/not-done.
+- Filtering belongs to this pane, not the entity join: hidden definitions and
+  incomplete-day visibility are page preferences.
+
+---
+
+## List endpoint
+
+`ActivityListPane` consumes definitions only:
+
+```text
+activities
+  → ActivityGroups
+       active   = active + upcoming
+       inactive = expired + archived
+  → ActivityListCard
+```
+
+The list deliberately does not subscribe to the calendar filter, so toggling
+that filter does not re-render list cards. Group empty copy is supplied by the
+kind-aware page copy. Task cards may show their color accent; reminder cards
+stay theme-neutral.
+
+---
+
+## Drawers and writes
+
+`ActivityPageClient` coordinates two independent shared drawers:
+
+- `ActivityDrawer` creates/edits a definition using the page-owned `kind`.
+- `ActivityRecordDrawer` edits records for the selected calendar day and reads
+  definitions from the matching kind cache.
+
+Definition and record mutations converge through
+`synchronizeActivityCaches`. A definition change updates only
+`["activities", kind]`; a record change updates its shared month bucket. Tasks,
+Reminders, and Home recompute from those same keys without page-specific sync
+branches.
+
+---
+
+## Re-render and cache boundaries
 
 | Concern | Mechanism |
 | ------- | --------- |
-| Filter toggle re-renders **only** the calendar | `TasksFilterProvider` at `TasksClient`; calendar pane subscribes via `useTasksFilter`, list pane is a **non-consumer** + `memo` |
-| Drawer open/close doesn't re-render the grid | `TasksViewsSection` is `memo`'d; its props stay stable across drawer state changes |
-| Month navigation refetches **records only** | records keyed by `month`; definitions keyed by `kind` stay cached |
+| Filter toggle affects only the calendar | `ActivityFilterProvider`; `ActivityCalendarPane` consumes it, `ActivityListPane` does not |
+| Drawer state does not rebuild the grid | memoized `ActivityViewsSection` with stable props |
+| Month navigation refetches records only | records keyed by month; definitions keyed by kind |
+| Task and reminder definitions do not mix | every definition query/seed receives `kind` |
+| Records remain shared | one `["activityRecords", month]` key for both kinds |
 
 ---
 
@@ -173,8 +230,9 @@ title, description, and a small schedule/status line — no completion numbers.
 
 | Doc | Why |
 | --- | --- |
-| [read-models.md](../../../entities/activity/docs/read-models.md) | The two caches + the join/progress transforms |
-| [0014-flat-records-client-side-join.md](../../../docs/adr/0014-flat-records-client-side-join.md) | Why the join is client-side, not server-aggregated (vs. Notes) |
-| [calendar-cell.md](../../../features/activity/activity-calendar-cell/docs/calendar-cell.md) | Pill visual + endpoint A internals |
-| [scheduling.md](../../../entities/activity/docs/scheduling.md) | Status behind list grouping (endpoint B) |
-| [writes-and-autosave.md](../../../entities/activity/docs/writes-and-autosave.md) | The write path back into these caches |
+| [read-models.md](../../../entities/activity/docs/read-models.md) | Kind-scoped definitions, shared records, and joins |
+| [writes-and-autosave.md](../../../entities/activity/docs/writes-and-autosave.md) | Definition/record writes back into canonical caches |
+| [calendar-cell.md](../../../features/activity/activity-calendar-cell/docs/calendar-cell.md) | Calendar pill presentation |
+| [scheduling.md](../../../entities/activity/docs/scheduling.md) | Due-day and lifecycle rules |
+| [ADR 0011](../../../docs/adr/0011-one-activity-model-two-kinds.md) | Why Tasks and Reminders share one model and page workflow |
+| [ADR 0014](../../../docs/adr/0014-flat-records-client-side-join.md) | Why records stay flat and views join client-side |

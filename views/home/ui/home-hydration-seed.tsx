@@ -6,27 +6,28 @@
  * writes them all into one QueryClient via the entities' own cache seeders, then
  * dehydrates once. Each entity keeps ownership of its cache keys (the `seed*`
  * functions); Home only knows "seed these entities." Adding a new Home island
- * (reminders, …) is one read + one seed call here — no new component, no new
- * Suspense boundary. See project-structure §7 (this lives under views/, not app/).
+ * is one read + one seed call here — no new component, no new Suspense
+ * boundary. See project-structure §7 (this lives under views/, not app/).
  */
 
 import { dehydrate } from "@tanstack/react-query";
 import { connection } from "next/server";
 
 import {
-  getTasksPageInitialData,
-  seedActivityCaches,
+  getAuthenticatedUserId,
+  getHomeActivityInitialData,
+  seedHomeActivityCaches,
 } from "@/entities/activity/server";
 import {
-  getAuthenticatedUserId,
   getHomeNotesResponse,
   seedHomeNotesCache,
 } from "@/entities/note/server";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**
- * Seeds every Home island's caches (notes + today's activities, and future
- * entities) into one QueryClient without blocking the UI shell.
+ * Seeds every Home island's caches (notes + today's tasks/reminders) into one
+ * QueryClient without blocking the UI shell. Activity seeding writes both
+ * definition kinds and **one** shared month records bucket.
  *
  * @returns hydration boundary carrying the single dehydrated cache
  */
@@ -38,12 +39,12 @@ export async function HomeHydrationSeed() {
 
   const [homeNotes, activityData] = await Promise.all([
     getHomeNotesResponse(userId),
-    getTasksPageInitialData(userId, null),
+    getHomeActivityInitialData(userId),
   ]);
 
   const queryClient = getQueryClient();
   seedHomeNotesCache(queryClient, homeNotes);
-  seedActivityCaches(queryClient, activityData);
+  seedHomeActivityCaches(queryClient, activityData);
 
   return <QueryHydration state={dehydrate(queryClient)}>{null}</QueryHydration>;
 }

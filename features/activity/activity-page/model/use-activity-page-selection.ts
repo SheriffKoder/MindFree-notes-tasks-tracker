@@ -1,15 +1,11 @@
 /**
- * @file views/tasks/model/use-tasks-page-selection.ts
- * Ephemeral date selection for the Tasks page calendar highlight.
- *
- * Mirrors the Notes page selection: view clicks call `selectDate`, which snaps
- * the page highlight to the clicked day. Scoped to the URL `month` so off-month
- * selections don't highlight the grid.
+ * @file features/activity/activity-page/model/use-activity-page-selection.ts
+ * Ephemeral date selection for the activity page calendar highlight.
  */
 
 import { useCallback, useMemo, useState } from "react";
 
-export interface UseTasksPageSelectionResult {
+export interface UseActivityPageSelectionResult {
   /** Canonical selected ISO date for page-level selection state. */
   selectedDate: string | undefined;
   /**
@@ -24,14 +20,11 @@ export interface UseTasksPageSelectionResult {
 }
 
 /**
- * Manages Tasks page calendar highlight selection.
- *
- * @param month - URL month (`YYYY-MM`) used to scope calendar grid highlight
- * @returns selection state and `selectDate` handler for view interactions
+ * Manages activity-page calendar highlight selection.
  */
-export function useTasksPageSelection(
+export function useActivityPageSelection(
   month: string,
-): UseTasksPageSelectionResult {
+): UseActivityPageSelectionResult {
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
 
   const highlightedDate = useMemo(() => {

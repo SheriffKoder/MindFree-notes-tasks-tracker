@@ -99,28 +99,36 @@ will feed the Progress page later.
 
 | Page | Seed |
 | ---- | ---- |
-| `/tasks` | definitions + current-month records → `seedActivityCaches` |
-| `/` (Home) | same two caches → `seedActivityCaches` (composed into one Home seed) |
+| `/tasks` | `getActivityPageInitialData(..., "task")` → `seedActivityCaches` |
+| `/reminders` | `getActivityPageInitialData(..., "reminder")` → `seedActivityCaches` |
+| `/` (Home) | `getHomeActivityInitialData` → `seedHomeActivityCaches` (both kinds + one records month) |
 
-`queries/get-tasks-page-initial-data.ts` fetches both payloads in parallel on
-the server; `hydration/seed-activity-caches.ts` writes them into the two canonical
-keys (the seed component dehydrates once for the client boundary), so first
-paint doesn't wait for a client round-trip. The Home seed composes the same
-writer alongside other entities. After hydration every island shares one browser
-`QueryClient`.
+`getActivityPageInitialData` fetches one kind's definitions and the month's
+records in parallel. `getHomeActivityInitialData` fetches **task** definitions,
+**reminder** definitions, and **one** current-month records response in parallel
+— Home must not double-fetch records. Seeders write
+`["activities", kind]` / `["activityRecords", month]`; the seed component
+dehydrates once for the client boundary. After hydration every island shares
+one browser `QueryClient`.
 
 ---
 
 ## Home Today join
 
-`hooks/use-home-today-query.ts` is a memoized selector over task definitions and
-the current month's records. It builds the record lookup once, then calls
+`hooks/use-home-today-query.ts` is a memoized selector over `["activities", kind]`
+and the current month's records. It builds the record lookup once, then calls
 `lib/today/build-today-activities.ts` for today's `YYYY-MM-DD`.
 
-An unarchived task appears when **either**:
+For either kind, an unarchived activity appears in its Home section when
+**either**:
 
 - today's record exists — history remains visible after schedule edits; or
-- `isActiveOnDay(activity, today)` — an empty task is due today.
+- `isActiveOnDay(activity, today)` — an empty task/reminder is due today.
+
+`useHomeTodayQuery(kind)` supplies only the matching definition bucket, so the
+same membership join produces Today's Tasks from `["activities","task"]` and
+Today's Reminders from `["activities","reminder"]`. Both selectors share the
+single `["activityRecords", currentMonth]` cache.
 
 Each `TodayActivity` carries `{ activity, record, done, progress }`.
 `lib/record/derive-today-progress.ts` returns per-dimension progress using
@@ -141,6 +149,18 @@ Each dimension has `value`, `goal`, `remaining`, and `percent` (`null` when
 unbounded). `done` is true when every **configured** dimension reaches its
 goal, or — if no goals are set — when the record is meaningful under the
 effective tracking mode.
+
+Reminders are normalized to `trackingMode="boolean"` with no goals. Their
+completion therefore has one rule:
+
+```text
+no record / count = 0 → not done
+record count > 0      → done
+```
+
+The boolean quick-record toggle writes `count=1` when checked and deletes the
+day record when unchecked. Calendar pills and Home rows render this as
+done/not-done only; reminders never expose numeric goal progress.
 
 Home presentation stays dumb: stacked `value/goal` labels (with `Count` /
 `Minutes` prefixes only for `count+duration`), and one donut that averages

@@ -22,7 +22,9 @@ export type {
 } from "@/entities/activity/model/types";
 export type {
   ActivitiesResponse,
+  ActivityPageData,
   ActivityRecordsResponse,
+  HomeActivityData,
   TaskCalendarDay,
   TaskCalendarDayActivity,
   TasksPageData,
@@ -61,6 +63,11 @@ export {
   buildRecordTaskCandidates,
 } from "@/entities/activity/lib/day";
 export type { RecordTaskCandidates } from "@/entities/activity/lib/day";
+export { normalizeActivityDefinition } from "@/entities/activity/lib/definition";
+export type {
+  ActivityDefinitionValues,
+  NormalizedActivityDefinition,
+} from "@/entities/activity/lib/definition";
 export {
   buildTaskCalendarDays,
   computeTaskMonthProgress,

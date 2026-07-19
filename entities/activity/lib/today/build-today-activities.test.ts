@@ -252,4 +252,58 @@ describe("buildTodayActivities", () => {
 
     expect(today.map((entry) => entry.activity.id)).toEqual(["first", "second"]);
   });
+
+  it("treats reminder completion as record existence (boolean count)", () => {
+    const reminder = buildActivity({
+      id: "reminder-1",
+      kind: "reminder",
+      title: "Reminder",
+      trackingMode: "boolean",
+      color: null,
+      goal: null,
+      goalDuration: null,
+    });
+    const unchecked = buildTodayActivities(
+      [reminder],
+      buildRecordLookup([]),
+      TODAY,
+    );
+
+    expect(unchecked).toHaveLength(1);
+    expect(unchecked[0]).toMatchObject({
+      activity: reminder,
+      record: null,
+      done: false,
+    });
+
+    const record = buildRecord({
+      id: "record-reminder",
+      taskId: "reminder-1",
+      trackingModeSnapshot: "boolean",
+      count: 1,
+    });
+    const checked = buildTodayActivities(
+      [reminder],
+      buildRecordLookup([record]),
+      TODAY,
+    );
+
+    expect(checked[0]).toMatchObject({
+      record,
+      done: true,
+      progress: {
+        done: true,
+        dimensions: [
+          {
+            kind: "count",
+            label: "Count",
+            value: 1,
+            goal: null,
+            remaining: null,
+            percent: null,
+          },
+        ],
+      },
+    });
+  });
 });

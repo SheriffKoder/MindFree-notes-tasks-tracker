@@ -1,16 +1,16 @@
 /**
- * @file views/tasks/lib/task-filter.test.ts
- * Locks task-id visibility and incomplete day-entry gating.
+ * @file features/activity/activity-page/lib/activity-filter.test.ts
+ * Locks activity-id visibility and incomplete day-entry gating.
  */
 
 import { describe, expect, it } from "vitest";
 
 import type { Activity, ActivityRecord } from "@/entities/activity";
 import {
+  isActivityShown,
   isDayActivityShown,
-  isTaskShown,
-  toggleHiddenTask,
-} from "@/views/tasks/lib/task-filter";
+  toggleHiddenActivity,
+} from "@/features/activity/activity-page/lib/activity-filter";
 
 function buildActivity(
   overrides: Partial<
@@ -42,27 +42,27 @@ function buildRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {
   };
 }
 
-describe("isTaskShown", () => {
-  it("shows every task when the hidden set is empty", () => {
-    expect(isTaskShown(new Set(), "task-1")).toBe(true);
+describe("isActivityShown", () => {
+  it("shows every activity when the hidden set is empty", () => {
+    expect(isActivityShown(new Set(), "task-1")).toBe(true);
   });
 
   it("hides only members of the hidden set", () => {
     const hidden = new Set(["task-1"]);
 
-    expect(isTaskShown(hidden, "task-1")).toBe(false);
-    expect(isTaskShown(hidden, "task-2")).toBe(true);
+    expect(isActivityShown(hidden, "task-1")).toBe(false);
+    expect(isActivityShown(hidden, "task-2")).toBe(true);
   });
 });
 
-describe("toggleHiddenTask", () => {
+describe("toggleHiddenActivity", () => {
   it("adds and removes without mutating the input", () => {
     const empty = new Set<string>();
-    const withOne = toggleHiddenTask(empty, "task-1");
+    const withOne = toggleHiddenActivity(empty, "task-1");
 
     expect(empty.size).toBe(0);
     expect(withOne.has("task-1")).toBe(true);
-    expect(toggleHiddenTask(withOne, "task-1").has("task-1")).toBe(false);
+    expect(toggleHiddenActivity(withOne, "task-1").has("task-1")).toBe(false);
   });
 });
 

@@ -100,4 +100,52 @@ describe("buildRecordTaskCandidates", () => {
       "archived-second",
     ]);
   });
+
+  it("keeps reminder candidates when the caller supplies a kind-scoped list", () => {
+    const available = buildActivity({
+      id: "reminder-available",
+      kind: "reminder",
+      title: "Available reminder",
+      trackingMode: "boolean",
+      color: null,
+      goal: null,
+      goalDuration: null,
+    });
+    const recorded = buildActivity({
+      id: "reminder-recorded",
+      kind: "reminder",
+      title: "Recorded reminder",
+      trackingMode: "boolean",
+      color: null,
+      goal: null,
+      goalDuration: null,
+    });
+    const archived = buildActivity({
+      id: "reminder-archived",
+      kind: "reminder",
+      title: "Archived reminder",
+      trackingMode: "boolean",
+      color: null,
+      goal: null,
+      goalDuration: null,
+      archivedAt: "2026-07-01T00:00:00.000Z",
+    });
+
+    const candidates = buildRecordTaskCandidates(
+      [available, recorded, archived],
+      new Set(["reminder-recorded"]),
+    );
+
+    expect(candidates.active.map((item) => item.id)).toEqual([
+      "reminder-available",
+    ]);
+    expect(candidates.archived.map((item) => item.id)).toEqual([
+      "reminder-archived",
+    ]);
+    expect(
+      [...candidates.active, ...candidates.archived].every(
+        (item) => item.kind === "reminder",
+      ),
+    ).toBe(true);
+  });
 });

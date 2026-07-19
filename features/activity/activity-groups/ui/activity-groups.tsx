@@ -18,6 +18,8 @@ export interface ActivityGroupsProps {
   activities: Activity[];
   /** Reference day for grouping and status chips; defaults to today. */
   todayIso?: string;
+  /** Empty-state copy for the Active section (kind-aware from the page). */
+  activeEmptyLabel?: string;
   onActivityClick?: (activity: Activity) => void;
 }
 
@@ -132,6 +134,7 @@ function InactiveActivityGroupSection({
 export const ActivityGroups = memo(function ActivityGroups({
   activities,
   todayIso: todayIsoProp,
+  activeEmptyLabel = "No active tasks",
   onActivityClick,
 }: ActivityGroupsProps) {
   const todayIso = todayIsoProp ?? getTodayIsoDate();
@@ -147,7 +150,7 @@ export const ActivityGroups = memo(function ActivityGroups({
         title="Active"
         items={active}
         todayIso={todayIso}
-        emptyText="No active tasks"
+        emptyText={activeEmptyLabel}
         onActivityClick={onActivityClick}
       />
       <InactiveActivityGroupSection

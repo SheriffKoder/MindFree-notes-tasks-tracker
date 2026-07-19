@@ -1,19 +1,19 @@
 /**
  * @file features/activity/activity-record-drawer/ui/activity-record-task-picker.tsx
- * Add-task dropdown for the selected-day records drawer.
+ * Add-definition dropdown for the selected-day records drawer.
  *
- * Lists tasks not yet recorded for the day, with archived tasks in a separate
- * section. Selecting a task creates a zero-value record for that day.
+ * Lists definitions not yet recorded for the day, with archived items in a
+ * separate section. Selecting one creates a zero-value record for that day.
  *
  * Candidate ownership stays in `ActivityRecordList`, which has both canonical
  * query inputs. This component only presents those candidates and performs the
- * selected task's record mutation.
+ * selected definition's record mutation.
  */
 
 "use client";
 
 import { Plus } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,35 +24,52 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Activity, RecordTaskCandidates } from "@/entities/activity";
+import type {
+  Activity,
+  ActivityKind,
+  RecordTaskCandidates,
+} from "@/entities/activity";
 import { useUpsertActivityRecordMutation } from "@/entities/activity/client";
 
 export interface ActivityRecordTaskPickerProps {
   /** Selected calendar day (`YYYY-MM-DD`). */
   date: string;
-  /** Tasks eligible to add, already split active vs archived. */
+  /** Definition kind owned by the mounting page. */
+  kind: ActivityKind;
+  /** Definitions eligible to add, already split active vs archived. */
   candidates: RecordTaskCandidates;
 }
 
 /**
- * Renders an Add trigger that opens a task picker and creates a day record.
+ * Renders an Add trigger that opens a definition picker and creates a day record.
  */
 export function ActivityRecordTaskPicker({
   date,
+  kind,
   candidates,
 }: ActivityRecordTaskPickerProps) {
   // The mutation optimistically inserts into `["activityRecords", month]`.
-  // ActivityRecordList subscribes to that cache, so the selected task leaves
-  // this dropdown and appears as a card without local picker state.
+  // ActivityRecordList subscribes to that cache, so the selected definition
+  // leaves this dropdown and appears as a card without local picker state.
   const { mutate: upsertRecord, isPending } = useUpsertActivityRecordMutation();
   const hasCandidates =
     candidates.active.length > 0 || candidates.archived.length > 0;
 
+  const copy = useMemo(() => {
+    const singular = kind === "task" ? "task" : "reminder";
+    const plural = kind === "task" ? "Tasks" : "Reminders";
+
+    return {
+      addLabel: `Add ${singular} record`,
+      emptyLabel: `All ${singular}s added`,
+      sectionLabel: plural,
+    };
+  }, [kind]);
+
   const handleSelect = useCallback(
     (activity: Activity) => {
       // A record needs an initial row before its card can be edited. Zero totals
-      // intentionally create that row; PostgreSQL fills its configuration
-      // snapshots from this task on first insert.
+      // create that row; snapshot fields come from the definition (form-owned).
       upsertRecord({
         taskId: activity.id,
         date,
@@ -71,11 +88,11 @@ export function ActivityRecordTaskPicker({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          aria-label="Add task record"
+          aria-label={copy.addLabel}
           className="shrink-0"
           disabled={!hasCandidates || isPending}
           size="icon"
-          title={hasCandidates ? "Add task record" : "All tasks added"}
+          title={hasCandidates ? copy.addLabel : copy.emptyLabel}
           type="button"
           variant="ghost"
         >
@@ -91,17 +108,17 @@ export function ActivityRecordTaskPicker({
         onCloseAutoFocus={(event) => event.preventDefault()}
       >
         {!hasCandidates ? (
-          <DropdownMenuItem disabled>All tasks added</DropdownMenuItem>
+          <DropdownMenuItem disabled>{copy.emptyLabel}</DropdownMenuItem>
         ) : (
           <>
             {candidates.active.length > 0 ? (
               <>
-                <DropdownMenuLabel>Tasks</DropdownMenuLabel>
+                <DropdownMenuLabel>{copy.sectionLabel}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {candidates.active.map((task) => (
-                  <TaskMenuItem
-                    key={task.id}
-                    task={task}
+                {candidates.active.map((activity) => (
+                  <DefinitionMenuItem
+                    key={activity.id}
+                    activity={activity}
                     onSelect={handleSelect}
                   />
                 ))}
@@ -116,10 +133,10 @@ export function ActivityRecordTaskPicker({
               <>
                 <DropdownMenuLabel>Archived</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {candidates.archived.map((task) => (
-                  <TaskMenuItem
-                    key={task.id}
-                    task={task}
+                {candidates.archived.map((activity) => (
+                  <DefinitionMenuItem
+                    key={activity.id}
+                    activity={activity}
                     onSelect={handleSelect}
                   />
                 ))}
@@ -132,27 +149,27 @@ export function ActivityRecordTaskPicker({
   );
 }
 
-interface TaskMenuItemProps {
-  task: Activity;
-  onSelect: (task: Activity) => void;
+interface DefinitionMenuItemProps {
+  activity: Activity;
+  onSelect: (activity: Activity) => void;
 }
 
-function TaskMenuItem({ task, onSelect }: TaskMenuItemProps) {
+function DefinitionMenuItem({ activity, onSelect }: DefinitionMenuItemProps) {
   return (
     <DropdownMenuItem
       onSelect={() => {
-        onSelect(task);
+        onSelect(activity);
       }}
     >
       <span className="flex min-w-0 items-center gap-2">
-        {task.color ? (
+        {activity.color ? (
           <span
             aria-hidden
             className="h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ backgroundColor: task.color }}
+            style={{ backgroundColor: activity.color }}
           />
         ) : null}
-        <span className="truncate">{task.title}</span>
+        <span className="truncate">{activity.title}</span>
       </span>
     </DropdownMenuItem>
   );

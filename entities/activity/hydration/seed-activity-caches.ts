@@ -1,6 +1,6 @@
 /**
  * @file entities/activity/hydration/seed-activity-caches.ts
- * Writes the two canonical activity caches into a QueryClient (no dehydrate).
+ * Writes canonical activity caches into a QueryClient (no dehydrate).
  *
  * Composable seeder: the entity owns its cache keys; the caller (a seed
  * component) dehydrates once after all entities have written. Isomorphic (no
@@ -14,19 +14,37 @@ import {
   activitiesQueryKey,
   activityRecordsQueryKey,
 } from "@/entities/activity/client/query-keys";
-import type { TasksPageData } from "@/entities/activity/model/read-models";
+import type {
+  ActivityPageData,
+  HomeActivityData,
+} from "@/entities/activity/model/read-models";
 
 /**
- * Seeds the definitions + current-month records caches from an SSR payload.
- * Shared by the Tasks page seed and the Home seed (same two caches).
+ * Seeds one kind's definitions + the month records cache from an SSR payload.
+ * Used by `/tasks` and `/reminders` page seeds.
  *
  * @param queryClient - per-request server QueryClient
- * @param data - SSR initial payloads (definitions + month records)
+ * @param data - SSR initial payloads (kind definitions + month records)
  */
 export function seedActivityCaches(
   queryClient: QueryClient,
-  data: TasksPageData,
+  data: ActivityPageData,
 ): void {
-  queryClient.setQueryData(activitiesQueryKey("task"), data.activities);
+  queryClient.setQueryData(activitiesQueryKey(data.kind), data.activities);
+  queryClient.setQueryData(activityRecordsQueryKey(data.month), data.records);
+}
+
+/**
+ * Seeds both definition kinds + one shared month records cache for Home SSR.
+ *
+ * @param queryClient - per-request server QueryClient
+ * @param data - Home activity payload (tasks + reminders + one records month)
+ */
+export function seedHomeActivityCaches(
+  queryClient: QueryClient,
+  data: HomeActivityData,
+): void {
+  queryClient.setQueryData(activitiesQueryKey("task"), data.tasks);
+  queryClient.setQueryData(activitiesQueryKey("reminder"), data.reminders);
   queryClient.setQueryData(activityRecordsQueryKey(data.month), data.records);
 }

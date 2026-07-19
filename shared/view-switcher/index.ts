@@ -3,7 +3,8 @@
  * Public exports for the config-driven view switcher shared module.
  *
  * Page-specific view configs live with each page (e.g.
- * `views/notes/lib/notes-views.ts`, `views/tasks/lib/tasks-views.ts`); this
+ * `views/notes/lib/notes-views.ts`,
+ * `features/activity/activity-page/lib/activity-views.ts`); this
  * module only provides the generic switcher, navigation hook, and helpers.
  */
 

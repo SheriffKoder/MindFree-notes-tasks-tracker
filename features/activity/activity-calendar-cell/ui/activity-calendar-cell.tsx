@@ -73,11 +73,17 @@ export const ActivityCalendarCell = memo(function ActivityCalendarCell({
       {hasActivities ? (
         <div className="grid min-h-0 w-full min-w-0 flex-1 grid-cols-1 content-start gap-0.5 pb-4 pr-5">
           {visibleActivities.map(({ activity, record }) => {
-            const progress = deriveTodayProgress(activity, record);
+            const isReminder = activity.kind === "reminder";
             const { trackingMode } = resolveRecordConfiguration(
               activity,
               record,
             );
+            // Reminders are boolean existence only — never show goal progress.
+            const progressLabel = isReminder
+              ? null
+              : formatPillProgress(
+                  deriveTodayProgress(activity, record).dimensions,
+                );
 
             return (
               <ActivityTaskPill
@@ -86,7 +92,7 @@ export const ActivityCalendarCell = memo(function ActivityCalendarCell({
                 isDone={
                   record !== null && isMeaningfulRecord(record, trackingMode)
                 }
-                progressLabel={formatPillProgress(progress.dimensions)}
+                progressLabel={progressLabel}
                 title={activity.title}
               />
             );

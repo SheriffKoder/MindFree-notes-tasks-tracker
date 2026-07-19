@@ -23,7 +23,7 @@ export function HomeTodayList() {
   // Phase 6 — mount useOfflineSync(userId, [activityOfflineAdapter]) here
   // (mirrors createNotesOfflineSyncAdapter + useOfflineSync in the same file).
 
-  const { today, isPending, isError } = useHomeTodayQuery();
+  const { today, isPending, isError } = useHomeTodayQuery("task");
 
   if (isError) {
     return (
@@ -37,14 +37,16 @@ export function HomeTodayList() {
 
   if (today.length === 0) {
     return (
-      <p className="px-2 py-1.5 text-caption [color:var(--color-fg-muted)]">
-        No tasks scheduled for today.
-      </p>
+      <div className="flex min-h-24 flex-col items-center justify-center">
+        <p className="px-2 py-1.5 text-center text-caption [color:var(--color-fg-muted)]">
+          No tasks scheduled for today.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex min-h-24 flex-col gap-0.5">
       {today.map((item) => (
         <QuickRecordCard key={item.activity.id} today={item} />
       ))}

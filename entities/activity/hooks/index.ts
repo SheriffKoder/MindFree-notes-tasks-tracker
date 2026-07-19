@@ -5,7 +5,7 @@
  * Function index:
  * - useActivitiesQuery (use-activities-query)
  * - useActivityRecordsQuery (use-activity-records-query)
- * - useHomeTodayQuery (use-home-today-query)
+ * - useHomeTodayQuery(kind) (use-home-today-query)
  * - useCreateActivityMutation (use-create-activity-mutation)
  * - useUpdateActivityMutation (use-update-activity-mutation)
  * - useArchiveActivityMutation, useRestoreActivityMutation (use-archive-activity-mutation)

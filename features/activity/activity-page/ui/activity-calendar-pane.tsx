@@ -1,6 +1,6 @@
 /**
- * @file views/tasks/ui/tasks-calendar-pane.tsx
- * Tasks calendar pane — filter consumer; builds day rows and renders MonthCalendar.
+ * @file features/activity/activity-page/ui/activity-calendar-pane.tsx
+ * Activity calendar pane — filter consumer; builds day rows and renders MonthCalendar.
  */
 
 "use client";
@@ -13,32 +13,32 @@ import {
   buildTaskCalendarDays,
 } from "@/entities/activity";
 import { ActivityCalendarCell } from "@/features/activity/activity-calendar-cell";
+import { isDayActivityShown } from "@/features/activity/activity-page/lib/activity-filter";
+import { useActivityFilter } from "@/features/activity/activity-page/model/activity-filter-context";
 import { MonthCalendar, type CalendarCellRenderContext } from "@/shared/calendar";
-import { isDayActivityShown } from "@/views/tasks/lib/task-filter";
-import { useTasksFilter } from "@/views/tasks/model/tasks-filter-context";
 
-export interface TasksCalendarPaneProps {
+export interface ActivityCalendarPaneProps {
   month: string;
   activities: Activity[];
   records: ActivityRecord[];
   /** In-month highlight for the calendar grid. */
   highlightedDate?: string;
-  /** Snaps page selection to the clicked day (drawer wiring lands in Step 11). */
+  /** Snaps page selection to the clicked day. */
   onDaySelect: (date: string) => void;
 }
 
 /**
- * Joins definitions + records, applies the task filter, and renders the month grid.
- * Subscribes to {@link useTasksFilter} — do not mount inside the list pane subtree.
+ * Joins definitions + records, applies the filter, and renders the month grid.
+ * Subscribes to {@link useActivityFilter} — do not mount inside the list pane.
  */
-export function TasksCalendarPane({
+export function ActivityCalendarPane({
   month,
   activities,
   records,
   highlightedDate,
   onDaySelect,
-}: TasksCalendarPaneProps) {
-  const { isShown, showIncomplete } = useTasksFilter();
+}: ActivityCalendarPaneProps) {
+  const { isShown, showIncomplete } = useActivityFilter();
 
   const recordLookup = useMemo(() => buildRecordLookup(records), [records]);
 
