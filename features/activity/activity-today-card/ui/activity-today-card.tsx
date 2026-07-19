@@ -2,7 +2,7 @@
  * @file features/activity/activity-today-card/ui/activity-today-card.tsx
  * Compact, collapsible Home Today activity row, laid out as a grid of cells:
  *
- *   [chevron] [pie + label] [current/goal] … space … [inputs]
+ *   [chevron] [donut(s) + title] [Count/Minutes stack] … space … [inputs]
  *
  * Each cell is its own component (identity / progress / controls / note); this
  * file only composes them and owns the expand/collapse state. Dumb by design —
@@ -50,6 +50,7 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
 }: ActivityTodayCardProps) {
   const { activity, progress, record } = today;
   const [open, setOpen] = useState(defaultOpen);
+  const primaryProgress = progress.dimensions[0];
   const color =
     activity.color ?? ACTIVITY_TODAY_CARD_STYLE_CONFIG.colors.taskColorFallback;
 
@@ -74,18 +75,18 @@ export const ActivityTodayCard = memo(function ActivityTodayCard({
 
         <TodayCardIdentity
           color={color}
-          percent={progress.percent}
+          dimensions={progress.dimensions}
           title={activity.title}
         />
 
-        <TodayCardProgress activity={activity} record={record} />
+        <TodayCardProgress dimensions={progress.dimensions} />
 
         <span aria-hidden />
 
         {recordSlot ?? (
           <TodayCardControls
             activity={activity}
-            value={progress.value}
+            value={primaryProgress?.value ?? 0}
             onChange={NOOP}
           />
         )}

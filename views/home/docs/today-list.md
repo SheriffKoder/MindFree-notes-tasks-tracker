@@ -51,9 +51,15 @@ unarchived task appears when it is scheduled today or already has a record for
 today. The record wins over later schedule edits, matching the calendar's
 history-always-visible rule.
 
-`deriveTodayProgress` owns goal-aware completion, remaining value, and percent.
-Card-specific presentation may show count and duration as separate segments,
-but Home does not recalculate domain completion.
+`deriveTodayProgress` owns per-dimension value / goal / remaining / percent and
+goal-aware `done`. Home cards render those dimensions as:
+
+- stacked `value/goal` lines (`Xm/Ym` for minutes);
+- `Count:` / `Minutes:` prefixes only when both dimensions are present;
+- one donut before the title — the average of bounded percents (presentation
+  only; completion stays per-dimension in the entity).
+
+Home does not recalculate domain completion or invent a second progress model.
 
 ---
 
@@ -64,12 +70,13 @@ but Home does not recalculate domain completion.
 - `boolean` — done toggle;
 - `count` — count stepper;
 - `duration` — minute stepper and timer;
-- `count+duration` — both count and minute controls.
+- `count+duration` — both count and minute controls, each labeled.
 
 `useQuickRecord` updates local values immediately, then debounces an absolute
-record upsert for 500 ms. Returning all meaningful dimensions to zero deletes
-an existing record instead. The entity mutation hooks own optimistic cache
-updates, rollback, and server reconciliation.
+record upsert for 500 ms. Count and duration edits preserve the other
+dimension. Returning all meaningful dimensions to zero deletes an existing
+record instead. The entity mutation hooks own optimistic cache updates,
+rollback, and server reconciliation.
 
 The duration timer is client-local. While running it adds one minute every
 60 seconds through the same `useQuickRecord` path. Stopping preserves the

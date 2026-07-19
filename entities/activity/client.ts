@@ -56,6 +56,7 @@ export type {
   TasksPageData,
   TodayActivity,
   TodayProgress,
+  TodayProgressDimension,
 } from "@/entities/activity/model/read-models";
 export type {
   Activity,

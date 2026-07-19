@@ -1,6 +1,6 @@
 /**
  * @file features/activity/quick-record/ui/quick-record-count.tsx
- * Dumb count control for the Home Today row: `#` icon + boxed stepper.
+ * Dumb count control for the Home Today row: visible label + boxed stepper.
  *
  * Presentational only — value + onChange come from `useQuickRecord`. Consumes
  * the `--today-card-dim` var provided by the card wrapper.
@@ -8,7 +8,6 @@
 
 "use client";
 
-import { Hash } from "lucide-react";
 import { memo } from "react";
 
 import { Incrementer } from "@/shared/incrementer";
@@ -20,16 +19,25 @@ export interface QuickRecordCountProps {
   value: number;
   /** Sets the absolute count (`null` clears to empty). */
   onChange: (value: number | null) => void;
+  /**
+   * Whether to show the visible `Count` label. Defaults to false; Home only
+   * shows it for `count+duration` where two inputs need distinguishing.
+   */
+  showLabel?: boolean;
 }
 
-/** `#` icon + editable boxed stepper bound to the day's count. */
+/** Editable boxed count stepper; optional visible Count label. */
 export const QuickRecordCount = memo(function QuickRecordCount({
   label,
   value,
   onChange,
+  showLabel = false,
 }: QuickRecordCountProps) {
   return (
     <div className="flex shrink-0 items-center gap-1.5">
+      {showLabel ? (
+        <span className="text-[10px] [color:var(--today-card-dim)]">Count</span>
+      ) : null}
       <Incrementer
         aria-label={`Adjust ${label} count`}
         editable

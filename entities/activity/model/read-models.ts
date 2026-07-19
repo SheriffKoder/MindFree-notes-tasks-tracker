@@ -50,21 +50,36 @@ export interface TaskCalendarDay {
 }
 
 /**
- * Derived, never-stored progress for one activity on one day. Computed by
- * `entities/activity/lib/record/derive-today-progress`; consumers read it, never
- * recompute it.
+ * One independently-tracked progress dimension for an activity-day.
  */
-export interface TodayProgress {
-  /** Goal-aware completion: goal reached, or (no goal) a meaningful record. */
-  done: boolean;
-  /** Primary tracked value for the mode: duration for `duration`, else count. */
+export interface TodayProgressDimension {
+  /** Record dimension represented by this progress value. */
+  kind: "count" | "duration";
+  /** Human-readable dimension label for consumers. */
+  label: "Count" | "Minutes";
+  /** Current recorded value (`0` when no record exists). */
   value: number;
-  /** Target value, or `null` when the activity is unbounded. */
+  /** Configured target, or `null` when this dimension is unbounded. */
   goal: number | null;
   /** Units left to reach the goal (`>= 0`), or `null` when unbounded. */
   remaining: number | null;
   /** Whole-number completion percent (0–100), or `null` when unbounded. */
   percent: number | null;
+}
+
+/**
+ * Derived, never-stored progress for one activity on one day. Computed by
+ * `entities/activity/lib/record/derive-today-progress`; consumers read it, never
+ * recompute it.
+ */
+export interface TodayProgress {
+  /**
+   * Goal-aware completion: all configured dimensions reached, or (no goals) a
+   * meaningful record.
+   */
+  done: boolean;
+  /** Dimensions relevant to the tracking mode, in display order. */
+  dimensions: TodayProgressDimension[];
 }
 
 /**
@@ -78,7 +93,7 @@ export interface TodayActivity {
   record: ActivityRecord | null;
   /** Convenience mirror of `progress.done` for view dimming/sorting. */
   done: boolean;
-  /** Derived `value / goal` progress for the day. */
+  /** Derived per-dimension progress for the day. */
   progress: TodayProgress;
 }
 

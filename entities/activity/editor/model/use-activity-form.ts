@@ -24,6 +24,7 @@ import {
 } from "@/entities/activity/schema/activity-form.schema";
 import { defaultScheduleConfig } from "@/entities/activity/editor/lib/default-schedule-config";
 import { formatActivityLastEditedAt } from "@/entities/activity/editor/lib/format-last-edited";
+import { normalizeActivityGoals } from "@/entities/activity/editor/model/normalize-activity-goals";
 import type {
   ActivityFormFieldErrors,
   ActivityFormValues,
@@ -45,6 +46,7 @@ const EMPTY_VALUES: ActivityFormValues = {
   scheduleType: "daily",
   scheduleConfig: null,
   goal: null,
+  goalDuration: null,
   startsAt: null,
   endsAt: null,
 };
@@ -57,6 +59,7 @@ const FORM_FIELD_KEYS = new Set<keyof ActivityFormValues>([
   "scheduleType",
   "scheduleConfig",
   "goal",
+  "goalDuration",
   "startsAt",
   "endsAt",
 ]);
@@ -74,6 +77,7 @@ function activityToFormValues(activity: Activity | null): ActivityFormValues {
     scheduleType: activity.scheduleType,
     scheduleConfig: activity.scheduleConfig,
     goal: activity.goal,
+    goalDuration: activity.goalDuration,
     startsAt: activity.startsAt,
     endsAt: activity.endsAt,
   };
@@ -107,7 +111,8 @@ function valuesAreEqual(
     left.trackingMode === right.trackingMode &&
     left.scheduleType === right.scheduleType &&
     scheduleConfigsEqual(left.scheduleConfig, right.scheduleConfig) &&
-    left.goal === right.goal &&
+    (left.goal ?? null) === (right.goal ?? null) &&
+    (left.goalDuration ?? null) === (right.goalDuration ?? null) &&
     left.startsAt === right.startsAt &&
     left.endsAt === right.endsAt
   );
@@ -229,7 +234,7 @@ export function useActivityForm({
       updateValues({
         ...values,
         trackingMode,
-        goal: trackingMode === "boolean" ? null : values.goal,
+        ...normalizeActivityGoals(trackingMode, values),
       });
     },
     [updateValues, values],
@@ -256,6 +261,13 @@ export function useActivityForm({
   const setGoal = useCallback(
     (goal: number | null) => {
       updateValues({ ...values, goal });
+    },
+    [updateValues, values],
+  );
+
+  const setGoalDuration = useCallback(
+    (goalDuration: number | null) => {
+      updateValues({ ...values, goalDuration });
     },
     [updateValues, values],
   );
@@ -287,6 +299,7 @@ export function useActivityForm({
     setScheduleType,
     setScheduleConfig,
     setGoal,
+    setGoalDuration,
     setStartsAt,
     setEndsAt,
   };

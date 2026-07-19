@@ -1,7 +1,6 @@
 /**
  * @file entities/activity/lib/record/derive-today-progress.test.ts
- * Locks single-day progress derivation: primary-value selection per mode,
- * goal-aware `done`, and `remaining`/`percent` (null when unbounded).
+ * Locks per-dimension Today progress and goal-aware completion for every mode.
  */
 
 import { describe, expect, it } from "vitest";
@@ -23,6 +22,8 @@ function buildActivity(overrides: Partial<Activity> = {}): Activity {
     scheduleType: "daily",
     scheduleConfig: null,
     goal: null,
+    goalDuration: null,
+    icon: null,
     startsAt: null,
     endsAt: null,
     archivedAt: null,
@@ -47,86 +48,186 @@ function buildRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {
 }
 
 describe("deriveTodayProgress", () => {
-  it("returns a zeroed, not-done shape when there is no record", () => {
+  it("returns zeroed count progress and not-done when there is no record", () => {
     const activity = buildActivity({ trackingMode: "count", goal: 5 });
 
     expect(deriveTodayProgress(activity, null)).toEqual({
       done: false,
-      value: 0,
-      goal: 5,
-      remaining: 5,
-      percent: 0,
+      dimensions: [
+        {
+          kind: "count",
+          label: "Count",
+          value: 0,
+          goal: 5,
+          remaining: 5,
+          percent: 0,
+        },
+      ],
     });
   });
 
-  it("leaves remaining/percent null for unbounded activities", () => {
+  it("derives an unbounded count dimension and falls back to meaningful completion", () => {
     const activity = buildActivity({ trackingMode: "count", goal: null });
     const record = buildRecord({ count: 3 });
 
     expect(deriveTodayProgress(activity, record)).toEqual({
       done: true,
-      value: 3,
-      goal: null,
-      remaining: null,
-      percent: null,
+      dimensions: [
+        {
+          kind: "count",
+          label: "Count",
+          value: 3,
+          goal: null,
+          remaining: null,
+          percent: null,
+        },
+      ],
     });
   });
 
-  it("uses count as the primary value for count/boolean modes", () => {
-    const activity = buildActivity({ trackingMode: "count", goal: 5 });
-    const record = buildRecord({ count: 3, duration: 99 });
+  it("represents boolean mode as one unbounded count dimension", () => {
+    const activity = buildActivity({ trackingMode: "boolean" });
 
-    expect(deriveTodayProgress(activity, record)).toMatchObject({
-      value: 3,
-      remaining: 2,
-      percent: 60,
-      done: false,
+    expect(deriveTodayProgress(activity, buildRecord({ count: 1 }))).toEqual({
+      done: true,
+      dimensions: [
+        {
+          kind: "count",
+          label: "Count",
+          value: 1,
+          goal: null,
+          remaining: null,
+          percent: null,
+        },
+      ],
     });
   });
 
-  it("uses duration as the primary value for duration mode", () => {
-    const activity = buildActivity({ trackingMode: "duration", goal: 60 });
+  it("uses goalDuration for duration progress", () => {
+    const activity = buildActivity({
+      trackingMode: "duration",
+      goalDuration: 60,
+    });
     const record = buildRecord({ count: 99, duration: 25 });
 
-    expect(deriveTodayProgress(activity, record)).toMatchObject({
-      value: 25,
-      remaining: 35,
-      percent: 42,
+    expect(deriveTodayProgress(activity, record)).toEqual({
+      done: false,
+      dimensions: [
+        {
+          kind: "duration",
+          label: "Minutes",
+          value: 25,
+          goal: 60,
+          remaining: 35,
+          percent: 42,
+        },
+      ],
     });
   });
 
-  it("uses count as the primary value for count+duration mode", () => {
-    const activity = buildActivity({ trackingMode: "count+duration", goal: 4 });
+  it("derives count and duration independently for count+duration", () => {
+    const activity = buildActivity({
+      trackingMode: "count+duration",
+      goal: 4,
+      goalDuration: 60,
+    });
     const record = buildRecord({ count: 2, duration: 30 });
 
-    expect(deriveTodayProgress(activity, record)).toMatchObject({
-      value: 2,
-      remaining: 2,
-      percent: 50,
-    });
-  });
-
-  it("marks done when a goal is reached and clamps percent/remaining", () => {
-    const activity = buildActivity({ trackingMode: "count", goal: 5 });
-    const record = buildRecord({ count: 7 });
-
     expect(deriveTodayProgress(activity, record)).toEqual({
-      done: true,
-      value: 7,
-      goal: 5,
-      remaining: 0,
-      percent: 100,
+      done: false,
+      dimensions: [
+        {
+          kind: "count",
+          label: "Count",
+          value: 2,
+          goal: 4,
+          remaining: 2,
+          percent: 50,
+        },
+        {
+          kind: "duration",
+          label: "Minutes",
+          value: 30,
+          goal: 60,
+          remaining: 30,
+          percent: 50,
+        },
+      ],
     });
   });
 
-  it("falls back to isMeaningfulRecord for done when unbounded", () => {
-    const activity = buildActivity({ trackingMode: "boolean", goal: null });
+  it("requires every configured count+duration goal to be reached", () => {
+    const activity = buildActivity({
+      trackingMode: "count+duration",
+      goal: 4,
+      goalDuration: 30,
+    });
 
-    expect(deriveTodayProgress(activity, buildRecord({ count: 0 })).done).toBe(
-      false,
+    expect(
+      deriveTodayProgress(
+        activity,
+        buildRecord({ count: 4, duration: 29 }),
+      ).done,
+    ).toBe(false);
+    expect(
+      deriveTodayProgress(
+        activity,
+        buildRecord({ count: 4, duration: 30 }),
+      ).done,
+    ).toBe(true);
+  });
+
+  it("only gates on configured dimensions when one combined goal is absent", () => {
+    const activity = buildActivity({
+      trackingMode: "count+duration",
+      goal: null,
+      goalDuration: 30,
+    });
+
+    expect(
+      deriveTodayProgress(
+        activity,
+        buildRecord({ count: 0, duration: 30 }),
+      ).done,
+    ).toBe(true);
+  });
+
+  it("falls back to meaningful combined progress when neither goal is configured", () => {
+    const activity = buildActivity({
+      trackingMode: "count+duration",
+      goal: null,
+      goalDuration: null,
+    });
+
+    expect(
+      deriveTodayProgress(
+        activity,
+        buildRecord({ count: 0, duration: 0 }),
+      ).done,
+    ).toBe(false);
+    expect(
+      deriveTodayProgress(
+        activity,
+        buildRecord({ count: 0, duration: 1 }),
+      ).done,
+    ).toBe(true);
+  });
+
+  it("clamps each bounded dimension at 100 percent and zero remaining", () => {
+    const activity = buildActivity({
+      trackingMode: "count+duration",
+      goal: 5,
+      goalDuration: 30,
+    });
+    const progress = deriveTodayProgress(
+      activity,
+      buildRecord({ count: 7, duration: 45 }),
     );
-    expect(deriveTodayProgress(activity, buildRecord({ count: 1 })).done).toBe(
-      true,
-    );
+
+    expect(progress.done).toBe(true);
+    expect(progress.dimensions).toMatchObject([
+      { kind: "count", remaining: 0, percent: 100 },
+      { kind: "duration", remaining: 0, percent: 100 },
+    ]);
   });
 });

@@ -42,7 +42,8 @@ Presentation differences fall out of `kind`, not separate types:
 | Field | Task | Reminder |
 | ----- | ---- | -------- |
 | `color` | set (card accent) | `null` |
-| `goal` | optional target | `null` |
+| `goal` / `goalDuration` | optional count / minute targets | `null` |
+| `icon` | reserved (`null` for now) | `null` |
 | `trackingMode` | drives recording UI | typically `boolean` |
 
 ---
@@ -57,13 +58,20 @@ Presentation differences fall out of `kind`, not separate types:
 | `color` | Card accent (tasks); `null` for reminders |
 | `trackingMode` | How completion is recorded (see below) |
 | `scheduleType` / `scheduleConfig` | Recurrence pattern + its config ([scheduling.md](./scheduling.md)) |
-| `goal` | Target value (tasks); `null` otherwise |
+| `goal` | Optional **count** target; `null` when unbounded or unused (`boolean` / `duration`) |
+| `goalDuration` | Optional **minute** target; `null` when unbounded or unused (`boolean` / `count`) |
+| `icon` | Reserved semantic icon id for future presentation; always `null` until an editor ships |
 | `startsAt` / `endsAt` | Validity window (`null` = open-ended) |
 | `archivedAt` | Manual archive stamp (ISO); `null` when active |
 | `createdAt` / `updatedAt` | Timestamps; `updatedAt` drives newer-wins gates |
 
-DB columns are snake_case (`tracking_mode`, `schedule_config`, `archived_at`);
-`lib/mapping/map-row.ts` maps to camelCase inside the repository only.
+DB columns are snake_case (`tracking_mode`, `goal_duration`, `schedule_config`,
+`archived_at`); `lib/mapping/map-row.ts` maps to camelCase inside the repository
+only. Migration `004_activity_goal_duration_and_icon.sql` moved former
+`duration`-mode `goal` values into `goal_duration`.
+
+`icon` is mapped and persisted as `null`; no form field or Home renderer reads
+it yet.
 
 ---
 
@@ -72,17 +80,24 @@ DB columns are snake_case (`tracking_mode`, `schedule_config`, `archived_at`);
 `trackingMode` is the single input the recording UI derives from — there is no
 per-activity "how do I record this" config beyond it:
 
-| Mode | Records | "Done" means |
-| ---- | ------- | ------------ |
-| `boolean` | a checkbox | `count > 0` |
-| `count` | a number ("8 glasses") | `count > 0` |
-| `duration` | minutes ("30 min") | `duration > 0` |
-| `count+duration` | both dimensions | either positive |
+| Mode | Records | Meaningful (delete-on-empty) | Goal-aware "done" |
+| ---- | ------- | ---------------------------- | ----------------- |
+| `boolean` | a checkbox | `count > 0` | same (no goals) |
+| `count` | a number ("8 glasses") | `count > 0` | `count >= goal` when `goal` set |
+| `duration` | minutes ("30 min") | `duration > 0` | `duration >= goalDuration` when set |
+| `count+duration` | both dimensions | either positive | **every configured** goal reached |
 
-That "done" column is exactly `lib/record/is-meaningful-record.ts`. It is the
-one predicate behind both **display** (render a completion) and quick-record
-**delete-on-empty** behavior — completion is derived, never a stored flag. See
-[writes-and-autosave.md](./writes-and-autosave.md#daily-record-path).
+`lib/record/is-meaningful-record.ts` decides whether a daily row is worth
+keeping (quick-record delete-on-empty + month progress numerator). Home Today
+completion uses `lib/record/derive-today-progress.ts`: when goals are set, every
+configured dimension must reach its target; when none are set, it falls back to
+meaningful. Completion is derived, never a stored flag. See
+[writes-and-autosave.md](./writes-and-autosave.md#daily-record-path) and
+[read-models.md](./read-models.md#home-today-join).
+
+Switching `trackingMode` in the Tasks form clears goals that no longer apply
+(`editor/model/normalize-activity-goals.ts`) so count and minute targets stay
+mode-consistent on save.
 
 ---
 

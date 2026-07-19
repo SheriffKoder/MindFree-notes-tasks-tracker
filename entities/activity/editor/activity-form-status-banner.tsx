@@ -52,6 +52,8 @@ function toStatusActivity(
     color: null,
     trackingMode: "boolean",
     goal: null,
+    goalDuration: null,
+    icon: null,
     createdAt: "",
     updatedAt: "",
     scheduleType: values.scheduleType,

@@ -23,6 +23,7 @@ function buildValues(
     scheduleType: "daily",
     scheduleConfig: null,
     goal: null,
+    goalDuration: null,
     startsAt: null,
     endsAt: null,
     ...overrides,
@@ -40,6 +41,8 @@ function buildActivity(overrides: Partial<Activity> = {}): Activity {
     scheduleType: "daily",
     scheduleConfig: null,
     goal: null,
+    goalDuration: null,
+    icon: null,
     startsAt: null,
     endsAt: null,
     archivedAt: null,
@@ -60,13 +63,17 @@ describe("hasMeaningfulContent", () => {
 describe("evaluateActivitySave", () => {
   it("creates when there is no activity id, form is valid, and title is set", () => {
     const result = evaluateActivitySave({
-      values: buildValues(),
+      values: buildValues({
+        trackingMode: "duration",
+        goalDuration: 30,
+      }),
       meta: { isDirty: true, isValid: true },
       activity: null,
     });
 
     expect(result.action).toBe("create");
     expect(result.payload.title).toBe("Workout");
+    expect(result.payload.goalDuration).toBe(30);
   });
 
   it("noops create when invalid or untitled", () => {

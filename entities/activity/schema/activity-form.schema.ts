@@ -75,6 +75,7 @@ export const activityFormObject = z.object({
   scheduleType: scheduleTypeSchema,
   scheduleConfig: scheduleConfigSchema,
   goal: z.number().int().positive().nullable().optional(),
+  goalDuration: z.number().int().positive().nullable().optional(),
   startsAt: z
     .string()
     .regex(ISO_DATE_PATTERN, "Start date must be YYYY-MM-DD.")

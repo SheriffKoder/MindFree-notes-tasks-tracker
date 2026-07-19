@@ -27,6 +27,8 @@ export function mapActivityRow(row: ActivityRow): Activity {
     scheduleType: row.schedule_type,
     scheduleConfig: row.schedule_config,
     goal: row.goal,
+    goalDuration: row.goal_duration,
+    icon: row.icon,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
     archivedAt: row.archived_at,

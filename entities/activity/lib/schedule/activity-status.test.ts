@@ -21,6 +21,8 @@ function buildActivity(overrides: Partial<Activity> = {}): Activity {
     scheduleType: "daily",
     scheduleConfig: null,
     goal: null,
+    goalDuration: null,
+    icon: null,
     startsAt: null,
     endsAt: null,
     archivedAt: null,

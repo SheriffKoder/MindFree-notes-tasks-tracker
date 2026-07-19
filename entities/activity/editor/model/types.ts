@@ -85,6 +85,7 @@ export interface UseActivityFormResult {
     scheduleConfig: ActivityFormValues["scheduleConfig"],
   ) => void;
   setGoal: (goal: number | null) => void;
+  setGoalDuration: (goalDuration: number | null) => void;
   setStartsAt: (startsAt: string | null) => void;
   setEndsAt: (endsAt: string | null) => void;
 }

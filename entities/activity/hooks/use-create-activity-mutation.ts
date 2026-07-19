@@ -58,6 +58,8 @@ function buildOptimisticActivity(
     scheduleType: values.scheduleType,
     scheduleConfig: values.scheduleConfig,
     goal: values.goal ?? null,
+    goalDuration: values.goalDuration ?? null,
+    icon: null,
     startsAt: values.startsAt ?? null,
     endsAt: values.endsAt ?? null,
     archivedAt: null,

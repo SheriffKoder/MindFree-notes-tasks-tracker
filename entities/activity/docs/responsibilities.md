@@ -18,7 +18,7 @@ noted. For the *why* behind these, see the WHY docs in this folder
 ## Domain model
 
 `model/types.ts` — `Activity`, `ActivityRecord`, row types, `ActivityKind`, `TrackingMode`, `ScheduleType`, `ScheduleConfig`, `ActivityStatus`, `WEEKDAYS`
-`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`, `TaskCalendarDay`, `TasksPageData`, `TodayActivity`, `TodayProgress`
+`model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`, `TaskCalendarDay`, `TasksPageData`, `TodayActivity`, `TodayProgress`, `TodayProgressDimension`
 
 ---
 
@@ -44,10 +44,10 @@ record surface so consumers never deep-import these implementation paths.
 `lib/schedule/activity-status.ts` — `getActivityStatus` (archived → upcoming → expired → active)
 `lib/record/is-meaningful-record.ts` — `isMeaningfulRecord` (done per tracking mode)
 `lib/record/build-record-lookup.ts` — `recordKey`, `buildRecordLookup` (`byTaskDate` / `byTaskId`)
-`lib/record/derive-today-progress.ts` — goal-aware value / remaining / percent for one day
+`lib/record/derive-today-progress.ts` — per-dimension goal-aware value / remaining / percent / `done`
 `lib/record/is-remote-record-newer.ts` — record newer-wins `updatedAt` gate
 `lib/today/build-today-activities.ts` — definitions + today's lookup → `TodayActivity[]`
-`lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (row → domain; repository-only)
+`lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (row → domain; repository-only; includes `goalDuration`, `icon`)
 `lib/is-remote-activity-newer.ts` — `isRemoteActivityNewer` (newer-wins `updatedAt` gate)
 
 ---
@@ -145,7 +145,8 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 ### Contracts & state
 
 `editor/model/types.ts` — `ActivityFormValues`, change/footer meta, form/hook props
-`editor/model/use-activity-form.ts` — local fields, dirty/valid meta, reset on `resetKey`/`commitKey`
+`editor/model/normalize-activity-goals.ts` — clear inapplicable `goal` / `goalDuration` on mode change
+`editor/model/use-activity-form.ts` — local fields (incl. `goalDuration`), dirty/valid meta, reset on `resetKey`/`commitKey`
 
 ### UI
 
@@ -177,6 +178,8 @@ API routes (outside entity): `app/api/activities/route.ts` (GET/POST),
 | Change what counts as "done" | `lib/record/is-meaningful-record.ts` |
 | Change Home Today membership | `lib/today/build-today-activities.ts` |
 | Change Home Today goal/progress math | `lib/record/derive-today-progress.ts` |
+| Change which goals survive a mode switch | `editor/model/normalize-activity-goals.ts` |
+| Add `goal_duration` / `icon` columns | `supabase/migrations/004_activity_goal_duration_and_icon.sql` |
 | Change calendar day shape | `transform/build-calendar-days.ts` |
 | Change completion-% math | `transform/compute-task-month-progress.ts` |
 | Change DB queries | `repository/*` |

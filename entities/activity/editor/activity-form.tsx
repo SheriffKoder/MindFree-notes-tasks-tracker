@@ -29,7 +29,7 @@ import type { ActivityFormProps } from "@/entities/activity/editor/model/types";
  * Layout:
  * - Title (h2) + archive/restore/delete actions + dimmer description
  * - Status banner (upcoming / expired only)
- * - Details: goal + color, starts + ends
+ * - Details: mode-aware count/duration goals + color, starts + ends
  * - Tracking: type, schedule, schedule dependents
  */
 export function ActivityForm({
@@ -55,6 +55,7 @@ export function ActivityForm({
     setScheduleType,
     setScheduleConfig,
     setGoal,
+    setGoalDuration,
     setStartsAt,
     setEndsAt,
   } = useActivityForm({ activity, resetKey, commitKey, onChange });
@@ -66,7 +67,11 @@ export function ActivityForm({
     });
   }, [formattedLastEditedAt, onFooterMetaChange, saveStatus]);
 
-  const showGoal = values.trackingMode !== "boolean";
+  const showCountGoal =
+    values.trackingMode === "count" || values.trackingMode === "count+duration";
+  const showDurationGoal =
+    values.trackingMode === "duration" ||
+    values.trackingMode === "count+duration";
 
   return (
     <form
@@ -94,15 +99,24 @@ export function ActivityForm({
       />
 
       <ActivityFormSection
-        description="Optional goal, color, and the window when this task is active."
+        description="Optional goals, color, and the window when this task is active."
         title="Details"
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-          {showGoal ? (
+          {showCountGoal ? (
             <ActivityFormGoalRow
               error={errors.goal}
-              goal={values.goal}
+              label="Count goal"
+              value={values.goal}
               onChange={setGoal}
+            />
+          ) : null}
+          {showDurationGoal ? (
+            <ActivityFormGoalRow
+              error={errors.goalDuration}
+              label="Duration goal (minutes)"
+              value={values.goalDuration}
+              onChange={setGoalDuration}
             />
           ) : null}
           <ActivityFormColorRow

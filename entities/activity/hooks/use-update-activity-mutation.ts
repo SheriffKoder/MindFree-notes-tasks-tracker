@@ -54,6 +54,8 @@ function mergeFormValuesIntoActivity(
     scheduleType: values.scheduleType,
     scheduleConfig: values.scheduleConfig,
     goal: values.goal ?? null,
+    goalDuration: values.goalDuration ?? null,
+    icon: activity.icon,
     startsAt: values.startsAt ?? null,
     endsAt: values.endsAt ?? null,
     updatedAt: new Date().toISOString(),

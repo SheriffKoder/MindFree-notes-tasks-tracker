@@ -19,6 +19,7 @@ import { Check } from "lucide-react";
 import { memo } from "react";
 
 import type { TodayActivity } from "@/entities/activity";
+import { getQuickRecordControlVisibility } from "@/features/activity/quick-record/model/quick-record-control-visibility";
 import { QuickRecordCount } from "@/features/activity/quick-record/ui/quick-record-count";
 import { QuickRecordDuration } from "@/features/activity/quick-record/ui/quick-record-duration";
 import { useQuickRecord } from "@/features/activity/quick-record/model/use-quick-record";
@@ -52,14 +53,15 @@ export const QuickRecord = memo(function QuickRecord({
     );
   }
 
-  const showCount = mode === "count" || mode === "count+duration";
-  const showDuration = mode === "duration" || mode === "count+duration";
+  const { showCount, showDuration } = getQuickRecordControlVisibility(mode);
+  const showLabels = mode === "count+duration";
 
   return (
     <div className="flex shrink-0 items-center gap-2">
       {showCount ? (
         <QuickRecordCount
           label={activity.title}
+          showLabel={showLabels}
           value={count}
           onChange={setCount}
         />
@@ -67,6 +69,7 @@ export const QuickRecord = memo(function QuickRecord({
       {showDuration ? (
         <QuickRecordDuration
           label={activity.title}
+          showLabel={showLabels}
           value={duration}
           onChange={setDuration}
           onTick={() => addMinutes(1)}

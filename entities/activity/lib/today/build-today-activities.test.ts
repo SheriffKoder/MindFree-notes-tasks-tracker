@@ -26,6 +26,8 @@ function buildActivity(overrides: Partial<Activity> = {}): Activity {
     scheduleType: "daily",
     scheduleConfig: null,
     goal: null,
+    goalDuration: null,
+    icon: null,
     startsAt: null,
     endsAt: null,
     archivedAt: null,
@@ -116,13 +118,60 @@ describe("buildTodayActivities", () => {
 
     expect(today[0].record).toBe(record);
     expect(today[0].progress).toMatchObject({
-      value: 3,
-      goal: 5,
-      remaining: 2,
-      percent: 60,
       done: false,
+      dimensions: [
+        {
+          kind: "count",
+          value: 3,
+          goal: 5,
+          remaining: 2,
+          percent: 60,
+        },
+      ],
     });
     expect(today[0].done).toBe(false);
+  });
+
+  it("derives independent count and duration dimensions for combined mode", () => {
+    const combined = buildActivity({
+      id: "task-1",
+      trackingMode: "count+duration",
+      goal: 4,
+      goalDuration: 60,
+    });
+    const record = buildRecord({
+      taskId: "task-1",
+      count: 2,
+      duration: 30,
+    });
+
+    const today = buildTodayActivities(
+      [combined],
+      buildRecordLookup([record]),
+      TODAY,
+    );
+
+    expect(today[0].progress).toEqual({
+      done: false,
+      dimensions: [
+        {
+          kind: "count",
+          label: "Count",
+          value: 2,
+          goal: 4,
+          remaining: 2,
+          percent: 50,
+        },
+        {
+          kind: "duration",
+          label: "Minutes",
+          value: 30,
+          goal: 60,
+          remaining: 30,
+          percent: 50,
+        },
+      ],
+    });
   });
 
   it("ignores records for other dates when pairing", () => {

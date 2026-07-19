@@ -122,11 +122,22 @@ An unarchived task appears when **either**:
 - `isActiveOnDay(activity, today)` — an empty task is due today.
 
 Each `TodayActivity` carries `{ activity, record, done, progress }`.
-`lib/record/derive-today-progress.ts` derives the primary value, goal,
-remaining value, percent, and goal-aware `done` state. `duration` uses minutes;
-other modes use count as the primary goal dimension. The card may additionally
-render count and duration as separate presentation segments for
-`count+duration`.
+`lib/record/derive-today-progress.ts` returns per-dimension progress:
+
+| Mode | `progress.dimensions` |
+| ---- | --------------------- |
+| `boolean` / `count` | one `Count` dimension (`goal`) |
+| `duration` | one `Minutes` dimension (`goalDuration`) |
+| `count+duration` | both, independently |
+
+Each dimension has `value`, `goal`, `remaining`, and `percent` (`null` when
+unbounded). `done` is true when every **configured** dimension reaches its
+goal, or — if no goals are set — when the record is meaningful.
+
+Home presentation stays dumb: stacked `value/goal` labels (with `Count` /
+`Minutes` prefixes only for `count+duration`), and one donut that averages
+bounded percents. Domain math stays in the entity; the card does not invent a
+second completion rule.
 
 There is no `homeActivities` query key. A record upsert/delete changes the
 current `activityRecords` month bucket, and the selector recomputes

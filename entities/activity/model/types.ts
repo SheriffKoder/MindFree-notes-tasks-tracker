@@ -69,8 +69,21 @@ export interface Activity {
   scheduleType: ScheduleType;
   /** Recurrence configuration, interpreted per {@link scheduleType}. */
   scheduleConfig: ScheduleConfig;
-  /** Target value (tasks); `null` for reminders and unbounded tasks. */
+  /**
+   * Optional count target; `null` when unbounded or unused for the mode
+   * (`boolean` / `duration`).
+   */
   goal: number | null;
+  /**
+   * Optional duration target in minutes; `null` when unbounded or unused for
+   * the mode (`boolean` / `count`).
+   */
+  goalDuration: number | null;
+  /**
+   * Reserved semantic icon identifier for future presentation; `null` until
+   * icon selection is implemented.
+   */
+  icon: string | null;
   /** Validity window start (`YYYY-MM-DD`), or `null` for open-ended. */
   startsAt: string | null;
   /** Validity window end (`YYYY-MM-DD`), or `null` for open-ended. */
@@ -122,6 +135,8 @@ export interface ActivityRow {
   schedule_type: ScheduleType;
   schedule_config: ScheduleConfig;
   goal: number | null;
+  goal_duration: number | null;
+  icon: string | null;
   starts_at: string | null;
   ends_at: string | null;
   archived_at: string | null;

@@ -1,6 +1,6 @@
 /**
  * @file entities/activity/editor/fields/activity-form-goal-row.tsx
- * Optional goal stepper beside its label.
+ * Reusable optional goal stepper beside its label (count or duration).
  */
 
 "use client";
@@ -9,27 +9,36 @@ import { ActivityFormFieldRow } from "@/entities/activity/editor/fields/activity
 import { Incrementer } from "@/shared/incrementer";
 
 export interface ActivityFormGoalRowProps {
-  goal: number | null | undefined;
+  /** Field label shown beside the stepper. */
+  label: string;
+  /** Accessible name for the Incrementer. Defaults to {@link label}. */
+  ariaLabel?: string;
+  /** Current goal value, or `null`/`undefined` when unbounded. */
+  value: number | null | undefined;
+  /** Field-level validation message. */
   error?: string;
-  onChange: (goal: number | null) => void;
+  /** Called with the next absolute goal, or `null` when cleared. */
+  onChange: (value: number | null) => void;
 }
 
 /**
  * Goal as an editable `[input] {− | +}` — type directly or step.
  */
 export function ActivityFormGoalRow({
-  goal,
+  label,
+  ariaLabel = label,
+  value,
   error,
   onChange,
 }: ActivityFormGoalRowProps) {
   return (
-    <ActivityFormFieldRow error={error} label="Goal">
+    <ActivityFormFieldRow error={error} label={label}>
       <Incrementer
         allowNull
-        aria-label="Goal"
+        aria-label={ariaLabel}
         editable
         min={1}
-        value={goal ?? null}
+        value={value ?? null}
         onChange={onChange}
       />
     </ActivityFormFieldRow>
