@@ -11,7 +11,6 @@ import type { Activity, ActivityRecord, TaskCalendarDay } from "@/entities/activ
 import {
   buildRecordLookup,
   buildTaskCalendarDays,
-  computeTaskMonthProgress,
 } from "@/entities/activity";
 import { ActivityCalendarCell } from "@/features/activity/activity-calendar-cell";
 import { MonthCalendar, type CalendarCellRenderContext } from "@/shared/calendar";
@@ -43,11 +42,6 @@ export function TasksCalendarPane({
 
   const recordLookup = useMemo(() => buildRecordLookup(records), [records]);
 
-  const progressByTaskId = useMemo(
-    () => computeTaskMonthProgress(month, activities, recordLookup),
-    [month, activities, recordLookup],
-  );
-
   const calendarDays = useMemo(() => {
     const days = buildTaskCalendarDays(month, activities, recordLookup);
 
@@ -65,12 +59,11 @@ export function TasksCalendarPane({
     (day: TaskCalendarDay, { isToday }: CalendarCellRenderContext) => (
       <ActivityCalendarCell
         day={day}
-        progressByTaskId={progressByTaskId}
         isToday={isToday}
         isSelected={highlightedDate === day.date}
       />
     ),
-    [highlightedDate, progressByTaskId],
+    [highlightedDate],
   );
 
   return (

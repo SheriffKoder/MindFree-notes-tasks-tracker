@@ -2,13 +2,13 @@
 
 ### Status
 
-Accepted
+Accepted (superseded for calendar *pill cues* — see Consequences)
 
 ### Context
 
-Each task pill on the calendar shows a month completion percent (or a check at
-100%). A task recurs across many days, so the same task renders many pills in
-one month — a daily task appears up to ~31 times.
+Each task pill on the calendar originally showed a month completion percent (or
+a check at 100%). A task recurs across many days, so the same task renders many
+pills in one month — a daily task appears up to ~31 times.
 
 Computing the percent **inside each pill** means every pill re-scans the month's
 records and schedule to derive its own denominator/numerator. That is O(days ×
@@ -26,22 +26,25 @@ percent = round(completedActiveDays / scheduledActiveDays × 100)   // 0 if none
 1. `transform/compute-task-month-progress.ts` does a single pass over the
    month's days per task, using `isActiveOnDay` (denominator) and
    `isMeaningfulRecord` (numerator).
-2. The calendar pane computes this map **once** and passes it down; each
-   `ActivityCalendarCell` / `ActivityTaskPill` reads its value by `taskId`
-   (`progressByTaskId.get(id)`).
-3. Pills stay **dumb** — they receive `completionPercent`, never derive it.
+2. Callers that need month-% (Progress page / list summaries) compute this map
+   **once** and look up by `taskId`.
+3. Calendar **day pills** no longer display this map. They show that day's
+   record vs goals (`1/2`, `5m/5m`) via `deriveTodayProgress` +
+   `formatPillProgress` — see
+   [calendar-cell.md](../../features/activity/activity-calendar-cell/docs/calendar-cell.md).
 
 ### Why
 
-- Turns O(days × pills) into O(days × tasks) computed once, then O(1) lookups.
+- Turns O(days × pills) into O(days × tasks) computed once, then O(1) lookups
+  for month-level consumers.
 - Keeps the percent definition in **one pure, testable function** instead of
   scattered in a UI component.
 - The same map feeds the Progress page later without a second implementation.
 
 Rejected:
 
-- **Per-pill computation** — repeated work, and forks the "what counts as done"
-  rule into the view.
+- **Per-pill month-% computation** — repeated work, and forks the "what counts
+  as done" rule into the view.
 - **Store completion on the record row** — completion is derived per
   `trackingMode` and must recompute when the mode or goal changes; a stored
   number drifts.
@@ -52,15 +55,17 @@ Rejected:
 
 Positive:
 
-- Calendar re-renders are cheap; pills are pure and memoizable.
-- One place owns the completion formula (mirrors the "done" predicate in
-  `is-meaningful-record`).
+- Month-% stays one pure formula for Progress / list consumers.
+- Day pills use the same progress dimensions as Home Today, so count and
+  minute goals read consistently.
 
 Trade-offs:
 
-- The pane must recompute the map when records/definitions change (a `useMemo`
-  keyed on both) — a deliberate single choke point.
+- Callers that need the map must recompute when records/definitions change (a
+  `useMemo` keyed on both) — a deliberate single choke point.
 - The map is month-scoped; cross-month progress needs its own derivation.
+- Calendar pills and month-% are now separate cues; do not reintroduce month `%`
+  on the pill without revisiting this ADR.
 
 ### Follow-up
 

@@ -6,16 +6,15 @@
 import { memo, useMemo } from "react";
 
 import type { TaskCalendarDay } from "@/entities/activity";
-import { isMeaningfulRecord } from "@/entities/activity";
+import { deriveTodayProgress, isMeaningfulRecord } from "@/entities/activity";
 import { ACTIVITY_CALENDAR_CELL_CSS_VARS, ACTIVITY_CALENDAR_CELL_STYLE_CONFIG } from "@/features/activity/activity-calendar-cell/lib/cell-style-config";
+import { formatPillProgress } from "@/features/activity/activity-calendar-cell/lib/format-pill-progress";
 import { ActivityTaskPill } from "@/features/activity/activity-calendar-cell/ui/activity-task-pill";
 import { cn } from "@/lib/utils";
 
 export interface ActivityCalendarCellProps {
   /** Prepared calendar day with active tasks already filtered upstream. */
   day: TaskCalendarDay;
-  /** Precomputed month completion percent per task (`taskId` → 0–100). */
-  progressByTaskId: ReadonlyMap<string, number>;
   /** Whether this day matches the current `selectedDate`. */
   isSelected?: boolean;
   /** Whether this day is today (resolved once per grid render). */
@@ -28,7 +27,6 @@ export interface ActivityCalendarCellProps {
  */
 export const ActivityCalendarCell = memo(function ActivityCalendarCell({
   day,
-  progressByTaskId,
   isSelected = false,
   isToday = false,
 }: ActivityCalendarCellProps) {
@@ -70,18 +68,22 @@ export const ActivityCalendarCell = memo(function ActivityCalendarCell({
 
       {hasActivities ? (
         <div className="grid min-h-0 w-full min-w-0 flex-1 grid-cols-1 content-start gap-0.5 pb-4 pr-5">
-          {visibleActivities.map(({ activity, record }) => (
-            <ActivityTaskPill
-              key={activity.id}
-              color={activity.color ?? fallbackColor}
-              completionPercent={progressByTaskId.get(activity.id) ?? 0}
-              isDone={
-                record !== null &&
-                isMeaningfulRecord(record, activity.trackingMode)
-              }
-              title={activity.title}
-            />
-          ))}
+          {visibleActivities.map(({ activity, record }) => {
+            const progress = deriveTodayProgress(activity, record);
+
+            return (
+              <ActivityTaskPill
+                key={activity.id}
+                color={activity.color ?? fallbackColor}
+                isDone={
+                  record !== null &&
+                  isMeaningfulRecord(record, activity.trackingMode)
+                }
+                progressLabel={formatPillProgress(progress.dimensions)}
+                title={activity.title}
+              />
+            );
+          })}
           {overflowCount > 0 ? (
             <p className="truncate text-[10px] font-medium leading-tight [color:var(--activity-cell-overflow)] md:text-caption">
               +{overflowCount} more

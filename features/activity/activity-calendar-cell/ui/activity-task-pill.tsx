@@ -15,30 +15,34 @@ export interface ActivityTaskPillProps {
   color: string;
   /** Whether the day's record counts as meaningful completion. */
   isDone: boolean;
-  /** Precomputed month completion rate (0–100); looked up once per task upstream. */
-  completionPercent: number;
+  /**
+   * Compact day progress (`1/2`, `5m/5m`, `1/2 · 5m/5m`), or `null` when the
+   * mode has no numeric cue (boolean / goal-less count → check when done).
+   */
+  progressLabel: string | null;
 }
 
 /**
  * Renders one task as a color-tinted pill: absolute inset background at low
- * opacity, title text in the task color, no leading dot. Month progress shows
- * as a percent, or a check when the month is fully complete (100%).
+ * opacity, title text in the task color, no leading dot. Day progress shows as
+ * a compact value/goal label, or a check when done with no numeric cue.
  */
 export const ActivityTaskPill = memo(function ActivityTaskPill({
   title,
   color,
   isDone,
-  completionPercent,
+  progressLabel,
 }: ActivityTaskPillProps) {
   const { backgroundOpacity, incompleteOpacity } =
     ACTIVITY_CALENDAR_CELL_STYLE_CONFIG.pill;
-  const isMonthComplete = completionPercent >= 100;
+  const tooltip =
+    progressLabel !== null ? `${title} · ${progressLabel}` : title;
 
   return (
     <div
       className="relative min-w-0 max-w-full rounded-full px-1.5 py-px"
       style={!isDone ? { opacity: incompleteOpacity } : undefined}
-      title={`${title} · ${completionPercent}%`}
+      title={tooltip}
     >
       <span
         aria-hidden
@@ -55,21 +59,21 @@ export const ActivityTaskPill = memo(function ActivityTaskPill({
         >
           {title}
         </span>
-        {isMonthComplete ? (
+        {progressLabel !== null ? (
+          <span
+            className="shrink-0 text-[8px] font-medium tabular-nums leading-tight md:text-[10px]"
+            style={{ color }}
+          >
+            {progressLabel}
+          </span>
+        ) : isDone ? (
           <Check
             aria-hidden
             className="h-2.5 w-2.5 shrink-0 md:h-3 md:w-3"
             style={{ color }}
             strokeWidth={2.5}
           />
-        ) : (
-          <span
-            className="shrink-0 text-[8px] font-medium tabular-nums leading-tight md:text-[10px]"
-            style={{ color }}
-          >
-            {completionPercent}%
-          </span>
-        )}
+        ) : null}
       </span>
     </div>
   );

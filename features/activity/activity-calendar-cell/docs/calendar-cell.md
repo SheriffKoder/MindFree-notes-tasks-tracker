@@ -1,27 +1,26 @@
 # Activity calendar cell
 
 How one Tasks calendar day renders its activities — the pill visual, the
-completion cue, and where filtering vs. dimming happen.
+day-progress cue, and where filtering vs. dimming happen.
 
 **Code:** `features/activity/activity-calendar-cell/`
-**Where the % comes from:** [entities/activity/docs/read-models.md](../../../../entities/activity/docs/read-models.md)
+**Day progress math:** [entities/activity/docs/read-models.md](../../../../entities/activity/docs/read-models.md)
 
 ---
 
 ## What the cell receives
 
-`ActivityCalendarCell` is dumb — it renders a `TaskCalendarDay` that upstream
-already built and filtered:
+`ActivityCalendarCell` is mostly dumb — it renders a `TaskCalendarDay` that
+upstream already built and filtered, then asks the entity for that day's
+progress:
 
 | Prop | Meaning |
 | ---- | ------- |
 | `day` | `{ day, date, activities: { activity, record }[] }` — already filtered |
-| `progressByTaskId` | precomputed `Map<taskId, percent>` (ADR 0013) |
 | `isSelected` / `isToday` | grid-level day flags |
 
 The join that produces `day.activities` (records always; schedule adds empty due
 slots) is [0012-calendar-records-always-visible.md](../../../../docs/adr/0012-calendar-records-always-visible.md).
-The percent map is [0013-precompute-month-progress-map.md](../../../../docs/adr/0013-precompute-month-progress-map.md).
 
 ---
 
@@ -48,15 +47,19 @@ pinned bottom-right, and an overflow line:
 - **Color source** — `activity.color`, falling back to `--color-accent` for
   activities without one (e.g. reminders).
 
-### Completion cue (right side)
+### Progress cue (right side)
+
+The cell calls `deriveTodayProgress(activity, record)` and
+`formatPillProgress(dimensions)`:
 
 ```text
-completionPercent >= 100  → check icon
-otherwise                 → "{percent}%"  (smaller, tabular-nums)
+bounded count              → "1/2"
+bounded / unbounded mins   → "5m/5m" / "12m"
+count+duration             → "1/2 · 5m/5m"
+boolean / goal-less count  → null  → ✓ when isDone, else empty
 ```
 
-The check replaces the percent only at a fully complete month, so a done month
-reads as a clean ✓ instead of "100%".
+Domain math stays in the entity; the feature only formats the compact label.
 
 ### Done vs not-done
 
@@ -76,13 +79,13 @@ history-preserving per ADR 0012 — the cell never decides visibility.
 
 ## Why it's split this way
 
-- **Cell vs pill** — the cell owns layout/overflow/day-badge; the pill owns one
-  task's visual. The pill is `memo`'d and pure (reads props only), so a cheap
-  re-render.
+- **Cell vs pill** — the cell owns layout/overflow/day-badge and wires entity
+  progress → label; the pill owns one task's visual. The pill is `memo`'d and
+  pure (reads props only).
 - **Style config** — all colors/opacities/limits live in one `*-style-config.ts`
   so theming is data, not scattered class edits.
-- **No derivation in UI** — the pill never computes its percent or its "done"
-  state from raw records; both arrive as props (ADR 0013).
+- **No invented progress math** — dimensions come from `deriveTodayProgress`;
+  the feature only formats them (`format-pill-progress.ts`).
 
 ---
 
@@ -90,6 +93,7 @@ history-preserving per ADR 0012 — the cell never decides visibility.
 
 | Doc | Why |
 | --- | --- |
-| [read-models.md](../../../../entities/activity/docs/read-models.md) | Calendar join + month progress map |
+| [read-models.md](../../../../entities/activity/docs/read-models.md) | Calendar join + day progress dimensions |
 | [scheduling.md](../../../../entities/activity/docs/scheduling.md) | What "due" (empty slot) means |
-| [0012-calendar-records-always-visible.md](../../../../docs/adr/0012-calendar-records-always-visible.md) · [0013-precompute-month-progress-map.md](../../../../docs/adr/0013-precompute-month-progress-map.md) | History-always-visible · precomputed progress |
+| [0012-calendar-records-always-visible.md](../../../../docs/adr/0012-calendar-records-always-visible.md) | History-always-visible |
+| [0013-precompute-month-progress-map.md](../../../../docs/adr/0013-precompute-month-progress-map.md) | Month-% map (Progress page / list; not pill cue) |

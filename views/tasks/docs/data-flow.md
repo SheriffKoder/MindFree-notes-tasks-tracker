@@ -33,9 +33,8 @@ flowchart TD
   subgraph CAL["Calendar branch — filter consumer"]
     CP["TasksCalendarPane · useTasksFilter"]
     LK["buildRecordLookup(records)"]
-    PR["computeTaskMonthProgress<br/>→ progressByTaskId"]
     DY["buildTaskCalendarDays<br/>→ filter isShown + showIncomplete"]
-    CELL["ActivityCalendarCell"]
+    CELL["ActivityCalendarCell<br/>deriveTodayProgress + formatPillProgress"]
     PILL["ActivityTaskPill ◀ endpoint"]
   end
 
@@ -55,8 +54,7 @@ flowchart TD
   VS -->|view=calendar| CP
   VS -->|view=list| LP
 
-  CP --> LK --> PR --> CELL
-  LK --> DY --> CELL --> PILL
+  CP --> LK --> DY --> CELL --> PILL
   Defs --> CP
   Recs --> CP
 
@@ -115,21 +113,25 @@ then renders the shared `MonthCalendar` with a per-day cell renderer:
 
 ```text
 records   → buildRecordLookup                     → recordLookup
-+ month   → computeTaskMonthProgress(recordLookup) → progressByTaskId   (ADR 0013)
 + month   → buildTaskCalendarDays(recordLookup)    → calendarDays       (ADR 0012)
               → .filter(isShown && isDayActivityShown(showIncomplete))
 MonthCalendar.renderCell(day)
-  → ActivityCalendarCell(day, progressByTaskId)
-      → ActivityTaskPill(color, completionPercent, isDone)   ◀ endpoint
+  → ActivityCalendarCell(day)
+      → deriveTodayProgress(activity, record)
+      → formatPillProgress(dimensions) → "1/2" | "5m/5m" | …
+      → ActivityTaskPill(color, progressLabel, isDone)   ◀ endpoint
 ```
 
 - **Join** (`buildTaskCalendarDays`): a record always shows; the schedule only
   adds empty due slots — [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md).
-- **Progress** (`computeTaskMonthProgress`): one `Map<taskId, percent>` computed
-  once; each pill reads its value — [0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md).
+- **Day progress**: entity `deriveTodayProgress` + feature
+  `formatPillProgress` — compact `value/goal` (with `m` for minutes). Boolean /
+  goal-less count keeps a check when meaningful.
 - **Filter** happens here, in the pane, not in the join: `isShown` (per-task
   toggle) + `isDayActivityShown` (hide not-done). Pill visuals:
   [calendar-cell.md](../../../features/activity/activity-calendar-cell/docs/calendar-cell.md).
+- Month-% map (`computeTaskMonthProgress`, ADR 0013) remains available for the
+  Progress page / list; calendar pills no longer consume it.
 
 ---
 
