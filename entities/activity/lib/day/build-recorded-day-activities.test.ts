@@ -140,4 +140,34 @@ describe("buildRecordedDayActivities", () => {
       percent: 100,
     });
   });
+
+  it("joins reminder records with boolean done when count is 1", () => {
+    const reminder = buildActivity({
+      id: "reminder-1",
+      kind: "reminder",
+      title: "Reminder",
+      trackingMode: "boolean",
+      color: null,
+      goal: null,
+      goalDuration: null,
+    });
+    const record = buildRecord({
+      taskId: "reminder-1",
+      trackingModeSnapshot: "boolean",
+      count: 1,
+    });
+
+    const day = buildRecordedDayActivities(
+      [reminder],
+      buildRecordLookup([record]),
+      DAY,
+    );
+
+    expect(day).toHaveLength(1);
+    expect(day[0]).toMatchObject({
+      activity: reminder,
+      record,
+      done: true,
+    });
+  });
 });
