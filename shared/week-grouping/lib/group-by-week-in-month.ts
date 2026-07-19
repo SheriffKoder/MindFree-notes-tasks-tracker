@@ -3,6 +3,11 @@
  * Groups dated list items into calendar weeks within a month.
  */
 
+import {
+  getWeeksInMonth,
+  type WeekInMonthRange,
+} from "@/shared/week-grouping/lib/get-weeks-in-month";
+
 const MONTH_KEY_PATTERN = /^\d{4}-\d{2}$/;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -35,59 +40,6 @@ export interface GroupByWeekInMonthOptions {
   includeEmptyWeeks?: boolean;
 }
 
-function parseIsoDate(isoDate: string): Date {
-  const [year, month, day] = isoDate.split("-").map(Number);
-
-  return new Date(year, month - 1, day);
-}
-
-function toIsoDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function getMonthBounds(month: string): { start: Date; end: Date } {
-  const [year, monthNumber] = month.split("-").map(Number);
-
-  return {
-    start: new Date(year, monthNumber - 1, 1),
-    end: new Date(year, monthNumber, 0),
-  };
-}
-
-function getIsoWeekMonday(date: Date): Date {
-  const monday = new Date(date);
-  const weekday = monday.getDay();
-  const diff = weekday === 0 ? -6 : 1 - weekday;
-
-  monday.setDate(monday.getDate() + diff);
-
-  return monday;
-}
-
-function getIsoWeekSunday(monday: Date): Date {
-  const sunday = new Date(monday);
-
-  sunday.setDate(sunday.getDate() + 6);
-
-  return sunday;
-}
-
-function clipDate(date: Date, min: Date, max: Date): Date {
-  if (date < min) {
-    return min;
-  }
-
-  if (date > max) {
-    return max;
-  }
-
-  return date;
-}
-
 function sortItemsByDate<T>(
   items: T[],
   getDate: (item: T) => string | null | undefined,
@@ -100,48 +52,13 @@ function sortItemsByDate<T>(
   });
 }
 
-function buildWeeksInMonth<T>(
-  weekMap: Map<string, { monday: Date; items: T[] }>,
-  monthStart: Date,
-  monthEnd: Date,
-  getDate: (item: T) => string | null | undefined,
-  includeEmptyWeeks: boolean,
-): WeekInMonthGroup<T>[] {
-  if (!includeEmptyWeeks) {
-    return [...weekMap.entries()]
-      .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
-      .map(([, { monday, items: weekItems }], index) => {
-        const sunday = getIsoWeekSunday(monday);
-
-        return {
-          weekNumber: index + 1,
-          rangeStart: toIsoDate(clipDate(monday, monthStart, monthEnd)),
-          rangeEnd: toIsoDate(clipDate(sunday, monthStart, monthEnd)),
-          items: sortItemsByDate(weekItems, getDate),
-        };
-      });
-  }
-
-  const weeks: WeekInMonthGroup<T>[] = [];
-  let monday = getIsoWeekMonday(monthStart);
-
-  while (monday <= monthEnd) {
-    const sunday = getIsoWeekSunday(monday);
-    const weekKey = toIsoDate(monday);
-    const bucket = weekMap.get(weekKey);
-
-    weeks.push({
-      weekNumber: weeks.length + 1,
-      rangeStart: toIsoDate(clipDate(monday, monthStart, monthEnd)),
-      rangeEnd: toIsoDate(clipDate(sunday, monthStart, monthEnd)),
-      items: bucket ? sortItemsByDate(bucket.items, getDate) : [],
-    });
-
-    monday = new Date(monday);
-    monday.setDate(monday.getDate() + 7);
-  }
-
-  return weeks;
+function findWeekRange(
+  weeks: WeekInMonthRange[],
+  dateValue: string,
+): WeekInMonthRange | undefined {
+  return weeks.find(
+    (week) => dateValue >= week.rangeStart && dateValue <= week.rangeEnd,
+  );
 }
 
 /**
@@ -194,8 +111,8 @@ export function groupItemsByWeekInMonth<T>(
   }
 
   const getDate = (item: T) => resolveItemDateByKey(item, dateKey);
-  const { start: monthStart, end: monthEnd } = getMonthBounds(month);
-  const weekMap = new Map<string, { monday: Date; items: T[] }>();
+  const weekRanges = getWeeksInMonth(month);
+  const itemsByWeekNumber = new Map<number, T[]>();
   const ungrouped: T[] = [];
 
   for (const item of items) {
@@ -206,31 +123,32 @@ export function groupItemsByWeekInMonth<T>(
       continue;
     }
 
-    const date = parseIsoDate(dateValue);
+    const week = findWeekRange(weekRanges, dateValue);
 
-    if (date < monthStart || date > monthEnd) {
+    if (!week) {
       ungrouped.push(item);
       continue;
     }
 
-    const monday = getIsoWeekMonday(date);
-    const weekKey = toIsoDate(monday);
-    const bucket = weekMap.get(weekKey);
+    const bucket = itemsByWeekNumber.get(week.weekNumber);
 
     if (bucket) {
-      bucket.items.push(item);
+      bucket.push(item);
     } else {
-      weekMap.set(weekKey, { monday, items: [item] });
+      itemsByWeekNumber.set(week.weekNumber, [item]);
     }
   }
 
-  const weeks = buildWeeksInMonth(
-    weekMap,
-    monthStart,
-    monthEnd,
-    getDate,
-    includeEmptyWeeks,
-  );
+  const weeks = (
+    includeEmptyWeeks
+      ? weekRanges
+      : weekRanges.filter((week) => itemsByWeekNumber.has(week.weekNumber))
+  ).map((week, index) => ({
+    weekNumber: includeEmptyWeeks ? week.weekNumber : index + 1,
+    rangeStart: week.rangeStart,
+    rangeEnd: week.rangeEnd,
+    items: sortItemsByDate(itemsByWeekNumber.get(week.weekNumber) ?? [], getDate),
+  }));
 
   return { weeks, ungrouped };
 }

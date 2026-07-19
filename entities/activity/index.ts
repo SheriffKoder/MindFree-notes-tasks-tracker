@@ -32,6 +32,16 @@ export type {
   TodayProgress,
   TodayProgressDimension,
 } from "@/entities/activity/model/read-models";
+export type {
+  ProgressLegacyMetric,
+  ProgressMetric,
+  ProgressMetricValue,
+  ProgressPageData,
+  ProgressTask,
+  TaskAllTimeProgress,
+  TaskMonthProgress,
+  TaskWeekProgress,
+} from "@/entities/activity/model/progress-read-models";
 
 export {
   getCurrentMonth,

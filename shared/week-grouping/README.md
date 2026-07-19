@@ -26,7 +26,8 @@ const weekGrouping: WeekGroupingConfig = {
 | Export | Role |
 | ------ | ---- |
 | `WeekOrganizer` | Groups items and renders week sections + ungrouped block |
-| `groupItemsByWeekInMonth` | Pure bucketing (tests, custom UI) |
+| `getWeeksInMonth` | Pure clipped ISO week ranges for a month (includes empty weeks) |
+| `groupItemsByWeekInMonth` | Pure bucketing (tests, custom UI); consumes `getWeeksInMonth` |
 | `formatWeekRangeLabel` | Week header date range label |
 | `WeekGroupingConfig` | Config shape for enabling week layout |
 
@@ -59,6 +60,7 @@ shared/week-grouping/
 ├── index.ts
 ├── README.md
 ├── lib/
+│   ├── get-weeks-in-month.ts
 │   ├── group-by-week-in-month.ts
 │   └── format-week-date-label.ts
 ├── model/

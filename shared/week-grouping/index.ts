@@ -9,6 +9,10 @@ export {
   formatWeekRangeLabel,
 } from "@/shared/week-grouping/lib/format-week-date-label";
 export {
+  getWeeksInMonth,
+  type WeekInMonthRange,
+} from "@/shared/week-grouping/lib/get-weeks-in-month";
+export {
   groupItemsByWeekInMonth,
   resolveItemDateByKey,
   type GroupByWeekInMonthOptions,
