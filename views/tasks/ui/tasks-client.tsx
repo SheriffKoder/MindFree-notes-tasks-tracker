@@ -134,7 +134,11 @@ export function TasksClient() {
           </div>
         </div>
 
-        <ActivityDrawer drawer={drawer} onDismiss={clearSelection} />
+        <ActivityDrawer
+          drawer={drawer}
+          kind="task"
+          onDismiss={clearSelection}
+        />
         <ActivityRecordDrawer
           drawer={recordsDrawer}
           onDismiss={clearSelection}

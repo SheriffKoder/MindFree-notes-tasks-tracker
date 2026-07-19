@@ -11,19 +11,10 @@
 
 import { useCallback, useState } from "react";
 
-/**
- * Editor intent passed from the Tasks page into the drawer island.
- *
- * Two variants only — Activity has no date/general/quick create contexts.
- */
-export type ActivityEditorRequest =
-  | {
-      mode: "edit";
-      activityId: string;
-    }
-  | {
-      mode: "create";
-    };
+import type {
+  ActivityDrawerController,
+  ActivityEditorRequest,
+} from "@/features/activity/activity-drawer";
 
 /** Local drawer state owned by {@link useTasksDrawer}. */
 export interface TasksDrawerState {
@@ -31,18 +22,7 @@ export interface TasksDrawerState {
   request: ActivityEditorRequest | null;
 }
 
-export interface UseTasksDrawerResult {
-  isOpen: boolean;
-  request: ActivityEditorRequest | null;
-  /** Opens the editor for a new activity draft (`kind = task` at save time). */
-  openCreate: () => void;
-  /** Opens the editor for an existing activity. */
-  openEdit: (activityId: string) => void;
-  /** Closes the drawer without clearing the last request. */
-  close: () => void;
-  /** Maps to `AppDrawer` `onOpenChange` — closes when `open === false`. */
-  setOpen: (open: boolean) => void;
-}
+export type UseTasksDrawerResult = ActivityDrawerController;
 
 const INITIAL_STATE: TasksDrawerState = {
   isOpen: false,

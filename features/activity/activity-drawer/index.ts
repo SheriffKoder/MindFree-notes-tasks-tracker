@@ -12,6 +12,10 @@ export {
   type ActivityDrawerFooterProps,
 } from "@/features/activity/activity-drawer/ui/activity-drawer-footer";
 export { useConfigOrchestrator } from "@/features/activity/activity-drawer/model/use-config-orchestrator";
+export type {
+  ActivityDrawerController,
+  ActivityEditorRequest,
+} from "@/features/activity/activity-drawer/model/types";
 export {
   evaluateActivitySave,
   hasMeaningfulContent,

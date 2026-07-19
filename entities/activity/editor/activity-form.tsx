@@ -34,6 +34,7 @@ import type { ActivityFormProps } from "@/entities/activity/editor/model/types";
  */
 export function ActivityForm({
   activity,
+  kind,
   resetKey,
   commitKey = 0,
   onChange,
@@ -72,6 +73,7 @@ export function ActivityForm({
   const showDurationGoal =
     values.trackingMode === "duration" ||
     values.trackingMode === "count+duration";
+  const isReminder = kind === "reminder";
 
   return (
     <form
@@ -99,32 +101,38 @@ export function ActivityForm({
       />
 
       <ActivityFormSection
-        description="Optional goals, color, and the window when this task is active."
+        description={
+          isReminder
+            ? "Choose the window when this reminder is active."
+            : "Optional goals, color, and the window when this task is active."
+        }
         title="Details"
       >
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-          {showCountGoal ? (
-            <ActivityFormGoalRow
-              error={errors.goal}
-              label="Count goal"
-              value={values.goal}
-              onChange={setGoal}
+        {!isReminder ? (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
+            {showCountGoal ? (
+              <ActivityFormGoalRow
+                error={errors.goal}
+                label="Count goal"
+                value={values.goal}
+                onChange={setGoal}
+              />
+            ) : null}
+            {showDurationGoal ? (
+              <ActivityFormGoalRow
+                error={errors.goalDuration}
+                label="Duration goal (minutes)"
+                value={values.goalDuration}
+                onChange={setGoalDuration}
+              />
+            ) : null}
+            <ActivityFormColorRow
+              color={values.color}
+              error={errors.color}
+              onChange={setColor}
             />
-          ) : null}
-          {showDurationGoal ? (
-            <ActivityFormGoalRow
-              error={errors.goalDuration}
-              label="Duration goal (minutes)"
-              value={values.goalDuration}
-              onChange={setGoalDuration}
-            />
-          ) : null}
-          <ActivityFormColorRow
-            color={values.color}
-            error={errors.color}
-            onChange={setColor}
-          />
-        </div>
+          </div>
+        ) : null}
 
         <ActivityFormWindowRow
           endsAt={values.endsAt}
@@ -137,14 +145,20 @@ export function ActivityForm({
       </ActivityFormSection>
 
       <ActivityFormSection
-        description="How completion is recorded and which days the schedule covers."
-        title="Tracking"
+        description={
+          isReminder
+            ? "Choose which days the reminder appears."
+            : "How completion is recorded and which days the schedule covers."
+        }
+        title={isReminder ? "Schedule" : "Tracking"}
       >
-        <ActivityFormTrackingModeRow
-          error={errors.trackingMode}
-          trackingMode={values.trackingMode}
-          onChange={setTrackingMode}
-        />
+        {!isReminder ? (
+          <ActivityFormTrackingModeRow
+            error={errors.trackingMode}
+            trackingMode={values.trackingMode}
+            onChange={setTrackingMode}
+          />
+        ) : null}
 
         <ActivityFormScheduleRow
           scheduleConfig={values.scheduleConfig}
