@@ -3,6 +3,7 @@
  * Public surface for the Profile repository (Supabase data access, RLS-scoped).
  *
  * Function index:
+ * - getAuthenticatedUser    (get-authenticated-user-id)
  * - getAuthenticatedUserId  (get-authenticated-user-id)
  * - ensureProfileExists     (ensure-profile-exists)
  * - getProfileRow           (get-profile-row)
@@ -13,7 +14,11 @@
  * - updateSecurityByUserId  (update-security-row)
  */
 
-export { getAuthenticatedUserId } from "@/entities/profile/repository/get-authenticated-user-id";
+export {
+  getAuthenticatedUser,
+  getAuthenticatedUserId,
+  type AuthenticatedProfileUser,
+} from "@/entities/profile/repository/get-authenticated-user-id";
 export { ensureProfileExists } from "@/entities/profile/repository/ensure-profile-exists";
 export { getProfileRow } from "@/entities/profile/repository/get-profile-row";
 export { getPreferencesRow } from "@/entities/profile/repository/get-preferences-row";

@@ -14,8 +14,10 @@ export {
   updatePreferences,
   updateProfile,
 } from "@/entities/profile/mutations";
+export { seedProfilePageCache } from "@/entities/profile/hydration";
 export {
   ensureProfileExists,
+  getAuthenticatedUser,
   getAuthenticatedUserId,
   getPreferencesRow,
   getProfileRow,
