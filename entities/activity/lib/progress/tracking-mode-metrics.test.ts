@@ -25,11 +25,29 @@ describe("metricsForTrackingMode", () => {
       "duration",
     ]);
   });
+
+  it("maps period-goal boolean to count instead of completion", () => {
+    expect(metricsForTrackingMode("boolean", { periodGoal: true })).toEqual([
+      "count",
+    ]);
+    expect(metricsForTrackingMode("count", { periodGoal: true })).toEqual([
+      "count",
+    ]);
+  });
 });
 
 describe("isCurrentMetric", () => {
   it("treats completion as current only for boolean", () => {
     expect(isCurrentMetric("boolean", "completion")).toBe(true);
     expect(isCurrentMetric("count", "completion")).toBe(false);
+  });
+
+  it("treats count as current for period-goal boolean", () => {
+    expect(isCurrentMetric("boolean", "count", { periodGoal: true })).toBe(
+      true,
+    );
+    expect(
+      isCurrentMetric("boolean", "completion", { periodGoal: true }),
+    ).toBe(false);
   });
 });
