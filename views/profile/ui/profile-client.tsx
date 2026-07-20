@@ -6,23 +6,11 @@
 "use client";
 
 import { AccountSection } from "@/features/profile/account-section";
+import { AppLockSection } from "@/features/profile/app-lock-section";
 import { ThemeSection } from "@/features/profile/theme-section";
 
-const PLACEHOLDER_SECTIONS = [
-  {
-    id: "app-lock",
-    title: "App lock",
-    description: "Optional password gate for opening the app.",
-  },
-  {
-    id: "export",
-    title: "Export",
-    description: "Choose where exported data is sent.",
-  },
-] as const;
-
 /**
- * Renders the Profile page shell with account, theme, and remaining placeholders.
+ * Renders the Profile page shell with account, theme, app lock, and export placeholder.
  */
 export function ProfileClient() {
   return (
@@ -48,27 +36,28 @@ export function ProfileClient() {
               <ThemeSection />
             </div>
 
-            {PLACEHOLDER_SECTIONS.map(function renderSection(section) {
-              return (
-                <div key={section.id} className="flex flex-col gap-6">
-                  <hr className="section-divider" />
-                  <section
-                    aria-labelledby={`profile-section-${section.id}`}
-                    className="flex flex-col gap-2"
-                  >
-                    <h3
-                      className="text-lg font-semibold [color:var(--color-fg)]"
-                      id={`profile-section-${section.id}`}
-                    >
-                      {section.title}
-                    </h3>
-                    <p className="text-sm [color:var(--color-fg-muted)]">
-                      {section.description}
-                    </p>
-                  </section>
-                </div>
-              );
-            })}
+            <div className="flex flex-col gap-6">
+              <hr className="section-divider" />
+              <AppLockSection />
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <hr className="section-divider" />
+              <section
+                aria-labelledby="profile-section-export"
+                className="flex flex-col gap-2"
+              >
+                <h3
+                  className="text-lg font-semibold [color:var(--color-fg)]"
+                  id="profile-section-export"
+                >
+                  Export
+                </h3>
+                <p className="text-sm [color:var(--color-fg-muted)]">
+                  Choose where exported data is sent.
+                </p>
+              </section>
+            </div>
           </div>
         </div>
       </div>

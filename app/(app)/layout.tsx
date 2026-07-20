@@ -6,8 +6,13 @@
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
+import { AppLockGate } from "@/features/app-lock";
+import {
+  isAppLockUnlocked,
+} from "@/features/app-lock/server";
 import { ProfileThemeApplier } from "@/features/profile/apply-theme";
 import { ProfilePreferencesHydrationSeed } from "@/features/profile/apply-theme/server";
+import { getSecurityRow } from "@/entities/profile/server";
 import { createClient } from "@/shared/lib/supabase/server";
 import { AppQueryProvider } from "@/shared/react-query";
 import { AppShell } from "@/views/app-shell";
@@ -40,13 +45,23 @@ async function ProtectedAppLayoutContent({
     redirect("/login?error=session_missing");
   }
 
+  const [security, unlocked] = await Promise.all([
+    getSecurityRow(user.id),
+    isAppLockUnlocked(user.id),
+  ]);
+
   return (
     <AppQueryProvider>
       <Suspense fallback={null}>
         <ProfilePreferencesHydrationSeed />
       </Suspense>
       <ProfileThemeApplier />
-      <AppShell>{children}</AppShell>
+      <AppLockGate
+        initialAppLockEnabled={security?.appLockEnabled ?? false}
+        initialUnlocked={unlocked}
+      >
+        <AppShell>{children}</AppShell>
+      </AppLockGate>
     </AppQueryProvider>
   );
 }

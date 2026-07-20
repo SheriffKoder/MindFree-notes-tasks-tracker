@@ -8,14 +8,17 @@
 export {
   fetchPatchAccount,
   fetchPatchPreferences,
+  fetchPatchSecurity,
   fetchProfilePage,
   profilePageQueryKey,
   profilePageQueryOptions,
   type PatchAccountResponse,
   type PatchPreferencesResponse,
+  type PatchSecurityResponse,
 } from "@/entities/profile/client/index";
 export {
   useProfilePageQuery,
+  useUpdateAppLockMutation,
   useUpdatePreferencesMutation,
   useUpdateProfileMutation,
   type UpdateProfileMutationInput,
@@ -27,6 +30,7 @@ export type {
   ProfileSecurity,
 } from "@/entities/profile/model/read-models";
 export type { PreferencesPatch } from "@/entities/profile/model/preferences-patch";
+export type { UpdateAppLockBody } from "@/entities/profile/schema";
 export type {
   TextContrastMode,
   ThemeMode,

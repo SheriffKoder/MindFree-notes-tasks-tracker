@@ -16,3 +16,7 @@ export {
   fetchPatchPreferences,
   type PatchPreferencesResponse,
 } from "@/entities/profile/client/patch-preferences";
+export {
+  fetchPatchSecurity,
+  type PatchSecurityResponse,
+} from "@/entities/profile/client/patch-security";

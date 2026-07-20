@@ -4,6 +4,10 @@
  */
 
 import { updateAppLock } from "@/entities/profile/server";
+import {
+  clearAppLockUnlocked,
+  setAppLockUnlocked,
+} from "@/features/app-lock/model/app-lock-session-cookie";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 /**
@@ -22,6 +26,18 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
     const security = await updateAppLock(userId, body);
+    const action =
+      body && typeof body === "object" && "action" in body
+        ? (body as { action?: string }).action
+        : undefined;
+
+    if (action === "enable" || action === "change") {
+      await setAppLockUnlocked(userId);
+    }
+
+    if (action === "disable") {
+      await clearAppLockUnlocked();
+    }
 
     return Response.json({ security });
   } catch (error) {
