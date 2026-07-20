@@ -2,32 +2,29 @@
  * @file views/progress/ui/progress-view.tsx
  * Server-rendered Progress page composition.
  *
- * Purpose: Page shell — heading, month-navigator slot, and async card grid.
- *          Cards stream under Suspense; the navigator island lands in Step 7.
+ * Purpose: Page shell — heading, month navigator island, and async card grid.
+ *          Cards stream under Suspense; the navigator hydrates as the only
+ *          intentional Progress client island.
  * Used in: `views/progress/index.tsx` → `app/(app)/progress/page.tsx`.
  * Used for: `/progress` route body.
  */
 
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
 
 import { ProgressCards } from "@/views/progress/ui/progress-cards";
+import { ProgressMonthNavigator } from "@/views/progress/ui/progress-month-navigator";
 
 export interface ProgressViewProps {
   /** Resolved month key (`YYYY-MM`). */
   month: string;
-  /**
-   * Optional month navigator island (Step 7). When omitted, a static month
-   * label occupies the slot so layout spacing stays stable.
-   */
-  monthNavigator?: ReactNode;
 }
 
 /**
  * Renders the Progress page shell and streams the report cards.
  *
- * @param props - month + optional navigator slot
+ * @param props - selected month
  */
-export function ProgressView({ month, monthNavigator }: ProgressViewProps) {
+export function ProgressView({ month }: ProgressViewProps) {
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
       <section className="flex shrink-0 flex-col gap-2">
@@ -41,11 +38,15 @@ export function ProgressView({ month, monthNavigator }: ProgressViewProps) {
         aria-label="Progress month controls"
         className="flex shrink-0 flex-row items-center gap-3"
       >
-        {monthNavigator ?? (
-          <p className="text-sm tabular-nums [color:var(--color-fg-muted)]">
-            {month}
-          </p>
-        )}
+        <Suspense
+          fallback={
+            <p className="text-sm tabular-nums [color:var(--color-fg-muted)]">
+              {month}
+            </p>
+          }
+        >
+          <ProgressMonthNavigator month={month} />
+        </Suspense>
       </section>
 
       <div className="relative min-h-0 flex-1">
