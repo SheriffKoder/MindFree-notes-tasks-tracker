@@ -3,6 +3,8 @@
  * Collapsible week header with items rendered below it.
  */
 
+"use client";
+
 import { ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
 

@@ -106,8 +106,11 @@ QuickRecord control
   → POST or DELETE /api/activity-records
   → synchronizeActivityCaches
   → ["activityRecords", YYYY-MM]
-  → Home Today + Tasks/Reminders calendars + Progress recompute
+  → Home Today + Tasks/Reminders calendars recompute
 ```
+
+(`Progress` is pure SSR — it does not read these caches; see
+[progress.md](./progress.md).)
 
 `features/activity/quick-record/model/use-quick-record.ts` owns the **when**
 (debounce) and **whether** (upsert/delete/noop). It resolves the **effective**
@@ -165,12 +168,15 @@ ActivityChange =
   | record-delete                         → remove record from its YYYY-MM bucket
 ```
 
-The fan-out is intentionally small. Home Today and Progress derive from the same
-two caches ([read-models.md](./read-models.md)), so there is **no separate Home
-patch branch**. A record change touches one month bucket; a definition change
-touches its kind bucket. Definition `delete` additionally purges the task from
-all cached months (`purge-activity-records-in-cache`), because its history no
-longer has an owner.
+The fan-out is intentionally small. Home Today derives from the same two
+TanStack caches ([read-models.md](./read-models.md)), so there is **no separate
+Home patch branch**. A record change touches one month bucket; a definition
+change touches its kind bucket. Definition `delete` additionally purges the
+task from all cached months (`purge-activity-records-in-cache`), because its
+history no longer has an owner.
+
+The Progress page does **not** consume these caches
+([progress.md](./progress.md)); it refreshes on the next RSC navigation.
 
 Pure cache updaters (`cache/activity-cache-mutations.ts`,
 `cache/record/*`, `purge-activity-records-in-cache.ts`) take no `QueryClient` —

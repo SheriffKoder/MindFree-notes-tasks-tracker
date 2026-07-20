@@ -33,6 +33,7 @@ So the app is **RSC-first with explicit client islands**, not “everything clie
 | Note drawer | Form, date nav, orchestrator, mutations |
 | Theme switcher, offline banner | Browser APIs + local state |
 | Home aside drawer shell | Open state without re-fetching the page tree |
+| Progress month navigator | URL `?month=` + adjacent RSC prefetch only |
 
 Import `"use client"` modules from views/features; keep entity **server** code out of those bundles via `client.ts` vs `server.ts` barrels.
 
@@ -50,6 +51,12 @@ app/(app)/notes/page.tsx    ← sync shell
 ```
 
 SSR seeds warm TanStack; the interactive island reads the same keys. The page shell stays sync so `?month=` / `?view=` changes do not re-run the Server Component for every toggle ([routing.md](./routing.md)).
+
+### Exception: Progress
+
+`/progress` is the pure-SSR report path: the Server Component fetches and
+renders the month; there is no TanStack hydrate. Details:
+[views/progress/docs/data-flow.md](../../views/progress/docs/data-flow.md).
 
 ---
 
@@ -71,4 +78,5 @@ Local form state + optimistic cache updates keep typing smooth; remote form pull
 | --- | --- |
 | [state-management.md](./state-management.md) | Which state is URL vs Query vs ephemeral |
 | [shared/react-query/README.md](../../shared/react-query/README.md) | Provider + hydration helpers |
+| [views/progress/docs/data-flow.md](../../views/progress/docs/data-flow.md) | Pure-SSR Progress exception |
 | [ADR 0004](../adr/0004-url-owned-application-state.md) | Client URL ownership |

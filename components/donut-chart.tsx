@@ -1,4 +1,13 @@
-'use client';
+/**
+ * @file components/donut-chart.tsx
+ * Color-aware SVG donut for progress percentages.
+ *
+ * Purpose: Render a circular progress indicator with an optional center label.
+ *          No hooks or browser APIs — safe inside Server Components.
+ * Used in: Home Today identity, Progress cards, and any client consumer that
+ *          imports it through a client boundary.
+ * Used for: Month headline percent and compact day-progress chrome.
+ */
 
 export interface DonutChartProps {
   /** Progress value (0–100); clamped to range. */
