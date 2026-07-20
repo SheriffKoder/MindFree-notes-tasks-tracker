@@ -19,7 +19,10 @@
  * - finalizeAllTimeMetrics: all-time totals → ordered legacy metrics
  */
 
-import { metricsForTrackingMode } from "@/entities/activity/lib/progress/tracking-mode-metrics";
+import {
+  metricsForTrackingMode,
+  type ProgressMetricOptions,
+} from "@/entities/activity/lib/progress/tracking-mode-metrics";
 import type {
   ProgressLegacyMetric,
   ProgressMetric,
@@ -63,17 +66,70 @@ function createMetricAccumulator(): MetricAccumulator {
  * Creates an empty window with primary slots for the current tracking mode.
  *
  * @param currentTrackingMode - task's current definition mode
+ * @param options - pass `{ periodGoal: true }` for period-goal boolean → count
  */
 export function createProgressWindowAccumulator(
   currentTrackingMode: TrackingMode,
+  options?: ProgressMetricOptions,
 ): ProgressWindowAccumulator {
   const primary = new Map<ProgressMetric, MetricAccumulator>();
 
-  for (const metric of metricsForTrackingMode(currentTrackingMode)) {
+  for (const metric of metricsForTrackingMode(currentTrackingMode, options)) {
     primary.set(metric, createMetricAccumulator());
   }
 
   return { primary, legacy: new Map() };
+}
+
+/**
+ * Seeds a primary metric's goal once (period-goal windows).
+ *
+ * Does not touch actuals — callers accumulate records separately.
+ *
+ * @param window - mutable month or week accumulator
+ * @param metric - primary metric slot to seed
+ * @param goal - period target; ignored when null or ≤ 0
+ */
+export function seedPrimaryGoal(
+  window: ProgressWindowAccumulator,
+  metric: ProgressMetric,
+  goal: number | null,
+): void {
+  if (goal === null || goal <= 0) {
+    return;
+  }
+
+  const primary = window.primary.get(metric);
+
+  if (!primary) {
+    return;
+  }
+
+  primary.goalSum += goal;
+  primary.hadGoal = true;
+}
+
+/**
+ * Adds an actual to both `totalActual` and `targetedActual` without gating on
+ * a per-day goal snapshot (period-goal windows seed goals separately).
+ *
+ * @param window - mutable month or week accumulator
+ * @param metric - primary metric slot
+ * @param actual - recorded amount for this metric
+ */
+export function addUnconditionalPrimaryActual(
+  window: ProgressWindowAccumulator,
+  metric: ProgressMetric,
+  actual: number,
+): void {
+  const primary = window.primary.get(metric);
+
+  if (!primary) {
+    return;
+  }
+
+  primary.totalActual += actual;
+  primary.targetedActual += actual;
 }
 
 function actualForMetric(
@@ -297,20 +353,25 @@ export function combineMetricPercents(
  *
  * @param window - filled accumulator
  * @param currentTrackingMode - controls primary metric order
+ * @param options - pass `{ periodGoal: true }` to match period-goal windows
  */
 export function finalizeProgressWindow(
   window: ProgressWindowAccumulator,
   currentTrackingMode: TrackingMode,
+  options?: ProgressMetricOptions,
 ): {
   metrics: ProgressMetricValue[];
   legacyMetrics: ProgressLegacyMetric[];
   percent: number | null;
 } {
-  const metrics = metricsForTrackingMode(currentTrackingMode).map((metric) => {
-    const accumulator = window.primary.get(metric) ?? createMetricAccumulator();
+  const metrics = metricsForTrackingMode(currentTrackingMode, options).map(
+    (metric) => {
+      const accumulator =
+        window.primary.get(metric) ?? createMetricAccumulator();
 
-    return finalizeMetric(metric, accumulator);
-  });
+      return finalizeMetric(metric, accumulator);
+    },
+  );
 
   const legacyMetrics: ProgressLegacyMetric[] = [];
 

@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import {
   isActiveInMonth,
   isActiveOnDay,
+  overlapsValidityWindow,
 } from "@/entities/activity/lib/schedule/resolve-schedule";
 import type { Activity } from "@/entities/activity/model/types";
 
@@ -26,6 +27,10 @@ function buildActivity(overrides: Partial<Activity> = {}): Activity {
     goal: null,
     goalDuration: null,
     icon: null,
+    goalPeriod: null,
+    periodGoal: null,
+    periodGoalDuration: null,
+    priority: null,
     startsAt: null,
     endsAt: null,
     archivedAt: null,
@@ -142,5 +147,31 @@ describe("isActiveInMonth", () => {
 
     expect(isActiveInMonth(activity, "2026-07")).toBe(false);
     expect(isActiveInMonth(activity, "2026-08")).toBe(true);
+  });
+});
+
+describe("overlapsValidityWindow", () => {
+  it("excludes months entirely before startsAt", () => {
+    expect(
+      overlapsValidityWindow({ startsAt: "2026-07-01", endsAt: null }, "2026-06"),
+    ).toBe(false);
+    expect(
+      overlapsValidityWindow({ startsAt: "2026-07-01", endsAt: null }, "2026-07"),
+    ).toBe(true);
+  });
+
+  it("excludes months entirely after endsAt", () => {
+    expect(
+      overlapsValidityWindow({ startsAt: null, endsAt: "2026-07-31" }, "2026-08"),
+    ).toBe(false);
+    expect(
+      overlapsValidityWindow({ startsAt: null, endsAt: "2026-07-31" }, "2026-07"),
+    ).toBe(true);
+  });
+
+  it("treats open ends as unconstrained", () => {
+    expect(
+      overlapsValidityWindow({ startsAt: null, endsAt: null }, "2020-01"),
+    ).toBe(true);
   });
 });

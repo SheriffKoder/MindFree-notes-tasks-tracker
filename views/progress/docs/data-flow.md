@@ -61,8 +61,9 @@ flowchart TD
 
   subgraph CALC["entities/activity/lib/progress"]
     BuildPage["buildProgressPageData<br/>membership + sort"]
-    BuildTask["buildTaskProgress<br/>day walk · Option B · weeks"]
-    Accumulate["accumulateRecordMetrics<br/>+ projected days · finalize"]
+    BuildTask["buildTaskProgress<br/>branches on goalPeriod"]
+    AccumulateDue["due-day: accumulateRecordMetrics<br/>+ Option B projection"]
+    AccumulatePeriod["period: accumulatePeriodRecordMetrics<br/>seeded week/month targets"]
   end
 
   subgraph CARD["features/activity/activity-progress-card"]
@@ -87,7 +88,8 @@ flowchart TD
   GetPage --> GetAllTime
   GetPage --> BuildPage
   BuildPage --> BuildTask
-  BuildTask --> Accumulate
+  BuildTask --> AccumulateDue
+  BuildTask --> AccumulatePeriod
   BuildPage -->|ProgressPageData.tasks| ProgressCard
   ProgressCard --> Summary
   ProgressCard --> Weeks
@@ -96,7 +98,10 @@ flowchart TD
 
 The graph stops at presentation: once `ActivityProgressCard` receives a
 `ProgressTask`, it only formats. Attainment rules live in
-[progress.md](../../../entities/activity/docs/progress.md).
+[progress.md](../../../entities/activity/docs/progress.md) — including the
+period-goal path when `goalPeriod` is set (week/month targets, prorated edge
+weeks). Card numbers may come from either due-day Option B or period-goal
+accumulation; this page doc does not duplicate those rules.
 
 ---
 
@@ -169,14 +174,14 @@ layout helpers, not a Progress data cache.
 
 ```text
 ProgressTask
-  ├─ title, color, icon, trackingMode, archivedAt
+  ├─ title, color, icon, trackingMode, goalPeriod, archivedAt
   ├─ month   → percent, metrics[], legacyMetrics[]
   ├─ allTime → metrics[]
   └─ weeks[] → weekNumber, percent, metrics[], legacyMetrics[]
          ↓
 ActivityProgressCard
   ├─ DonutChart(month.percent)
-  ├─ ProgressCardSummary     ← format only
+  ├─ ProgressCardSummary     ← format only (“Weekly/Monthly done” when period)
   └─ ProgressCardWeeks       ← "—" when week.percent === null
 ```
 
@@ -189,7 +194,7 @@ instead of the grid.
 
 | Doc | Why |
 | --- | --- |
-| [entities/activity/docs/progress.md](../../../entities/activity/docs/progress.md) | Option B, dashes, modes, legacy, membership |
+| [entities/activity/docs/progress.md](../../../entities/activity/docs/progress.md) | Due-day Option B **and** period-goal path, dashes, modes, legacy, membership |
 | [entities/activity/docs/read-models.md](../../../entities/activity/docs/read-models.md) | Client caches Progress does **not** use |
 | [views/tasks/docs/data-flow.md](../../tasks/docs/data-flow.md) | Contrast: hydrate → TanStack → client panes |
 | [docs/architecture/caching.md](../../../docs/architecture/caching.md) | Progress listed under “what not to cache” |

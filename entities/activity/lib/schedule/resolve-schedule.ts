@@ -1,5 +1,5 @@
 /**
- * @file entities/activity/lib/resolve-schedule.ts
+ * @file entities/activity/lib/schedule/resolve-schedule.ts
  * Whether an activity is scheduled on a given day / anywhere in a month.
  *
  * Purpose: gate the recurrence pattern (matches-recurrence) by the validity
@@ -9,6 +9,8 @@
  *          (later). Recorded calendar history does **not** go through this gate.
  *
  * Function index:
+ * - isWithinValidityWindow: startsAt/endsAt only (no recurrence)
+ * - overlapsValidityWindow: whether a month intersects the validity window
  * - isActiveOnDay:   window gate + recurrence match for one day
  * - isActiveInMonth: any active day within a month (delegates to isActiveOnDay)
  */
@@ -16,6 +18,60 @@
 import { getMonthRange } from "@/entities/activity/lib/month/parse-month";
 import { matchesRecurrence } from "@/entities/activity/lib/schedule/matches-recurrence";
 import type { Activity } from "@/entities/activity/model/types";
+
+/**
+ * Whether a day falls inside the activity's inclusive `startsAt`/`endsAt`
+ * window. Open ends (`null`) do not constrain that side.
+ *
+ * Does **not** check recurrence — Progress period-goal membership uses this
+ * (and {@link overlapsValidityWindow}) without `isActiveOnDay`.
+ *
+ * @param activity - activity definition
+ * @param isoDate - day as `YYYY-MM-DD`
+ */
+export function isWithinValidityWindow(
+  activity: Pick<Activity, "startsAt" | "endsAt">,
+  isoDate: string,
+): boolean {
+  if (activity.startsAt && isoDate < activity.startsAt) {
+    return false;
+  }
+
+  if (activity.endsAt && isoDate > activity.endsAt) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Whether the selected month overlaps the activity's validity window.
+ *
+ * Used by Progress period-goal card membership so a July-start task does not
+ * appear on June (and an ended task does not appear after `endsAt`).
+ *
+ * @param activity - activity definition
+ * @param month - `YYYY-MM` month key
+ */
+export function overlapsValidityWindow(
+  activity: Pick<Activity, "startsAt" | "endsAt">,
+  month: string,
+): boolean {
+  const { year, monthNumber, daysInMonth } = getMonthRange(month);
+  const paddedMonth = String(monthNumber).padStart(2, "0");
+  const monthStart = `${year}-${paddedMonth}-01`;
+  const monthEnd = `${year}-${paddedMonth}-${String(daysInMonth).padStart(2, "0")}`;
+
+  if (activity.startsAt && monthEnd < activity.startsAt) {
+    return false;
+  }
+
+  if (activity.endsAt && monthStart > activity.endsAt) {
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Whether an activity is scheduled on a specific day. The window is checked
@@ -27,17 +83,15 @@ import type { Activity } from "@/entities/activity/model/types";
  * @returns whether the activity is active on the day
  */
 export function isActiveOnDay(activity: Activity, isoDate: string): boolean {
-  const { startsAt, endsAt, scheduleType, scheduleConfig } = activity;
-
-  if (startsAt && isoDate < startsAt) {
+  if (!isWithinValidityWindow(activity, isoDate)) {
     return false;
   }
 
-  if (endsAt && isoDate > endsAt) {
-    return false;
-  }
-
-  return matchesRecurrence(isoDate, scheduleType, scheduleConfig);
+  return matchesRecurrence(
+    isoDate,
+    activity.scheduleType,
+    activity.scheduleConfig,
+  );
 }
 
 /**

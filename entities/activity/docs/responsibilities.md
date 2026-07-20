@@ -17,7 +17,9 @@ noted. For the *why* behind these, see the WHY docs in this folder
 
 ## Domain model
 
-`model/types.ts` — `Activity`, `ActivityRecord`, row types, `ActivityKind`, `TrackingMode`, `ScheduleType`, `ScheduleConfig`, `ActivityStatus`, `WEEKDAYS`
+`model/types.ts` — `Activity`, `ActivityRecord`, row types, `ActivityKind`,
+`TrackingMode`, `GoalPeriod`, `ActivityPriority`, `ScheduleType`,
+`ScheduleConfig`, `ActivityStatus`, `WEEKDAYS`
 `model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`,
 `TaskCalendarDay`, `ActivityPageData`, `HomeActivityData`, `TasksPageData`
 (deprecated alias), `TodayActivity`, `TodayProgress`, `TodayProgressDimension`
@@ -44,7 +46,8 @@ record surface so consumers never deep-import these implementation paths.
 `lib/month/parse-month.ts` — `getCurrentMonth`, `parseMonthParam`, `getMonthRange`
 `lib/schedule/date-parts.ts` — `getScheduleDateParts` (UTC weekday / day-of-month / `DD/MM`)
 `lib/schedule/matches-recurrence.ts` — `matchesRecurrence` (pattern only, no window)
-`lib/schedule/resolve-schedule.ts` — `isActiveOnDay`, `isActiveInMonth` (window + recurrence)
+`lib/schedule/resolve-schedule.ts` — `isActiveOnDay`, `isActiveInMonth`,
+`isWithinValidityWindow`, `overlapsValidityWindow` (window + recurrence)
 `lib/schedule/activity-status.ts` — `getActivityStatus` (archived → upcoming → expired → active)
 `lib/record/is-meaningful-record.ts` — `isMeaningfulRecord` (done per tracking mode)
 `lib/record/resolve-record-configuration.ts` — snapshot vs current activity configuration
@@ -53,20 +56,28 @@ record surface so consumers never deep-import these implementation paths.
 `lib/record/is-remote-record-newer.ts` — record newer-wins `updatedAt` gate
 `lib/today/build-today-activities.ts` — definitions + today's lookup → `TodayActivity[]`
 `lib/definition/normalize-activity-definition.ts` — canonical task goals and
-enforced reminder fields (`boolean`, no color/goals)
-`lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (incl. record snapshots, `goalDuration`, `icon`)
+enforced reminder fields (`boolean`, no color/day goals/period goals/priority)
+`lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (incl. record
+snapshots, `goalDuration`, period-goal fields, `priority`, `icon`)
 `lib/is-remote-activity-newer.ts` — `isRemoteActivityNewer` (newer-wins `updatedAt` gate)
 
 ### Progress calculation (`lib/progress/`)
 
 Pure server-side report math — not TanStack, not calendar-pill %. WHY:
-[progress.md](./progress.md).
+[progress.md](./progress.md). Two axes: due-day (Option B) when
+`goalPeriod === null`; period-goal when set.
 
-`lib/progress/tracking-mode-metrics.ts` — tracking mode → semantic metric families
+`lib/progress/tracking-mode-metrics.ts` — tracking mode → semantic metric
+families (`periodGoal: true` maps `boolean` → `count`)
 `lib/progress/accumulate-record-metrics.ts` — window accumulators, finalize,
-combine percents, all-time finalize
-`lib/progress/build-task-progress.ts` — one `ProgressTask` (Option B projection)
-`lib/progress/build-progress-page-data.ts` — assemble `ProgressPageData` + membership
+combine percents, all-time finalize; also `seedPrimaryGoal` /
+`addUnconditionalPrimaryActual` for period seeding
+`lib/progress/accumulate-period-goal-metrics.ts` — week available-days /
+proration, `seedPeriodGoalsForActivity`, `accumulatePeriodRecordMetrics`
+`lib/progress/build-task-progress.ts` — one `ProgressTask` (branches due-day vs
+period-goal)
+`lib/progress/build-progress-page-data.ts` — assemble `ProgressPageData` +
+membership (period-goal tasks use validity-window overlap)
 `lib/progress/index.ts` — barrel
 
 Shared week ranges: `shared/week-grouping/lib/get-weeks-in-month.ts`.
@@ -185,14 +196,18 @@ over the matching definitions bucket + shared current-month records
 
 `editor/model/types.ts` — `ActivityFormValues`, change/footer meta, form/hook props
 `editor/model/normalize-activity-goals.ts` — clear inapplicable `goal` / `goalDuration` on mode change
-`editor/model/use-activity-form.ts` — local fields (incl. `goalDuration`), dirty/valid meta, reset on `resetKey`/`commitKey`
+`editor/model/normalize-period-goals.ts` — clear period fields when toggle Off;
+mode-compatible `periodGoal` / `periodGoalDuration` (boolean keeps count)
+`editor/model/use-activity-form.ts` — local fields (incl. `goalDuration`, period
+goals, `priority`), dirty/valid meta, reset on `resetKey`/`commitKey`
 
 ### UI
 
 `editor/activity-form.tsx` — composes sections, rows, status banner
 `editor/activity-form-status-banner.tsx` — upcoming/expired banner via `getActivityStatus`
 `editor/activity-form-last-saved.tsx` — last-edited / save-status label
-`editor/fields/*` — section + field-row primitives; title (with actions), color, goal, tracking-mode, schedule, window rows
+`editor/fields/*` — section + field-row primitives; title (with actions), color,
+priority, day goal, period goal, tracking-mode, schedule, window rows
 `editor/schedule-input/*` — `ScheduleInput` orchestrator + per-type controls (once date, weekday, day-of-month, day/month pickers)
 
 ### Display helpers
@@ -250,14 +265,17 @@ records remain keyed independently of kind.
 | Change Home Today goal/progress math | `lib/record/derive-today-progress.ts` |
 | Change snapshot vs current configuration | `lib/record/resolve-record-configuration.ts` |
 | Change which goals survive a mode switch | `editor/model/normalize-activity-goals.ts` |
+| Change period-goal toggle / mode cleanup | `editor/model/normalize-period-goals.ts` |
 | Force reminder-safe definition fields | `lib/definition/normalize-activity-definition.ts` |
 | Load one definition by id | `repository/get-activity-by-id.ts` |
 | Add `goal_duration` / `icon` columns | `supabase/migrations/004_activity_goal_duration_and_icon.sql` |
+| Add period-goal / priority columns | `supabase/migrations/006_activity_period_goals_and_priority.sql` |
 | Add record tracking/goal snapshot columns | `supabase/migrations/005_activity_record_configuration_snapshots.sql` |
 | Apply optimistic record snapshots from the form | `hooks/record/build-optimistic-activity-record.ts` |
 | Change calendar day shape | `transform/build-calendar-days.ts` |
 | Change calendar-pill completion-% | `transform/compute-task-month-progress.ts` |
-| Change Progress report math / Option B | `lib/progress/*` — [progress.md](./progress.md) |
+| Change Progress report math (due-day or period) | `lib/progress/*` — [progress.md](./progress.md) |
+| Change period-goal seeding / proration | `lib/progress/accumulate-period-goal-metrics.ts` |
 | Change Progress all-time fetch | `repository/progress/get-all-time-task-record-values.ts` |
 | Change Progress SSR assembly | `queries/progress/get-progress-page-data.ts` |
 | Change DB queries | `repository/*` |

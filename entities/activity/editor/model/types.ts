@@ -88,6 +88,10 @@ export interface UseActivityFormResult {
   ) => void;
   setGoal: (goal: number | null) => void;
   setGoalDuration: (goalDuration: number | null) => void;
+  setGoalPeriod: (goalPeriod: ActivityFormValues["goalPeriod"]) => void;
+  setPeriodGoal: (periodGoal: number | null) => void;
+  setPeriodGoalDuration: (periodGoalDuration: number | null) => void;
+  setPriority: (priority: ActivityFormValues["priority"]) => void;
   setStartsAt: (startsAt: string | null) => void;
   setEndsAt: (endsAt: string | null) => void;
 }

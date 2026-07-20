@@ -195,6 +195,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     <AppDrawer
       ariaLabel="Note editor"
       open={isOpen}
+      resizable
       onOpenChange={handleOpenChange}
     >
       <div

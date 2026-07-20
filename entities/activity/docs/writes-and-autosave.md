@@ -73,8 +73,11 @@ found, 500 otherwise.
 write before persistence:
 
 ```text
-task     → selected tracking mode + mode-compatible goals
-reminder → trackingMode="boolean", color=null, goal=null, goalDuration=null
+task     → selected tracking mode + mode-compatible day goals;
+           optional period goals + priority (tasks only)
+reminder → trackingMode="boolean", color=null, goal=null, goalDuration=null,
+           goalPeriod=null, periodGoal=null, periodGoalDuration=null,
+           priority=null
 ```
 
 Create already carries the page-owned `kind`, so the server normalizes the

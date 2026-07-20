@@ -78,7 +78,11 @@ function applyDefinitionNormalization(
     patch.trackingMode !== undefined ||
     patch.color !== undefined ||
     patch.goal !== undefined ||
-    patch.goalDuration !== undefined;
+    patch.goalDuration !== undefined ||
+    patch.goalPeriod !== undefined ||
+    patch.periodGoal !== undefined ||
+    patch.periodGoalDuration !== undefined ||
+    patch.priority !== undefined;
 
   // A task-only archive/title/schedule PATCH cannot violate mode/goal rules,
   // so leave it partial and avoid writing unrelated columns.
@@ -97,6 +101,15 @@ function applyDefinitionNormalization(
       patch.goalDuration !== undefined
         ? patch.goalDuration
         : existing.goalDuration,
+    goalPeriod:
+      patch.goalPeriod !== undefined ? patch.goalPeriod : existing.goalPeriod,
+    periodGoal:
+      patch.periodGoal !== undefined ? patch.periodGoal : existing.periodGoal,
+    periodGoalDuration:
+      patch.periodGoalDuration !== undefined
+        ? patch.periodGoalDuration
+        : existing.periodGoalDuration,
+    priority: patch.priority !== undefined ? patch.priority : existing.priority,
   });
 
   // Normalized fields win over any conflicting values supplied by the PATCH.

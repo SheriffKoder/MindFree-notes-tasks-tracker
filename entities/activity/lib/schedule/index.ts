@@ -4,5 +4,7 @@
 export {
   isActiveInMonth,
   isActiveOnDay,
+  isWithinValidityWindow,
+  overlapsValidityWindow,
 } from "@/entities/activity/lib/schedule/resolve-schedule";
 export { getActivityStatus } from "@/entities/activity/lib/schedule/activity-status";

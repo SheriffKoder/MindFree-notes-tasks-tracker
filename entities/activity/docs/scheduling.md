@@ -74,11 +74,23 @@ one-day window without special-casing callers:
 | Calendar join (`transform/build-calendar-days`) | adding **empty due slots** only |
 | Month progress (`transform/compute-task-month-progress`) | the denominator (scheduled days) |
 | Home Today (Phase 3) | today's due list |
+| Progress **due-day** path (`lib/progress/build-task-progress`) | Option B projection of missing days |
 
 **Recorded history does not go through this gate.** A day with a record always
 shows on the calendar even if the schedule changed since — see
 [read-models.md](./read-models.md) and [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md). Frequency is about *future
 visibility*, not erasing the past.
+
+**Period goals never use this gate.** When a task has `goalPeriod` set,
+Progress grades against week/month targets from recorded actuals only —
+`isActiveOnDay` / due-day appearance stay schedule-owned and unchanged. Period
+goals are Progress-only; they do not add or remove Home/calendar due slots.
+See [progress.md](./progress.md).
+
+The validity window helpers (`isWithinValidityWindow`,
+`overlapsValidityWindow`) are shared by both Progress axes and by
+`isActiveOnDay` itself — they bound *when* an activity can exist, not *which*
+weekdays it is due.
 
 ---
 
@@ -110,6 +122,7 @@ Status is **never stored**. It powers two surfaces from one function:
 | Doc | Why |
 | --- | --- |
 | [domain-model.md](./domain-model.md) | Fields and kinds behind the schedule |
+| [progress.md](./progress.md) | Due-day projection vs period-goal path (period goals skip this gate) |
 | [read-models.md](./read-models.md) | Why history ignores the gate; calendar join |
 | [responsibilities.md](./responsibilities.md) | `lib/schedule/` file map |
 | [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md) | Calendar records always visible |
