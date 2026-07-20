@@ -1,6 +1,14 @@
 /**
  * @file shared/week-grouping/lib/group-by-week-in-month.ts
  * Groups dated list items into calendar weeks within a month.
+ *
+ * Purpose: Place each dated item into a clipped ISO week bucket for month views.
+ * Used in: `shared/week-grouping/ui/week-organizer.tsx` (notes calendar UI).
+ * Used for: Rendering notes grouped under `W1`, `W2`, … headings.
+ *
+ * Function index:
+ * - groupItemsByWeekInMonth: dated items → week buckets (delegates ranges to
+ *   `getWeeksInMonth`)
  */
 
 import {

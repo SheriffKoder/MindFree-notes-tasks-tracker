@@ -2,8 +2,15 @@
  * @file entities/activity/repository/progress/get-all-time-task-record-values.ts
  * Reads minimal all-time record values for Progress aggregation.
  *
- * Fetches only the columns needed to roll up semantic metrics. Callers supply
- * task definition IDs so reminder rows never enter the result set.
+ * Purpose: Fetch only the columns needed for all-time Progress totals — no
+ *          goals, dates, or presentation fields. Caller supplies task IDs so
+ *          reminder rows never enter the result set.
+ * Used in: `entities/activity/queries/progress/get-progress-page-data.ts` via
+ *          `entities/activity/repository/index.ts`.
+ * Used for: "Total hours/counts all time" on each Progress card.
+ *
+ * Function index:
+ * - getAllTimeTaskRecordValues: `(userId, taskIds)` → minimal value rows
  */
 
 import type { TrackingMode } from "@/entities/activity/model/types";

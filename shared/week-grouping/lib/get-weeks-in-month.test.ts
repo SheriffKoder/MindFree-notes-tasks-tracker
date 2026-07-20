@@ -1,3 +1,13 @@
+/**
+ * @file shared/week-grouping/lib/get-weeks-in-month.test.ts
+ * Unit tests for ISO week range generation inside a month.
+ *
+ * Purpose: Lock week-boundary edge cases (invalid keys, leap February, six-week
+ *          months, empty weeks) and confirm `group-by-week-in-month` still aligns.
+ * Used in: Vitest (`getWeeksInMonth` regression suite).
+ * Used for: Step 1 verification of `get-weeks-in-month.ts`.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { getWeeksInMonth } from "@/shared/week-grouping/lib/get-weeks-in-month";

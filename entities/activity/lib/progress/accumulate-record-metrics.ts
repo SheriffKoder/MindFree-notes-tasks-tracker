@@ -2,8 +2,21 @@
  * @file entities/activity/lib/progress/accumulate-record-metrics.ts
  * Accumulators for Progress primary and legacy metric windows.
  *
- * Purpose: one place owns targeted vs unbounded actuals, goal sums, and the
- *          current-vs-legacy split so month/week finalization stays consistent.
+ * Purpose: Own all Progress math in one place — targeted vs unbounded actuals,
+ *          goal sums, percent calculation, current-vs-legacy split, and
+ *          `count+duration` headline averaging.
+ * Used in: `entities/activity/lib/progress/build-task-progress.ts` only.
+ * Used for: Rolling up one day, one week, one month, or all-time into
+ *           `ProgressMetricValue` / `ProgressLegacyMetric` shapes.
+ *
+ * Function index:
+ * - createProgressWindowAccumulator: empty month/week window
+ * - accumulateRecordMetrics: ingest one recorded day (snapshot-aware)
+ * - accumulateProjectedDayMetrics: ingest a projected due day (current goals)
+ * - accumulateAllTimeActuals: ingest one all-time value row
+ * - combineMetricPercents: average capped percents for `count+duration`
+ * - finalizeProgressWindow: window → metrics + headline percent
+ * - finalizeAllTimeMetrics: all-time totals → ordered legacy metrics
  */
 
 import { metricsForTrackingMode } from "@/entities/activity/lib/progress/tracking-mode-metrics";

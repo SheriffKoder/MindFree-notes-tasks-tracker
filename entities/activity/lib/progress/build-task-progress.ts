@@ -1,6 +1,24 @@
 /**
  * @file entities/activity/lib/progress/build-task-progress.ts
  * Builds one ProgressTask from a definition, month records, and all-time rows.
+ *
+ * Purpose: Orchestrate per-task Progress — walk every day in the month, use
+ *          records when present, project goals on missing due days (Option B
+ *          stability for the currently-open month), and finalize month + week +
+ *          all-time windows.
+ * Used in: `entities/activity/lib/progress/build-progress-page-data.ts`,
+ *          `entities/activity/lib/progress/index.ts` (re-exported).
+ * Used for: One Progress card's computed numbers before presentation (Step 5).
+ *
+ * Function index:
+ * - hasProjectableDueDay: whether a task should appear on future/empty months
+ * - buildTaskProgress: definition + records → `ProgressTask`
+ *
+ * Steps (`buildTaskProgress`):
+ * 1. Build week ranges via `getWeeksInMonth`.
+ * 2. Create empty month and per-week accumulators.
+ * 3. For each day: record → accumulate; else project if `shouldProjectDay`.
+ * 4. Finalize month/week windows and all-time totals.
  */
 
 import {

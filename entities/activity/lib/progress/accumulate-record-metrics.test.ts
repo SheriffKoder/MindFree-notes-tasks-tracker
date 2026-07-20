@@ -1,3 +1,13 @@
+/**
+ * @file entities/activity/lib/progress/accumulate-record-metrics.test.ts
+ * Unit tests for Progress metric accumulation and finalization.
+ *
+ * Purpose: Cover targeted vs unbounded actuals, projected days, legacy metrics,
+ *          `combineMetricPercents`, and all-time rollup in isolation.
+ * Used in: Vitest (Step 3 verification).
+ * Used for: Regression guard on `accumulate-record-metrics.ts`.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {

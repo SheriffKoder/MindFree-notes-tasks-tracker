@@ -1,6 +1,22 @@
 /**
  * @file entities/activity/lib/progress/build-progress-page-data.ts
  * Assembles ProgressPageData: card membership, ordering, and per-task math.
+ *
+ * Purpose: Pure top-level reducer — decide which tasks get a card, order them,
+ *          group input records by task, and delegate per-task math to
+ *          `buildTaskProgress`. No Supabase or React.
+ * Used in: `entities/activity/queries/progress/get-progress-page-data.ts` via
+ *          `entities/activity/lib/progress/index.ts`.
+ * Used for: The full Progress page payload after repository reads complete.
+ *
+ * Function index:
+ * - buildProgressPageData: definitions + records + all-time rows → `ProgressPageData`
+ *
+ * Steps:
+ * 1. Bucket month records and all-time values by `taskId`.
+ * 2. Filter tasks: include when the month has a record OR a projectable due day.
+ * 3. Order: active tasks first, archived second (definition creation order kept).
+ * 4. Map each included task through `buildTaskProgress`.
  */
 
 import {

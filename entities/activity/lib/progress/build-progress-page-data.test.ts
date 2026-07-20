@@ -1,3 +1,15 @@
+/**
+ * @file entities/activity/lib/progress/build-progress-page-data.test.ts
+ * Integration tests for the pure Progress page reducer.
+ *
+ * Purpose: Exercise card membership, projection (Option B stability), legacy
+ *          metrics, archived tasks, and week/month totals end-to-end without
+ *          Supabase. Also covers `build-task-progress` branches indirectly.
+ * Used in: Vitest (Steps 3–4 verification).
+ * Used for: Regression guard on `build-progress-page-data.ts` and
+ *           `build-task-progress.ts`.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { buildProgressPageData } from "@/entities/activity/lib/progress/build-progress-page-data";

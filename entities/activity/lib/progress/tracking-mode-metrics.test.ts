@@ -1,3 +1,13 @@
+/**
+ * @file entities/activity/lib/progress/tracking-mode-metrics.test.ts
+ * Unit tests for tracking-mode → Progress metric mapping.
+ *
+ * Purpose: Verify boolean/count/duration/count+duration map to the expected
+ *          `ProgressMetric` families.
+ * Used in: Vitest (Step 3 verification).
+ * Used for: Regression guard on `tracking-mode-metrics.ts`.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {

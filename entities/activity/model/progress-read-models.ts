@@ -2,8 +2,22 @@
  * @file entities/activity/model/progress-read-models.ts
  * Server-to-view contract for the Progress page monthly report.
  *
- * Progress is server-computed and not TanStack hydrated. These types describe
- * the assembled read model returned by the progress query — not API payloads.
+ * Purpose: Define the typed read model returned by `getProgressPageData` — month
+ *          totals, weekly breakdowns, all-time totals, and legacy metrics. Not
+ *          an API payload and not TanStack-hydrated.
+ * Used in: `entities/activity/lib/progress/*` (pure builders),
+ *          `entities/activity/queries/progress/get-progress-page-data.ts`,
+ *          `features/activity/activity-progress-card` (Step 5),
+ *          `views/progress` (Step 6).
+ * Used for: Progress card UI, month navigator, and any consumer that needs the
+ *           assembled monthly report shape.
+ *
+ * Type index:
+ * - ProgressMetric, ProgressMetricValue — semantic metric families and totals
+ * - ProgressLegacyMetric — historical metrics no longer in the current mode
+ * - TaskWeekProgress, TaskMonthProgress, TaskAllTimeProgress — aggregations
+ * - ProgressTask — one card row
+ * - ProgressPageData — full page payload for one month
  */
 
 import type { TrackingMode } from "@/entities/activity/model/types";

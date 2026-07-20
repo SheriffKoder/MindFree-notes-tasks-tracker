@@ -1,6 +1,17 @@
 /**
  * @file entities/activity/lib/progress/tracking-mode-metrics.ts
  * Maps tracking modes to Progress semantic metric families.
+ *
+ * Purpose: Translate `TrackingMode` into the metric vocabulary Progress uses
+ *          (`completion`, `count`, `duration`). Boolean contributes completion,
+ *          not count quantity.
+ * Used in: `entities/activity/lib/progress/accumulate-record-metrics.ts`,
+ *          `entities/activity/lib/progress/index.ts` (re-exported for tests).
+ * Used for: Choosing primary card metrics and splitting current vs legacy totals.
+ *
+ * Function index:
+ * - metricsForTrackingMode: mode → ordered `ProgressMetric[]`
+ * - isCurrentMetric: whether a metric belongs to the task's current mode
  */
 
 import type { ProgressMetric } from "@/entities/activity/model/progress-read-models";

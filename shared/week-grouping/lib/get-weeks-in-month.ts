@@ -2,8 +2,16 @@
  * @file shared/week-grouping/lib/get-weeks-in-month.ts
  * Builds every ISO calendar week range that overlaps a month.
  *
- * Weeks are Monday–Sunday and clipped to the month bounds. Empty weeks are
- * included so Progress and other consumers can emit stable `W1`…`Wn` columns.
+ * Purpose: Single source of truth for clipped Monday–Sunday week ranges inside
+ *          a month, including empty weeks so consumers emit stable `W1`…`Wn`
+ *          columns.
+ * Used in: `entities/activity/lib/progress/build-task-progress.ts` (Progress
+ *          weekly rollups), `shared/week-grouping/lib/group-by-week-in-month.ts`
+ *          (notes week grouping).
+ * Used for: Bucketing Progress records into weeks and grouping dated note lists.
+ *
+ * Function index:
+ * - getWeeksInMonth: `YYYY-MM` → `WeekInMonthRange[]`
  */
 
 const MONTH_KEY_PATTERN = /^\d{4}-\d{2}$/;
