@@ -35,6 +35,10 @@ export async function createActivity(
       schedule_config: payload.scheduleConfig,
       goal: payload.goal ?? null,
       goal_duration: payload.goalDuration ?? null,
+      goal_period: payload.goalPeriod ?? null,
+      period_goal: payload.periodGoal ?? null,
+      period_goal_duration: payload.periodGoalDuration ?? null,
+      priority: payload.priority ?? null,
       starts_at: payload.startsAt ?? null,
       ends_at: payload.endsAt ?? null,
     })

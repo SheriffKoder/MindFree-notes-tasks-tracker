@@ -25,6 +25,7 @@ import {
 import { defaultScheduleConfig } from "@/entities/activity/editor/lib/default-schedule-config";
 import { formatActivityLastEditedAt } from "@/entities/activity/editor/lib/format-last-edited";
 import { normalizeActivityGoals } from "@/entities/activity/editor/model/normalize-activity-goals";
+import { normalizePeriodGoals } from "@/entities/activity/editor/model/normalize-period-goals";
 import type {
   ActivityFormFieldErrors,
   ActivityFormValues,
@@ -47,6 +48,10 @@ const EMPTY_VALUES: ActivityFormValues = {
   scheduleConfig: null,
   goal: null,
   goalDuration: null,
+  goalPeriod: null,
+  periodGoal: null,
+  periodGoalDuration: null,
+  priority: null,
   startsAt: null,
   endsAt: null,
 };
@@ -60,6 +65,10 @@ const FORM_FIELD_KEYS = new Set<keyof ActivityFormValues>([
   "scheduleConfig",
   "goal",
   "goalDuration",
+  "goalPeriod",
+  "periodGoal",
+  "periodGoalDuration",
+  "priority",
   "startsAt",
   "endsAt",
 ]);
@@ -78,6 +87,10 @@ function activityToFormValues(activity: Activity | null): ActivityFormValues {
     scheduleConfig: activity.scheduleConfig,
     goal: activity.goal,
     goalDuration: activity.goalDuration,
+    goalPeriod: activity.goalPeriod,
+    periodGoal: activity.periodGoal,
+    periodGoalDuration: activity.periodGoalDuration,
+    priority: activity.priority,
     startsAt: activity.startsAt,
     endsAt: activity.endsAt,
   };
@@ -113,6 +126,10 @@ function valuesAreEqual(
     scheduleConfigsEqual(left.scheduleConfig, right.scheduleConfig) &&
     (left.goal ?? null) === (right.goal ?? null) &&
     (left.goalDuration ?? null) === (right.goalDuration ?? null) &&
+    (left.goalPeriod ?? null) === (right.goalPeriod ?? null) &&
+    (left.periodGoal ?? null) === (right.periodGoal ?? null) &&
+    (left.periodGoalDuration ?? null) === (right.periodGoalDuration ?? null) &&
+    (left.priority ?? null) === (right.priority ?? null) &&
     left.startsAt === right.startsAt &&
     left.endsAt === right.endsAt
   );
@@ -235,6 +252,7 @@ export function useActivityForm({
         ...values,
         trackingMode,
         ...normalizeActivityGoals(trackingMode, values),
+        ...normalizePeriodGoals(trackingMode, values),
       });
     },
     [updateValues, values],
@@ -272,6 +290,40 @@ export function useActivityForm({
     [updateValues, values],
   );
 
+  const setGoalPeriod = useCallback(
+    (goalPeriod: ActivityFormValues["goalPeriod"]) => {
+      updateValues({
+        ...values,
+        ...normalizePeriodGoals(values.trackingMode, {
+          ...values,
+          goalPeriod,
+        }),
+      });
+    },
+    [updateValues, values],
+  );
+
+  const setPeriodGoal = useCallback(
+    (periodGoal: number | null) => {
+      updateValues({ ...values, periodGoal });
+    },
+    [updateValues, values],
+  );
+
+  const setPeriodGoalDuration = useCallback(
+    (periodGoalDuration: number | null) => {
+      updateValues({ ...values, periodGoalDuration });
+    },
+    [updateValues, values],
+  );
+
+  const setPriority = useCallback(
+    (priority: ActivityFormValues["priority"]) => {
+      updateValues({ ...values, priority });
+    },
+    [updateValues, values],
+  );
+
   const setStartsAt = useCallback(
     (startsAt: string | null) => {
       updateValues({ ...values, startsAt });
@@ -300,6 +352,10 @@ export function useActivityForm({
     setScheduleConfig,
     setGoal,
     setGoalDuration,
+    setGoalPeriod,
+    setPeriodGoal,
+    setPeriodGoalDuration,
+    setPriority,
     setStartsAt,
     setEndsAt,
   };

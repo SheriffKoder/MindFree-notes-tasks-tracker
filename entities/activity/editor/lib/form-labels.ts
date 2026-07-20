@@ -3,14 +3,32 @@
  * Display labels for activity form enums.
  */
 
-import type { ScheduleType, TrackingMode } from "@/entities/activity/model/types";
-import type { Weekday } from "@/entities/activity/model/types";
+import type {
+  ActivityPriority,
+  GoalPeriod,
+  ScheduleType,
+  TrackingMode,
+  Weekday,
+} from "@/entities/activity/model/types";
 
 export const TRACKING_MODE_LABELS: Record<TrackingMode, string> = {
   boolean: "Done / not done",
   count: "Count",
   duration: "Duration",
   "count+duration": "Count + duration",
+};
+
+export const PRIORITY_LABELS: Record<ActivityPriority | "none", string> = {
+  none: "No priority",
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
+
+export const GOAL_PERIOD_TOGGLE_LABELS: Record<GoalPeriod | "off", string> = {
+  off: "Off",
+  week: "Weekly",
+  month: "Monthly",
 };
 
 export const SCHEDULE_TYPE_LABELS: Record<ScheduleType, string> = {

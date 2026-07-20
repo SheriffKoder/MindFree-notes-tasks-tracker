@@ -11,6 +11,7 @@
  *
  * Exports:
  * - activityKindSchema, trackingModeSchema, scheduleTypeSchema, scheduleConfigSchema
+ * - goalPeriodSchema, activityPrioritySchema
  * - activityFormObject (raw ZodObject; compose with .extend / .partial)
  * - addScheduleConfigIssues, addWindowIssues (superRefine helpers)
  */
@@ -34,6 +35,12 @@ export const trackingModeSchema = z.enum([
   "duration",
   "count+duration",
 ]);
+
+/** Optional Progress period unit (`null` = due-day goals only). */
+export const goalPeriodSchema = z.enum(["week", "month"]);
+
+/** Optional task priority (`null` = unset). */
+export const activityPrioritySchema = z.enum(["low", "medium", "high"]);
 
 /** Recurrence pattern. */
 export const scheduleTypeSchema = z.enum([
@@ -76,6 +83,10 @@ export const activityFormObject = z.object({
   scheduleConfig: scheduleConfigSchema,
   goal: z.number().int().positive().nullable().optional(),
   goalDuration: z.number().int().positive().nullable().optional(),
+  goalPeriod: goalPeriodSchema.nullable().optional(),
+  periodGoal: z.number().int().positive().nullable().optional(),
+  periodGoalDuration: z.number().int().positive().nullable().optional(),
+  priority: activityPrioritySchema.nullable().optional(),
   startsAt: z
     .string()
     .regex(ISO_DATE_PATTERN, "Start date must be YYYY-MM-DD.")

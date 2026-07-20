@@ -17,6 +17,16 @@ export type ActivityKind = "task" | "reminder";
 export type TrackingMode = "boolean" | "count" | "duration" | "count+duration";
 
 /**
+ * Optional Progress period unit. `null` means the task uses due-day goals only.
+ */
+export type GoalPeriod = "week" | "month";
+
+/**
+ * Optional task priority. `null` means unset ("No priority").
+ */
+export type ActivityPriority = "low" | "medium" | "high";
+
+/**
  * Recurrence pattern. `once` is a single day; the rest recur inside the
  * `startsAt`/`endsAt` window.
  */
@@ -80,6 +90,24 @@ export interface Activity {
    */
   goalDuration: number | null;
   /**
+   * Optional Progress period unit; `null` means due-day goals only.
+   */
+  goalPeriod: GoalPeriod | null;
+  /**
+   * Optional count-shaped target for {@link goalPeriod} (also used by boolean
+   * tasks as completions-per-period).
+   */
+  periodGoal: number | null;
+  /**
+   * Optional duration-shaped target in minutes for {@link goalPeriod}.
+   */
+  periodGoalDuration: number | null;
+  /**
+   * Optional task priority; `null` means unset. Not consumed outside the editor
+   * yet.
+   */
+  priority: ActivityPriority | null;
+  /**
    * Reserved semantic icon identifier for future presentation; `null` until
    * icon selection is implemented.
    */
@@ -142,6 +170,10 @@ export interface ActivityRow {
   schedule_config: ScheduleConfig;
   goal: number | null;
   goal_duration: number | null;
+  goal_period: GoalPeriod | null;
+  period_goal: number | null;
+  period_goal_duration: number | null;
+  priority: ActivityPriority | null;
   icon: string | null;
   starts_at: string | null;
   ends_at: string | null;

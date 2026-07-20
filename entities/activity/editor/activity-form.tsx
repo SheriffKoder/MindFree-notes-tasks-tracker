@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { ActivityFormStatusBanner } from "@/entities/activity/editor/activity-form-status-banner";
 import { ActivityFormColorRow } from "@/entities/activity/editor/fields/activity-form-color-row";
 import { ActivityFormGoalRow } from "@/entities/activity/editor/fields/activity-form-goal-row";
+import { ActivityFormPeriodGoalRow } from "@/entities/activity/editor/fields/activity-form-period-goal-row";
+import { ActivityFormPriorityRow } from "@/entities/activity/editor/fields/activity-form-priority-row";
 import { ActivityFormScheduleRow } from "@/entities/activity/editor/fields/activity-form-schedule-row";
 import { ActivityFormSection } from "@/entities/activity/editor/fields/activity-form-section";
 import { ActivityFormTitleRow } from "@/entities/activity/editor/fields/activity-form-title-row";
@@ -29,7 +31,8 @@ import type { ActivityFormProps } from "@/entities/activity/editor/model/types";
  * Layout:
  * - Title (h2) + archive/restore/delete actions + dimmer description
  * - Status banner (upcoming / expired only)
- * - Details: mode-aware count/duration goals + color, starts + ends
+ * - Details: mode-aware count/duration goals + period goal + priority + color,
+ *   starts + ends
  * - Tracking: type, schedule, schedule dependents
  */
 export function ActivityForm({
@@ -57,6 +60,10 @@ export function ActivityForm({
     setScheduleConfig,
     setGoal,
     setGoalDuration,
+    setGoalPeriod,
+    setPeriodGoal,
+    setPeriodGoalDuration,
+    setPriority,
     setStartsAt,
     setEndsAt,
   } = useActivityForm({ activity, resetKey, commitKey, onChange });
@@ -73,6 +80,9 @@ export function ActivityForm({
   const showDurationGoal =
     values.trackingMode === "duration" ||
     values.trackingMode === "count+duration";
+  /** Boolean uses count-shaped period targets (decision 3). */
+  const showPeriodCountGoal =
+    values.trackingMode === "boolean" || showCountGoal;
   const isReminder = kind === "reminder";
 
   return (
@@ -104,7 +114,7 @@ export function ActivityForm({
         description={
           isReminder
             ? "Choose the window when this reminder is active."
-            : "Optional goals, color, and the window when this task is active."
+            : "Optional goals, period targets, priority, color, and the window when this task is active."
         }
         title="Details"
       >
@@ -126,6 +136,24 @@ export function ActivityForm({
                 onChange={setGoalDuration}
               />
             ) : null}
+            <ActivityFormPeriodGoalRow
+              goalPeriod={values.goalPeriod}
+              goalPeriodError={errors.goalPeriod}
+              periodGoal={values.periodGoal}
+              periodGoalDuration={values.periodGoalDuration}
+              periodGoalDurationError={errors.periodGoalDuration}
+              periodGoalError={errors.periodGoal}
+              showCountGoal={showPeriodCountGoal}
+              showDurationGoal={showDurationGoal}
+              onGoalPeriodChange={setGoalPeriod}
+              onPeriodGoalChange={setPeriodGoal}
+              onPeriodGoalDurationChange={setPeriodGoalDuration}
+            />
+            <ActivityFormPriorityRow
+              error={errors.priority}
+              priority={values.priority}
+              onChange={setPriority}
+            />
             <ActivityFormColorRow
               color={values.color}
               error={errors.color}
