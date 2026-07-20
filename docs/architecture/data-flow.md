@@ -81,6 +81,8 @@ Checklist also lives in [shared/react-query/README.md](../../shared/react-query/
 
 | Doc | Why |
 | --- | --- |
+| [views/notes/docs/data-flow.md](../../views/notes/docs/data-flow.md) | Notes page SSR → caches → views → drawer (with mermaid) |
+| [views/tasks/docs/data-flow.md](../../views/tasks/docs/data-flow.md) | Activity page SSR → caches → calendar/list (with mermaid) |
 | [caching.md](./caching.md) | Where responses land after fetch |
 | [rendering.md](./rendering.md) | RSC vs island boundary |
 | [entities/note/README.md](../../entities/note/README.md) | Entry points |

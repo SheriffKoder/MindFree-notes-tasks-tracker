@@ -4,6 +4,7 @@ View-layer documentation for `/notes` — composition and drawer behavior. Domai
 
 | Doc | Status | Topic |
 | --- | ------ | ----- |
+| [data-flow.md](./data-flow.md) | Current | SSR → caches → views → drawer → write hub |
 | [drawer-navigation.md](./drawer-navigation.md) | Phase 2 | Selected date, prefetch, page vs drawer |
 | [page-composition.md](./page-composition.md) | Later | Month navigator, three views, layout |
 
