@@ -3,6 +3,8 @@
  * Groups dated items by calendar week and renders collapsible week sections.
  */
 
+"use client";
+
 import { useMemo, type ReactNode } from "react";
 
 import { groupItemsByWeekInMonth } from "@/shared/week-grouping/lib/group-by-week-in-month";
