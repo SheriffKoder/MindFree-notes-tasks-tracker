@@ -12,3 +12,7 @@ export {
   fetchPatchAccount,
   type PatchAccountResponse,
 } from "@/entities/profile/client/patch-account";
+export {
+  fetchPatchPreferences,
+  type PatchPreferencesResponse,
+} from "@/entities/profile/client/patch-preferences";

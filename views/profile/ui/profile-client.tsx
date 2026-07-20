@@ -6,13 +6,9 @@
 "use client";
 
 import { AccountSection } from "@/features/profile/account-section";
+import { ThemeSection } from "@/features/profile/theme-section";
 
 const PLACEHOLDER_SECTIONS = [
-  {
-    id: "theme",
-    title: "Theme",
-    description: "Light, dark, and custom appearance preferences.",
-  },
   {
     id: "app-lock",
     title: "App lock",
@@ -26,7 +22,7 @@ const PLACEHOLDER_SECTIONS = [
 ] as const;
 
 /**
- * Renders the Profile page shell with the account section and placeholders.
+ * Renders the Profile page shell with account, theme, and remaining placeholders.
  */
 export function ProfileClient() {
   return (
@@ -46,6 +42,11 @@ export function ProfileClient() {
         <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
           <div className="flex flex-col gap-6 pb-8">
             <AccountSection />
+
+            <div className="flex flex-col gap-6">
+              <hr className="section-divider" />
+              <ThemeSection />
+            </div>
 
             {PLACEHOLDER_SECTIONS.map(function renderSection(section) {
               return (

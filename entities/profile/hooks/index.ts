@@ -8,3 +8,4 @@ export {
   useUpdateProfileMutation,
   type UpdateProfileMutationInput,
 } from "@/entities/profile/hooks/use-update-profile-mutation";
+export { useUpdatePreferencesMutation } from "@/entities/profile/hooks/use-update-preferences-mutation";
