@@ -31,9 +31,8 @@ import type { ActivityFormProps } from "@/entities/activity/editor/model/types";
  * Layout:
  * - Title (h2) + archive/restore/delete actions + dimmer description
  * - Status banner (upcoming / expired only)
- * - Details: mode-aware count/duration goals + period goal + priority + color,
- *   starts + ends
- * - Tracking: type, schedule, schedule dependents
+ * - Details: priority + color + starts/ends (tasks); window only (reminders)
+ * - Tracking: type, schedule, then day/period goals (tasks)
  */
 export function ActivityForm({
   activity,
@@ -114,41 +113,12 @@ export function ActivityForm({
         description={
           isReminder
             ? "Choose the window when this reminder is active."
-            : "Optional goals, period targets, priority, color, and the window when this task is active."
+            : "Priority, color, and the window when this task is active."
         }
         title="Details"
       >
         {!isReminder ? (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-            {showCountGoal ? (
-              <ActivityFormGoalRow
-                error={errors.goal}
-                label="Count goal"
-                value={values.goal}
-                onChange={setGoal}
-              />
-            ) : null}
-            {showDurationGoal ? (
-              <ActivityFormGoalRow
-                error={errors.goalDuration}
-                label="Duration goal (minutes)"
-                value={values.goalDuration}
-                onChange={setGoalDuration}
-              />
-            ) : null}
-            <ActivityFormPeriodGoalRow
-              goalPeriod={values.goalPeriod}
-              goalPeriodError={errors.goalPeriod}
-              periodGoal={values.periodGoal}
-              periodGoalDuration={values.periodGoalDuration}
-              periodGoalDurationError={errors.periodGoalDuration}
-              periodGoalError={errors.periodGoal}
-              showCountGoal={showPeriodCountGoal}
-              showDurationGoal={showDurationGoal}
-              onGoalPeriodChange={setGoalPeriod}
-              onPeriodGoalChange={setPeriodGoal}
-              onPeriodGoalDurationChange={setPeriodGoalDuration}
-            />
             <ActivityFormPriorityRow
               error={errors.priority}
               priority={values.priority}
@@ -176,7 +146,7 @@ export function ActivityForm({
         description={
           isReminder
             ? "Choose which days the reminder appears."
-            : "How completion is recorded and which days the schedule covers."
+            : "How completion is recorded, which days the schedule covers, and optional day or period goals."
         }
         title={isReminder ? "Schedule" : "Tracking"}
       >
@@ -196,6 +166,46 @@ export function ActivityForm({
           onScheduleConfigChange={setScheduleConfig}
           onScheduleTypeChange={setScheduleType}
         />
+
+        {!isReminder ? (
+          <>
+            <div
+              aria-hidden
+              className="border-t border-[var(--color-border)]"
+            />
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {showCountGoal ? (
+                <ActivityFormGoalRow
+                  error={errors.goal}
+                  label="Daily count"
+                  value={values.goal}
+                  onChange={setGoal}
+                />
+              ) : null}
+              {showDurationGoal ? (
+                <ActivityFormGoalRow
+                  error={errors.goalDuration}
+                  label="Daily minutes"
+                  value={values.goalDuration}
+                  onChange={setGoalDuration}
+                />
+              ) : null}
+              <ActivityFormPeriodGoalRow
+                goalPeriod={values.goalPeriod}
+                goalPeriodError={errors.goalPeriod}
+                periodGoal={values.periodGoal}
+                periodGoalDuration={values.periodGoalDuration}
+                periodGoalDurationError={errors.periodGoalDuration}
+                periodGoalError={errors.periodGoal}
+                showCountGoal={showPeriodCountGoal}
+                showDurationGoal={showDurationGoal}
+                onGoalPeriodChange={setGoalPeriod}
+                onPeriodGoalChange={setPeriodGoal}
+                onPeriodGoalDurationChange={setPeriodGoalDuration}
+              />
+            </div>
+          </>
+        ) : null}
       </ActivityFormSection>
     </form>
   );

@@ -50,9 +50,9 @@ export function ActivityFormPeriodGoalRow({
 
   return (
     <div className="flex flex-col gap-2 sm:col-span-2">
-      <ActivityFormFieldRow error={goalPeriodError} label="Period goal">
+      <ActivityFormFieldRow error={goalPeriodError} label="Tracking period">
         <div
-          aria-label="Period goal"
+          aria-label="Tracking period"
           className="flex items-center gap-0.5 rounded-lg border border-[var(--color-border)] p-0.5"
           role="group"
         >
@@ -89,9 +89,7 @@ export function ActivityFormPeriodGoalRow({
             <ActivityFormGoalRow
               error={periodGoalError}
               label={
-                goalPeriod === "week"
-                  ? "Times per week"
-                  : "Times per month"
+                goalPeriod === "week" ? "Times per week" : "Times per month"
               }
               value={periodGoal}
               onChange={onPeriodGoalChange}
@@ -102,8 +100,8 @@ export function ActivityFormPeriodGoalRow({
               error={periodGoalDurationError}
               label={
                 goalPeriod === "week"
-                  ? "Minutes per week"
-                  : "Minutes per month"
+                  ? "Weekly minutes"
+                  : "Monthly minutes"
               }
               value={periodGoalDuration}
               onChange={onPeriodGoalDurationChange}
