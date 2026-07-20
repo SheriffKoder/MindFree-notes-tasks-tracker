@@ -17,3 +17,12 @@ export const ACTIVITIES_TABLE = `${TABLE_PREFIX}task`;
 
 /** Activity completion records: one row per `(task_id, date)`. */
 export const ACTIVITY_RECORDS_TABLE = `${TABLE_PREFIX}task_record`;
+
+/** App identity per user (1:1 with auth.users). */
+export const PROFILES_TABLE = `${TABLE_PREFIX}profiles`;
+
+/** Theme, custom surface tokens, accent, and export email. */
+export const USER_PREFERENCES_TABLE = `${TABLE_PREFIX}user_preferences`;
+
+/** App-level lock settings (hash only). */
+export const USER_SECURITY_SETTINGS_TABLE = `${TABLE_PREFIX}user_security_settings`;
