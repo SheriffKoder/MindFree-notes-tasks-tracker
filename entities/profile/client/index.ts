@@ -20,3 +20,4 @@ export {
   fetchPatchSecurity,
   type PatchSecurityResponse,
 } from "@/entities/profile/client/patch-security";
+export { fetchProfileExport } from "@/entities/profile/client/post-export";

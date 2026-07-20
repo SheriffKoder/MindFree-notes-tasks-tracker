@@ -9,6 +9,7 @@ export {
   fetchPatchAccount,
   fetchPatchPreferences,
   fetchPatchSecurity,
+  fetchProfileExport,
   fetchProfilePage,
   profilePageQueryKey,
   profilePageQueryOptions,
@@ -29,6 +30,7 @@ export type {
   ProfilePreferences,
   ProfileSecurity,
 } from "@/entities/profile/model/read-models";
+export type { ProfileExportResult } from "@/entities/profile/model/export";
 export type { PreferencesPatch } from "@/entities/profile/model/preferences-patch";
 export type { UpdateAppLockBody } from "@/entities/profile/schema";
 export type {

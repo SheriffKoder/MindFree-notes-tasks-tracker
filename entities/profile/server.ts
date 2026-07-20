@@ -8,7 +8,7 @@
  * Types (`ProfilePageData`, etc.) come from `@/entities/profile`.
  */
 
-export { getProfilePageData } from "@/entities/profile/queries";
+export { getProfilePageData, buildProfileExport } from "@/entities/profile/queries";
 export {
   updateAppLock,
   updatePreferences,
