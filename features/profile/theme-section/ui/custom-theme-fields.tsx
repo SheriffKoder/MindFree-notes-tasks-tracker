@@ -14,7 +14,7 @@ import type {
   ProfilePreferences,
   TextContrastMode,
 } from "@/entities/profile/client";
-import { isSafeImageUrl } from "@/features/profile/theme-section/model/is-safe-image-url";
+import { isSafeImageUrl } from "@/features/profile/apply-theme";
 import { ColorPicker } from "@/shared/color-picker";
 import { cn } from "@/lib/utils";
 

@@ -6,6 +6,8 @@
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
+import { ProfileThemeApplier } from "@/features/profile/apply-theme";
+import { ProfilePreferencesHydrationSeed } from "@/features/profile/apply-theme/server";
 import { createClient } from "@/shared/lib/supabase/server";
 import { AppQueryProvider } from "@/shared/react-query";
 import { AppShell } from "@/views/app-shell";
@@ -40,6 +42,10 @@ async function ProtectedAppLayoutContent({
 
   return (
     <AppQueryProvider>
+      <Suspense fallback={null}>
+        <ProfilePreferencesHydrationSeed />
+      </Suspense>
+      <ProfileThemeApplier />
       <AppShell>{children}</AppShell>
     </AppQueryProvider>
   );

@@ -1,6 +1,6 @@
 /**
- * @file views/profile/ui/profile-hydration-seed.tsx
- * SSR seed for the Profile TanStack cache — non-blocking sibling of ProfileClient.
+ * @file features/profile/apply-theme/ui/profile-preferences-hydration-seed.tsx
+ * SSR seed for ProfilePageData so theme prefs are ready on every protected route.
  */
 
 import { dehydrate } from "@tanstack/react-query";
@@ -14,9 +14,9 @@ import {
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**
- * Merges ProfilePageData into the app QueryClient without blocking the UI shell.
+ * Seeds the profile page cache for theme application without blocking the shell.
  */
-export async function ProfileHydrationSeed() {
+export async function ProfilePreferencesHydrationSeed() {
   await connection();
 
   const user = await getAuthenticatedUser();

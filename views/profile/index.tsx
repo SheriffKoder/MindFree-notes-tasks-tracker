@@ -7,4 +7,3 @@
  */
 
 export { ProfileClient } from "@/views/profile/ui/profile-client";
-export { ProfileHydrationSeed } from "@/views/profile/ui/profile-hydration-seed";

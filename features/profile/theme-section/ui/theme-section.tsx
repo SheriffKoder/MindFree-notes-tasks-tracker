@@ -51,13 +51,7 @@ function ThemeSectionForm({
   const { errorMessage, updatePreferences } = useUpdateThemePreferences();
 
   function handleThemeModeChange(themeMode: ThemeMode) {
-    updatePreferences(
-      { themeMode },
-      {
-        themeMode,
-        textContrastMode: preferences.textContrastMode,
-      },
-    );
+    updatePreferences({ themeMode });
   }
 
   function handleAccentChange(accentColor: string | null) {
@@ -65,13 +59,7 @@ function ThemeSectionForm({
   }
 
   function handleTextContrastModeChange(textContrastMode: TextContrastMode) {
-    updatePreferences(
-      { textContrastMode },
-      {
-        themeMode: preferences.themeMode,
-        textContrastMode,
-      },
-    );
+    updatePreferences({ textContrastMode });
   }
 
   return (

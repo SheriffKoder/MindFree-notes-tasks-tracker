@@ -1,27 +1,19 @@
 /**
  * @file app/(app)/profile/page.tsx
- * Protected profile route — sync shell; profile data seeds via Suspense.
+ * Protected profile route — shell only; preferences hydrate in `(app)/layout`.
  */
 
 import { Suspense } from "react";
 
-import {
-  ProfileClient,
-  ProfileHydrationSeed,
-} from "@/views/profile";
+import { ProfileClient } from "@/views/profile";
 
 /**
- * Renders the Profile route. SSR hydration seeds cache in parallel with the client shell.
+ * Renders the Profile route. Theme/account data is seeded by the app layout.
  */
 export default function ProfileRoute() {
   return (
-    <>
-      <Suspense fallback={null}>
-        <ProfileHydrationSeed />
-      </Suspense>
-      <Suspense fallback={null}>
-        <ProfileClient />
-      </Suspense>
-    </>
+    <Suspense fallback={null}>
+      <ProfileClient />
+    </Suspense>
   );
 }
