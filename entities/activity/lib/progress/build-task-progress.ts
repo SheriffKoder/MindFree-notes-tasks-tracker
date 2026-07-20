@@ -310,6 +310,7 @@ function buildPeriodGoalTaskProgress(
     color: activity.color,
     icon: activity.icon,
     trackingMode: activity.trackingMode,
+    goalPeriod: activity.goalPeriod,
     archivedAt: activity.archivedAt,
     month: {
       percent: monthProgress.percent,
@@ -406,6 +407,7 @@ function buildDueDayTaskProgress(
     color: activity.color,
     icon: activity.icon,
     trackingMode: activity.trackingMode,
+    goalPeriod: null,
     archivedAt: activity.archivedAt,
     month: {
       percent: monthProgress.percent,
