@@ -8,3 +8,7 @@ export {
   fetchProfilePage,
   profilePageQueryOptions,
 } from "@/entities/profile/client/profile-page-query";
+export {
+  fetchPatchAccount,
+  type PatchAccountResponse,
+} from "@/entities/profile/client/patch-account";

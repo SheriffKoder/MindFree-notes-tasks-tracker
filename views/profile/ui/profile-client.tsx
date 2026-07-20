@@ -1,16 +1,13 @@
 /**
  * @file views/profile/ui/profile-client.tsx
- * Client boundary for the Profile page — header and section placeholders.
+ * Client boundary for the Profile page — header and section composition.
  */
 
 "use client";
 
-const PROFILE_SECTIONS = [
-  {
-    id: "account",
-    title: "Account",
-    description: "Display name and signed-in email.",
-  },
+import { AccountSection } from "@/features/profile/account-section";
+
+const PLACEHOLDER_SECTIONS = [
   {
     id: "theme",
     title: "Theme",
@@ -29,7 +26,7 @@ const PROFILE_SECTIONS = [
 ] as const;
 
 /**
- * Renders the Profile page shell with section placeholders for later forms.
+ * Renders the Profile page shell with the account section and placeholders.
  */
 export function ProfileClient() {
   return (
@@ -48,10 +45,12 @@ export function ProfileClient() {
         />
         <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
           <div className="flex flex-col gap-6 pb-8">
-            {PROFILE_SECTIONS.map(function renderSection(section, index) {
+            <AccountSection />
+
+            {PLACEHOLDER_SECTIONS.map(function renderSection(section) {
               return (
                 <div key={section.id} className="flex flex-col gap-6">
-                  {index > 0 ? <hr className="section-divider" /> : null}
+                  <hr className="section-divider" />
                   <section
                     aria-labelledby={`profile-section-${section.id}`}
                     className="flex flex-col gap-2"
