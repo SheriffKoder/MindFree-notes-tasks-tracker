@@ -2,7 +2,7 @@
  * @file entities/profile/index.ts
  * Shared domain exports — types and pure helpers only.
  *
- * Server reads/mutations: `entities/profile/server` (Step 4+)
+ * Server reads: `entities/profile/server`
  */
 
 export {
