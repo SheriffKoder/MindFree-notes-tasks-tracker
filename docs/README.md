@@ -34,7 +34,7 @@ Onboarding and architecture for MindFree. Prefer these **WHY** docs over the lon
 | Path | Contents |
 | ---- | -------- |
 | [setup/](./setup/) | Clone and run |
-| [architecture/](./architecture/) | Rendering, state, cache, data flow, routing |
+| [architecture/](./architecture/) | Rendering, state, cache, data flow, routing, user session |
 | [adr/](./adr/) | Architecture Decision Records |
 | [concepts/](./concepts/) | Glossary + terminology |
 | [guides/security.md](./guides/security.md) | Auth gates, RLS, IDOR |
