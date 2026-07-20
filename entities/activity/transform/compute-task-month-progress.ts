@@ -1,11 +1,15 @@
 /**
- * @file entities/activity/lib/compute-task-month-progress.ts
- * Month-level completion rate per task for calendar pills and progress surfaces.
+ * @file entities/activity/transform/compute-task-month-progress.ts
+ * Month-level completion rate per task for calendar pills.
  *
  * Purpose: a task can appear on many calendar days; computing % inside each
  *          pill would repeat the same work. This derives one rate per taskId
- *          in a single pass over the month.
- * Used in: Tasks calendar pane (Step 9.5); Progress page (later).
+ *          in a single pass over the month (scheduled days vs meaningful
+ *          records).
+ * Used in: Tasks / Reminders calendar pills only.
+ * Not used for: the Progress page report — that path lives in
+ *               `entities/activity/lib/progress/` and
+ *               `entities/activity/queries/progress/`.
  *
  * Function index:
  * - computeTaskMonthProgress: activities + month + lookup → Map<taskId, percent>

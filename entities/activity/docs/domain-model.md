@@ -155,6 +155,9 @@ Consequences:
   schedule-independent ([read-models.md](./read-models.md), [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md)).
 - Editing a task's mode or goals never reinterprets already-recorded days —
   [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md).
+- On the Progress page, recorded days always use those snapshots; only
+  **missing** due days in the currently-open or future month may project the
+  **current** definition ([progress.md](./progress.md)).
 - Record upserts carry absolute daily totals and clearing every meaningful
   dimension deletes the row ([writes-and-autosave.md](./writes-and-autosave.md#daily-record-path)).
 - Deleting a task must purge its records from every cached month
@@ -200,6 +203,7 @@ Write path (create/patch/archive/restore/delete) and autosave:
 | --- | --- |
 | [scheduling.md](./scheduling.md) | Recurrence, validity window, derived status |
 | [read-models.md](./read-models.md) | How definitions/records are cached and joined |
+| [progress.md](./progress.md) | How Progress uses snapshots vs projected current goals |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Create/patch/archive/delete + autosave |
 | [responsibilities.md](./responsibilities.md) | Where each concern's code lives |
 | [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | Record stores form-owned tracking/goal snapshots |

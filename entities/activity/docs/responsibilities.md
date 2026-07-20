@@ -21,6 +21,8 @@ noted. For the *why* behind these, see the WHY docs in this folder
 `model/read-models.ts` — `ActivitiesResponse`, `ActivityRecordsResponse`,
 `TaskCalendarDay`, `ActivityPageData`, `HomeActivityData`, `TasksPageData`
 (deprecated alias), `TodayActivity`, `TodayProgress`, `TodayProgressDimension`
+`model/progress-read-models.ts` — Progress page server contract
+(`ProgressPageData`, `ProgressTask`, week/month/all-time windows, metric values)
 
 ---
 
@@ -55,13 +57,28 @@ enforced reminder fields (`boolean`, no color/goals)
 `lib/mapping/map-row.ts` — `mapActivityRow`, `mapActivityRecordRow` (incl. record snapshots, `goalDuration`, `icon`)
 `lib/is-remote-activity-newer.ts` — `isRemoteActivityNewer` (newer-wins `updatedAt` gate)
 
+### Progress calculation (`lib/progress/`)
+
+Pure server-side report math — not TanStack, not calendar-pill %. WHY:
+[progress.md](./progress.md).
+
+`lib/progress/tracking-mode-metrics.ts` — tracking mode → semantic metric families
+`lib/progress/accumulate-record-metrics.ts` — window accumulators, finalize,
+combine percents, all-time finalize
+`lib/progress/build-task-progress.ts` — one `ProgressTask` (Option B projection)
+`lib/progress/build-progress-page-data.ts` — assemble `ProgressPageData` + membership
+`lib/progress/index.ts` — barrel
+
+Shared week ranges: `shared/week-grouping/lib/get-weeks-in-month.ts`.
+
 ---
 
 ## Domain shaping (`transform/`)
 
 `transform/aggregate-month-records.ts` — flat records → sorted `ActivityRecordsResponse`
 `transform/build-calendar-days.ts` — definitions + lookup → `TaskCalendarDay[]` (records always; schedule adds empty due slots)
-`transform/compute-task-month-progress.ts` — one completion `Map<taskId, percent>` per month
+`transform/compute-task-month-progress.ts` — calendar-pill completion
+`Map<taskId, percent>` only (not the Progress page report)
 
 ---
 
@@ -75,6 +92,9 @@ enforced reminder fields (`boolean`, no color/goals)
 `repository/delete-activity.ts` — `deleteActivityById`
 `repository/record/upsert-record.ts` — natural-key `(taskId, date)` upsert
 `repository/record/delete-record.ts` — natural-key record delete
+`repository/progress/get-all-time-task-record-values.ts` — minimal all-time
+rows for Progress (`task_id`, snapshot mode, count, duration)
+`repository/progress/index.ts` — Progress repository barrel
 
 ---
 
@@ -85,6 +105,8 @@ enforced reminder fields (`boolean`, no color/goals)
 `queries/get-activity-page-initial-data.ts` — parallel definitions + current-month records for activity-page SSR (`kind`)
 `queries/get-home-activity-initial-data.ts` — task definitions + reminder
 definitions + one shared current-month records response for Home SSR
+`queries/progress/get-progress-page-data.ts` — Progress SSR report assembly
+`queries/progress/index.ts` — Progress queries barrel (`server.ts` re-exports)
 
 ---
 
@@ -234,7 +256,10 @@ records remain keyed independently of kind.
 | Add record tracking/goal snapshot columns | `supabase/migrations/005_activity_record_configuration_snapshots.sql` |
 | Apply optimistic record snapshots from the form | `hooks/record/build-optimistic-activity-record.ts` |
 | Change calendar day shape | `transform/build-calendar-days.ts` |
-| Change completion-% math | `transform/compute-task-month-progress.ts` |
+| Change calendar-pill completion-% | `transform/compute-task-month-progress.ts` |
+| Change Progress report math / Option B | `lib/progress/*` — [progress.md](./progress.md) |
+| Change Progress all-time fetch | `repository/progress/get-all-time-task-record-values.ts` |
+| Change Progress SSR assembly | `queries/progress/get-progress-page-data.ts` |
 | Change DB queries | `repository/*` |
 | Change GET/POST/PATCH/DELETE server logic | `queries/*`, `mutations/*` |
 | Fix optimistic record writes | `hooks/record/*`, `cache/record/*` |

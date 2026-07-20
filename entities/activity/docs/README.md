@@ -8,7 +8,8 @@ lookup, use [`./responsibilities.md`](./responsibilities.md). For entry points
 | --- | ----- |
 | [domain-model.md](./domain-model.md) | One model, two kinds; tracking modes; records; lifecycle |
 | [scheduling.md](./scheduling.md) | Recurrence + validity window (one gate); derived status |
-| [read-models.md](./read-models.md) | Definitions vs records caches; calendar/Home joins; progress |
+| [read-models.md](./read-models.md) | Definitions vs records caches; calendar/Home joins |
+| [progress.md](./progress.md) | Progress page calculation model (server report) |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Definition autosave; daily record writes; cache hub |
 | [responsibilities.md](./responsibilities.md) | File map + quick lookup |
 

@@ -1,9 +1,12 @@
 # Activity read models
 
-Why Activity keeps **two** caches — stable definitions and month-scoped records
-— and how the client joins them into calendar and progress views.
+Why Activity keeps **two** client caches — stable definitions and month-scoped
+records — and how the client joins them into calendar and Home views.
 
-**Types:** `entities/activity/model/read-models.ts`
+The Progress **page** report is a separate server read model (not these caches).
+See [progress.md](./progress.md).
+
+**Types:** `entities/activity/model/read-models.ts`  
 **Keys:** `entities/activity/client/query-keys.ts`
 
 ---
@@ -90,8 +93,11 @@ percent = round(completedActiveDays / scheduledActiveDays * 100)
 - No scheduled days → `0`.
 
 The calendar pane computes this map once and each pill reads its value by
-`taskId` — the reason it's a map, not a per-cell derivation ([0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md)). Same map
-will feed the Progress page later.
+`taskId` — the reason it's a map, not a per-cell derivation ([0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md)).
+
+This map is **calendar-pill only**. The Progress page report uses
+`lib/progress/` with a different month timeline (Option B projection, legacy
+metrics, all-time totals) — see [progress.md](./progress.md).
 
 ---
 
@@ -176,13 +182,19 @@ automatically. See
 
 ---
 
-## Home & Progress derive, they don't fork
+## Home derives from the shared caches (Progress does not)
 
-There is no separate "Home activities" or "Progress" cache. Home Today and the
-Progress page both derive from the **same two caches** (`activities` +
-`activityRecords`). That's why the write hub (`synchronizeActivityCaches`) has no
-Home branch — updating the shared caches updates every consumer at once. See
+There is no separate "Home activities" cache. Home Today is a selector over the
+**same two TanStack caches** (`["activities", kind]` +
+`["activityRecords", month]`). That is why the write hub
+(`synchronizeActivityCaches`) has no Home branch — updating those caches
+updates every TanStack consumer at once. See
 [writes-and-autosave.md](./writes-and-autosave.md).
+
+The Progress **page** does not read those caches. It is a pure SSR query
+(`getProgressPageData`) with its own calculation model
+([progress.md](./progress.md)). After a write, Progress is fresh on the next
+RSC navigation to `/progress`, not via the activity cache hub.
 
 ---
 
@@ -191,10 +203,12 @@ Home branch — updating the shared caches updates every consumer at once. See
 | Doc | Why |
 | --- | --- |
 | [domain-model.md](./domain-model.md) | Records as `(taskId, date)` aggregates |
+| [progress.md](./progress.md) | Progress page calculation model (server report) |
 | [scheduling.md](./scheduling.md) | `isActiveOnDay` behind the join denominator |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Keeping both caches consistent |
 | [views/home/docs/today-list.md](../../../views/home/docs/today-list.md) | Home's layout, query mount, and inline-recording boundary |
 | [views/tasks/docs/data-flow.md](../../../views/tasks/docs/data-flow.md) | Server fetch → caches → calendar/list endpoints |
-| [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md) · [0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md) | History-always-visible · precomputed progress map |
+| [views/progress/docs/data-flow.md](../../../views/progress/docs/data-flow.md) | Progress SSR path (no TanStack hydrate) |
+| [0012-calendar-records-always-visible.md](../../../docs/adr/0012-calendar-records-always-visible.md) · [0013-precompute-month-progress-map.md](../../../docs/adr/0013-precompute-month-progress-map.md) | History-always-visible · precomputed pill map |
 | [0014-flat-records-client-side-join.md](../../../docs/adr/0014-flat-records-client-side-join.md) | Why records ship flat + join on the client (vs. Notes) |
 | [0015-record-configuration-snapshots.md](../../../docs/adr/0015-record-configuration-snapshots.md) | Record stores form-owned tracking/goal snapshots |

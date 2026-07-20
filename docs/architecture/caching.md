@@ -88,6 +88,7 @@ Adjacent calendar months are prefetched from the Notes views section and the dra
 | Form draft while typing | `useNoteForm` (ephemeral) |
 | Offline pending writes | `shared/offline-queue` + entity adapter |
 | Auth session | Supabase cookies / server auth helpers |
+| Progress monthly report | Pure SSR — no TanStack keys; see [rendering.md](./rendering.md) and [views/progress/docs/data-flow.md](../../views/progress/docs/data-flow.md) |
 
 ---
 
@@ -97,5 +98,6 @@ Adjacent calendar months are prefetched from the Notes views section and the dra
 | --- | --- |
 | [state-management.md](./state-management.md) | Which state belongs in Query vs URL vs UI |
 | [read-models.md](../../entities/note/docs/read-models.md) | Payload ↔ key mapping |
+| [views/progress/docs/data-flow.md](../../views/progress/docs/data-flow.md) | Progress pure-SSR exception (no hydrate) |
 | ADRs | [0003](../adr/0003-rsc-first-with-query-hydration.md), [0007](../adr/0007-synchronize-note-caches-hub.md), [0009](../adr/0009-offline-writes-simple-queue.md) |
 | Workflow | `02-notes-page.md` Step 5; `home/notes-strip.md` sync hub |
