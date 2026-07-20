@@ -88,7 +88,24 @@ describe("buildProgressPageData", () => {
     expect(page.tasks).toEqual([]);
   });
 
-  it("does not contribute anything for a missing historical day", () => {
+  it("contributes nothing for a missing day in an already-closed past month", () => {
+    const page = buildProgressPageData({
+      month: PAST_MONTH,
+      todayIso: TODAY,
+      tasks: [buildActivity({ scheduleType: "daily", goal: 5 })],
+      monthRecords: [
+        buildRecord({ date: "2026-06-10", count: 5, goalSnapshot: 5 }),
+      ],
+      allTimeValues: [],
+    });
+
+    // Closed month: only the recorded day contributes; no schedule fallback.
+    const metric = page.tasks[0].month.metrics[0];
+    expect(metric.goal).toBe(5);
+    expect(metric.totalActual).toBe(5);
+  });
+
+  it("counts a missing due day earlier in the currently-open month as a missed target", () => {
     const page = buildProgressPageData({
       month: CURRENT_MONTH,
       todayIso: TODAY,
@@ -99,14 +116,55 @@ describe("buildProgressPageData", () => {
       allTimeValues: [],
     });
 
-    // One recorded day goal (5) + projected days from today through month end.
-    // Missing 2026-07-01..09 (except recorded 10) must not add goals.
+    // Stability fix: every other due day in July (30 days) projects goal 5,
+    // whether before or after today — the target no longer shrinks as
+    // unlogged past days pass by.
     const metric = page.tasks[0].month.metrics[0];
-    const projectedDays =
-      // July has 31 days; projectable = 15..31 = 17 days
-      17;
-    expect(metric.goal).toBe(5 + projectedDays * 5);
+    expect(metric.goal).toBe(5 + 30 * 5);
     expect(metric.totalActual).toBe(5);
+  });
+
+  it("floors projection at the task's createdAt so it never appears due before it existed", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          scheduleType: "daily",
+          goal: 5,
+          createdAt: "2026-07-10T00:00:00.000Z",
+        }),
+      ],
+      monthRecords: [],
+      allTimeValues: [],
+    });
+
+    // Only July 10–31 (22 days) can be due; July 1–9 predate the task.
+    expect(page.tasks[0].month.metrics[0].goal).toBe(22 * 5);
+  });
+
+  it("includes a task whose only due day this month already passed, with no record", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          scheduleType: "once",
+          scheduleConfig: "2026-07-05",
+          goal: 3,
+        }),
+      ],
+      monthRecords: [],
+      allTimeValues: [],
+    });
+
+    // Previously invisible: no record and no remaining due day, but the
+    // currently-open month still projects its one past due day as missed.
+    expect(page.tasks).toHaveLength(1);
+    expect(page.tasks[0].month.metrics[0]).toMatchObject({
+      goal: 3,
+      totalActual: 0,
+    });
   });
 
   it("does not double-add the current target when today has a record", () => {
@@ -126,12 +184,13 @@ describe("buildProgressPageData", () => {
     });
 
     const metric = page.tasks[0].month.metrics[0];
-    // Today uses snapshot goal once; remaining 16 future days project 10 each.
-    expect(metric.goal).toBe(10 + 16 * 10);
+    // Today uses the snapshot goal once; the other 30 days of July each
+    // project goal 10 (stability fix), so 30 + today's own goal.
+    expect(metric.goal).toBe(10 + 30 * 10);
     expect(metric.totalActual).toBe(4);
   });
 
-  it("adds the current goal on a future due day", () => {
+  it("projects every due day in the currently-open month, past or future", () => {
     const page = buildProgressPageData({
       month: CURRENT_MONTH,
       todayIso: TODAY,
@@ -146,8 +205,8 @@ describe("buildProgressPageData", () => {
       allTimeValues: [],
     });
 
-    // Fridays after today in July 2026: 17, 24, 31 → 3 projected goals
-    expect(page.tasks[0].month.metrics[0].goal).toBe(24);
+    // All Fridays in July 2026: 3, 10, 17, 24, 31 → 5 projected goals.
+    expect(page.tasks[0].month.metrics[0].goal).toBe(40);
     expect(page.tasks[0].month.metrics[0].totalActual).toBe(0);
   });
 

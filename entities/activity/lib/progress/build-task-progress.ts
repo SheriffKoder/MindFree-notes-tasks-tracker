@@ -62,16 +62,34 @@ function findWeekForDate(
   );
 }
 
+/**
+ * Whether a missing day should project the current definition's goal.
+ *
+ * Closed past months and future months only project days on/after today
+ * (history wins; nothing is retroactively invented before today). The
+ * currently-open month (the month containing `todayIso`) projects every due
+ * day regardless of before/after today, so the month's target stays stable
+ * as days pass — a missing due day counts as a miss instead of silently
+ * dropping out of the denominator. `activity.createdAt` floors projection in
+ * both cases so a task never appears "due" before it existed.
+ */
 function shouldProjectDay(
   activity: Activity,
   isoDate: string,
   todayIso: string,
+  month: string,
 ): boolean {
   if (activity.archivedAt !== null) {
     return false;
   }
 
-  if (isoDate < todayIso) {
+  if (isoDate < activity.createdAt.slice(0, 10)) {
+    return false;
+  }
+
+  const isCurrentMonth = month === todayIso.slice(0, 7);
+
+  if (!isCurrentMonth && isoDate < todayIso) {
     return false;
   }
 
@@ -81,8 +99,9 @@ function shouldProjectDay(
 /**
  * Whether a non-archived task has any projectable due day in the month.
  *
- * Projectable days are today and after within the selected month. Past months
- * never project.
+ * For the currently-open month, projectable days are every due day in the
+ * month (before or after today). For any other month, only today and after
+ * project — a closed past month never does.
  *
  * @param activity - task definition
  * @param month - selected month key
@@ -104,7 +123,7 @@ export function hasProjectableDueDay(
   }
 
   for (const isoDate of eachDayInMonth(month)) {
-    if (shouldProjectDay(activity, isoDate, todayIso)) {
+    if (shouldProjectDay(activity, isoDate, todayIso, month)) {
       return true;
     }
   }
@@ -154,7 +173,7 @@ export function buildTaskProgress(
       return;
     }
 
-    if (shouldProjectDay(activity, isoDate, todayIso)) {
+    if (shouldProjectDay(activity, isoDate, todayIso, month)) {
       accumulateProjectedDayMetrics(window, activity);
     }
   };
