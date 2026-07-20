@@ -2,8 +2,11 @@
  * @file app/(app)/progress/page.tsx
  * Protected progress route that composes the Progress report inside the shell.
  *
- * Purpose: Resolve `?month=` on the server and render `ProgressView`. Loading
- *          skeletons and richer streaming land in Step 8.
+ * Purpose: Resolve `?month=` on the server and render `ProgressView`. Invalid
+ *          or missing months fall back through `parseMonthParam`. Card loading
+ *          streams under Suspense; route-level chrome uses `loading.tsx`.
+ *          Server failures bubble to the nearest error boundary — Progress does
+ *          not invent client query error state.
  * Used in: Next.js App Router for `/progress`.
  * Used for: Monthly Progress SSR entry.
  */
