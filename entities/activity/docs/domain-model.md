@@ -80,7 +80,7 @@ task-only values on reminders.
 | `goalPeriod` | Optional Progress period unit: `"week"` \| `"month"` \| `null` (off → due-day Progress model) |
 | `periodGoal` | Optional **count-shaped** target for that period; also used by `boolean` tasks as “times per period” |
 | `periodGoalDuration` | Optional **minute-shaped** target for that period |
-| `priority` | Optional `"low"` \| `"medium"` \| `"high"`; **tasks only**. Stored/editable; **no list sort, badge, or filter consumer yet** |
+| `priority` | Optional `"low"` \| `"medium"` \| `"high"`; **tasks only**. Stored/editable; Home Today groups by it; no list sort, badge, or filter elsewhere yet |
 | `icon` | Reserved semantic icon id for future presentation; always `null` until an editor ships |
 | `startsAt` / `endsAt` | Validity window (`null` = open-ended) |
 | `archivedAt` | Manual archive stamp (ISO); `null` when active |
@@ -100,8 +100,8 @@ only. Migration `004_activity_goal_duration_and_icon.sql` moved former
 columns.
 
 `icon` is mapped and persisted as `null`; no form field or Home renderer reads
-it yet. `priority` is editable in the Tasks drawer but unused by Progress,
-lists, or Home.
+it yet. `priority` is editable in the Tasks drawer; Home Today groups cards by
+it (High → Medium → Low → Other).
 
 ---
 
