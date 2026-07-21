@@ -10,6 +10,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import {
+  findRecordByIdInCache,
   findRecordInCache,
   hasRecordMonthCache,
 } from "@/entities/activity/cache/find-record-in-cache";
@@ -46,35 +47,27 @@ function mapRealtimeRecordRow(
   return mapActivityRecordRow(row as unknown as ActivityRecordRow);
 }
 
-/** Minimal record for DELETE when only natural key fields are known. */
-function stubRecordForDelete(taskId: string, date: string): ActivityRecord {
-  return {
-    id: "",
-    taskId,
-    date,
-    trackingModeSnapshot: "boolean",
-    goalSnapshot: null,
-    goalDurationSnapshot: null,
-    count: 0,
-    duration: 0,
-    description: null,
-    createdAt: "",
-    updatedAt: "",
-  };
-}
-
 /**
- * Resolves the record to delete from old/new payload or the warm month cache.
+ * Resolves the record to delete from old/new payload or warm month caches.
+ *
+ * Thin DELETE payloads (PK `id` only) and unfiltered other-user events are
+ * resolved via cache membership only — never invent a stub for a cold miss.
  */
 function resolveDeleteRecord(
   queryClient: QueryClient,
   oldRecord: Record<string, unknown> | null,
   newRecord: Record<string, unknown> | null,
 ): ActivityRecord | null {
-  const mappedOld = oldRecord ? mapRealtimeRecordRow(oldRecord) : null;
+  const recordId =
+    (typeof oldRecord?.id === "string" ? oldRecord.id : undefined) ??
+    (typeof newRecord?.id === "string" ? newRecord.id : undefined);
 
-  if (mappedOld) {
-    return mappedOld;
+  if (recordId) {
+    const byId = findRecordByIdInCache(queryClient, recordId);
+
+    if (byId) {
+      return byId;
+    }
   }
 
   const taskId =
@@ -88,10 +81,7 @@ function resolveDeleteRecord(
     return null;
   }
 
-  return (
-    findRecordInCache(queryClient, taskId, date) ??
-    stubRecordForDelete(taskId, date)
-  );
+  return findRecordInCache(queryClient, taskId, date) ?? null;
 }
 
 /**

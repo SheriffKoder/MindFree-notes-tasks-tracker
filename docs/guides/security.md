@@ -72,7 +72,7 @@ Realtime subscriptions filter by `user_id` and still respect RLS ([realtime](../
 
 ## Ops checklist
 
-- Apply migrations so RLS policies exist in production (include `006_profile.sql`)
+- Apply migrations so RLS policies exist in production (include `009_profile.sql`)
 - Keep confirm/callback URLs and email templates aligned ([setup](../setup/1-supabase-auth-dashboard-setup.md))
 - Never ship a service-role key to the client
 - Gate demo login behind env flags if used

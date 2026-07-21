@@ -53,32 +53,35 @@ export function applyRealtimeNoteChange(
   oldRecord: Record<string, unknown> | null,
 ): ApplyRealtimeNoteChangeResult {
   if (event === "DELETE") {
-    const oldNote = oldRecord ? mapRealtimeRow(oldRecord) : null;
-    const noteId = oldNote?.id ?? (newRecord?.id as string | undefined);
+    const noteId =
+      (typeof oldRecord?.id === "string" ? oldRecord.id : undefined) ??
+      (typeof newRecord?.id === "string" ? newRecord.id : undefined);
 
     if (!noteId) {
       return { applied: false, note: null, event };
     }
 
     if (isNoteMutationPending(noteId)) {
-      return { applied: false, note: oldNote, event };
+      return {
+        applied: false,
+        note: findNoteByIdInCache(queryClient, noteId),
+        event,
+      };
+    }
+
+    // Unfiltered DELETE may include other users' ids — only clear warm cache hits.
+    const cached = findNoteByIdInCache(queryClient, noteId);
+
+    if (!cached) {
+      return { applied: false, note: null, event };
     }
 
     synchronizeNoteCaches(queryClient, {
       type: "delete",
-      note: oldNote ?? {
-        id: noteId,
-        date: null,
-        title: "",
-        content: "",
-        starred: false,
-        isImportant: false,
-        isQuick: false,
-        lastEditedAt: "",
-      },
+      note: cached,
     });
 
-    return { applied: true, note: oldNote, event };
+    return { applied: true, note: cached, event };
   }
 
   if (!newRecord) {

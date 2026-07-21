@@ -20,12 +20,30 @@ How Notes keep TanStack read models fresh across tabs and devices without full p
 
 It is **not** polling and **not** a second copy of note state beside TanStack.
 
+### DELETE delivery caveat
+
+Supabase `postgres_changes` filters on non-PK columns (e.g. `user_id`) do **not**
+reliably match DELETE events: default replica identity only puts the primary key
+in `old`, and Realtime documents DELETE filtering as limited even with
+`REPLICA IDENTITY FULL` (`supabase/migrations/008_realtime_replica_identity.sql`).
+
+So the subscription uses:
+
+| Event | Filter |
+| ----- | ------ |
+| INSERT / UPDATE | `user_id=eq.<auth user>` |
+| DELETE | none |
+
+`applyRealtimeNoteChange` only removes a note when that id is already present in
+a warm TanStack cache — other users’ DELETE noise is a no-op.
+
 ## Responsibility split
 
 `hooks/use-notes-realtime-sync.ts` owns React and Supabase subscription
-lifecycle: resolve the signed-in user, subscribe with a user filter, forward
-events, invoke the optional callback after an accepted cache patch, and remove
-the channel on cleanup.
+lifecycle: resolve the signed-in user, subscribe with a user filter on
+INSERT/UPDATE and an unfiltered DELETE listener, forward events, invoke the
+optional callback after an accepted cache patch, and remove the channel on
+cleanup.
 
 `cache/apply-realtime-note-change.ts` is framework-independent application
 logic: map Supabase rows through `transform/map-note-row.ts`, reject mutation
@@ -44,6 +62,7 @@ local mutations and offline reconciliation.
 | ---- | ------- |
 | `lastEditedAt` newer-wins | Ignore older UPDATE payloads vs current cache |
 | Mutation pending set | `hooks/note-mutation-pending.ts` tracks ids so application logic can skip an in-flight local write echo |
+| DELETE cache membership | Unfiltered DELETE only clears ids already in warm caches |
 | Drawer sync guard | Do not bump `remoteSyncKey` into a dirty / non-idle form |
 
 Cache can move under an open editor; **form fields** only pull remote values when the guard allows (idle, clean). See [optimistic-updates.md](./optimistic-updates.md).

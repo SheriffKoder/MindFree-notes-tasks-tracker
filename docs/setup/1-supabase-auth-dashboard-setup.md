@@ -161,7 +161,7 @@ After the dashboard configuration is complete, verify:
 
 ### 9. Current Scope Boundary
 
-Supabase Auth remains the identity source of truth (who is signed in). Apply migrations so app-owned profile rows exist — especially `supabase/migrations/006_profile.sql`, which creates:
+Supabase Auth remains the identity source of truth (who is signed in). Apply migrations so app-owned profile rows exist — especially `supabase/migrations/009_profile.sql`, which creates:
 
 - `mf_profiles` — display name + email copy
 - `mf_user_preferences` — theme, accent, export email, …

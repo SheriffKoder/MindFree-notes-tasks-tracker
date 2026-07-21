@@ -44,3 +44,27 @@ export function findRecordInCache(
     (entry) => entry.taskId === taskId && entry.date === date,
   );
 }
+
+/**
+ * Finds one record by primary key across warm `["activityRecords", month]` buckets.
+ *
+ * Used for thin realtime DELETE payloads that only include `id` (PK).
+ */
+export function findRecordByIdInCache(
+  queryClient: QueryClient,
+  recordId: string,
+): ActivityRecord | undefined {
+  const recordQueries = queryClient.getQueriesData<ActivityRecordsResponse>({
+    queryKey: ["activityRecords"],
+  });
+
+  for (const [, data] of recordQueries) {
+    const match = data?.records.find((entry) => entry.id === recordId);
+
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}

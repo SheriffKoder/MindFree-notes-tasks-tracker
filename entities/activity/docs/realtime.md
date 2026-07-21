@@ -10,14 +10,16 @@ and devices without a full page refresh.
 - **Application (records):** `entities/activity/cache/apply-realtime-activity-record-change.ts`
 - **Pending trackers:** `hooks/activity-mutation-pending.ts`,
   `hooks/record/record-mutation-pending.ts`
-- **Migration:** `supabase/migrations/007_realtime_activities.sql`
+- **Migration:** `supabase/migrations/007_realtime_activities.sql` (publication),
+  `008_realtime_replica_identity.sql` (`REPLICA IDENTITY FULL`)
 
 ---
 
 ## What “live sync” means here
 
 1. Browser opens one Supabase channel for the signed-in `user_id` on **both**
-   `mf_task` and `mf_task_record` (filter by `user_id` only — not by `kind`).
+   `mf_task` and `mf_task_record`. INSERT/UPDATE filter by `user_id` (not by
+   `kind`); DELETE is unfiltered (see below).
 2. Postgres change events arrive as INSERT / UPDATE / DELETE.
 3. Cache adapters map rows → domain objects, apply safety gates, then call
    `synchronizeActivityCaches`.
@@ -32,14 +34,23 @@ TanStack.
 TanStack hydrate. Visiting Progress (or changing `?month=`) gets a fresh RSC
 payload — realtime does not patch a Progress cache.
 
+### DELETE delivery caveat
+
+`user_id` filters do not reliably deliver DELETE events (thin `old` / Realtime
+DELETE filtering limits). Hooks subscribe to DELETE without that filter;
+apply adapters only clear rows already present in warm TanStack caches
+(definitions by activity id across kind buckets; records by record id or
+`(taskId, date)`). Other users’ DELETE noise is a no-op.
+
 ---
 
 ## Responsibility split
 
 `hooks/use-activity-realtime-sync.ts` owns React and Supabase subscription
-lifecycle: resolve the signed-in user, subscribe with a user filter on both
-tables, forward events to the matching apply adapter, invoke optional callbacks
-after an accepted cache patch, and remove the channel on cleanup.
+lifecycle: resolve the signed-in user, subscribe with a user filter on
+INSERT/UPDATE and unfiltered DELETE listeners on both tables, forward events to
+the matching apply adapter, invoke optional callbacks after an accepted cache
+patch, and remove the channel on cleanup.
 
 `cache/apply-realtime-activity-change.ts` and
 `cache/apply-realtime-activity-record-change.ts` are framework-independent
@@ -62,6 +73,7 @@ future offline reconciliation).
 | Mutation pending (definitions) | Skip in-flight local write echoes by activity id |
 | Mutation pending (records) | Skip in-flight echoes by natural key `(taskId, date)` |
 | Warm month only (records) | Do not create empty `["activityRecords", month]` from realtime alone |
+| DELETE cache membership | Unfiltered DELETE only clears ids already in warm caches |
 | Drawer sync guard | Do not bump `remoteSyncKey` into a dirty / non-idle definition form |
 
 Cache can move under an open definition drawer; **form fields** only pull remote

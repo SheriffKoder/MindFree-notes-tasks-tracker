@@ -170,6 +170,40 @@ describe("applyRealtimeActivityRecordChange", () => {
     expect(cached?.records).toHaveLength(0);
   });
 
+  it("DELETE with id-only payload probes warm month caches", () => {
+    queryClient.setQueryData(activityRecordsQueryKey("2024-06"), {
+      month: "2024-06",
+      records: [buildRecord()],
+    });
+
+    const result = applyRealtimeActivityRecordChange(
+      queryClient,
+      "DELETE",
+      null,
+      { id: "record-1" },
+    );
+
+    expect(result.applied).toBe(true);
+
+    const cached = queryClient.getQueryData<{ records: ActivityRecord[] }>(
+      activityRecordsQueryKey("2024-06"),
+    );
+
+    expect(cached?.records).toHaveLength(0);
+  });
+
+  it("DELETE with id-only and empty caches no-ops safely", () => {
+    const result = applyRealtimeActivityRecordChange(
+      queryClient,
+      "DELETE",
+      null,
+      { id: "record-1" },
+    );
+
+    expect(result.applied).toBe(false);
+    expect(result.record).toBeNull();
+  });
+
   it("skips while a record mutation is pending", () => {
     queryClient.setQueryData(activityRecordsQueryKey("2024-06"), {
       month: "2024-06",

@@ -36,7 +36,7 @@ Logout always clears the unlock cookie, so the next login must unlock again if l
 
 ## What is stored
 
-Table: `mf_user_security_settings` (migration `supabase/migrations/006_profile.sql`)
+Table: `mf_user_security_settings` (migration `supabase/migrations/009_profile.sql`)
 
 | Column | Meaning |
 | --- | --- |

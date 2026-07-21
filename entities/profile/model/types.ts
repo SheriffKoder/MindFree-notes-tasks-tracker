@@ -2,7 +2,7 @@
  * @file entities/profile/model/types.ts
  * Domain and database-row types for the Profile domain.
  *
- * Keep defaults in sync with `supabase/migrations/006_profile.sql` and
+ * Keep defaults in sync with `supabase/migrations/009_profile.sql` and
  * `entities/profile/lib/default-profile-values.ts`.
  */
 

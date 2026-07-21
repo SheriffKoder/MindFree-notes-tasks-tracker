@@ -54,46 +54,17 @@ function findActivityInEitherKind(
   );
 }
 
-/** Minimal activity for DELETE when only id + kind are known (hub uses those). */
-function stubActivityForDelete(id: string, kind: ActivityKind): Activity {
-  return {
-    id,
-    kind,
-    title: "",
-    description: null,
-    color: null,
-    trackingMode: "boolean",
-    scheduleType: "daily",
-    scheduleConfig: null,
-    goal: null,
-    goalDuration: null,
-    goalPeriod: null,
-    periodGoal: null,
-    periodGoalDuration: null,
-    priority: null,
-    icon: null,
-    startsAt: null,
-    endsAt: null,
-    archivedAt: null,
-    createdAt: "",
-    updatedAt: "",
-  };
-}
-
 /**
  * Resolves the activity to delete from old/new payload or either kind cache.
+ *
+ * Unfiltered DELETE events may include other users' ids — only return a row
+ * already present in warm TanStack caches.
  */
 function resolveDeleteActivity(
   queryClient: QueryClient,
   oldRecord: Record<string, unknown> | null,
   newRecord: Record<string, unknown> | null,
 ): Activity | null {
-  const mappedOld = oldRecord ? mapRealtimeRow(oldRecord) : null;
-
-  if (mappedOld) {
-    return mappedOld;
-  }
-
   const activityId =
     (typeof oldRecord?.id === "string" ? oldRecord.id : undefined) ??
     (typeof newRecord?.id === "string" ? newRecord.id : undefined);
@@ -102,20 +73,7 @@ function resolveDeleteActivity(
     return null;
   }
 
-  const cached = findActivityInEitherKind(queryClient, activityId);
-
-  if (cached) {
-    return cached;
-  }
-
-  // Thin payload with kind but incomplete columns — enough for removeDefinition.
-  const kindCandidate = oldRecord?.kind ?? newRecord?.kind;
-
-  if (!isActivityKind(kindCandidate)) {
-    return null;
-  }
-
-  return stubActivityForDelete(activityId, kindCandidate);
+  return findActivityInEitherKind(queryClient, activityId) ?? null;
 }
 
 /**

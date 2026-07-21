@@ -168,7 +168,7 @@ reminders + one records fetch)
 `cache/record/record-month-key.ts` — derive `YYYY-MM` from a record date
 `cache/purge-activity-records-in-cache.ts` — drop one task's records from a month bucket
 `cache/find-activity-in-cache.ts` — `findActivityByIdInCache`
-`cache/find-record-in-cache.ts` — `findRecordInCache`, `hasRecordMonthCache`
+`cache/find-record-in-cache.ts` — `findRecordInCache`, `findRecordByIdInCache`, `hasRecordMonthCache`
 `cache/apply-realtime-activity-change.ts` — `mf_task` event → gated hub call
 `cache/apply-realtime-activity-record-change.ts` — `mf_task_record` → gated hub
 `cache/synchronize-activity-caches.ts` — definition + record `ActivityChange` fan-out hub

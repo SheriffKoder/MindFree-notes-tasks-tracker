@@ -107,7 +107,7 @@ features/profile/apply-theme/
 
 ## Checklist when changing theme behavior
 
-1. Update DB defaults? → `default-profile-values.ts` **and** `006_profile.sql`
+1. Update DB defaults? → `default-profile-values.ts` **and** `009_profile.sql`
 2. New CSS var? → `globals.css` `.theme-custom`, applier clear list, boot script
 3. Keep client/server barrels separate
 4. After prefs save, applier should repaint from TanStack cache without a full reload

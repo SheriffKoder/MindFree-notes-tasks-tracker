@@ -44,9 +44,19 @@ export interface UseActivityRealtimeSyncOptions {
   onRecordChange?: (payload: RealtimeActivityRecordChangePayload) => void;
 }
 
+type PostgresChangePayload = {
+  eventType: string;
+  new: Record<string, unknown>;
+  old: Record<string, unknown>;
+};
+
 /**
  * Subscribes to mf_task + mf_task_record changes for the signed-in user and
  * updates warm TanStack read caches.
+ *
+ * INSERT/UPDATE use a `user_id` filter. DELETE cannot reliably use that
+ * filter (thin `old` / Realtime DELETE filtering limits), so DELETE is
+ * unfiltered and apply adapters only clear rows already in local cache.
  */
 export function useActivityRealtimeSync({
   onActivityChange,
@@ -67,64 +77,108 @@ export function useActivityRealtimeSync({
         return;
       }
 
+      const userFilter = `user_id=eq.${user.id}`;
+
+      const handleActivityPayload = (payload: PostgresChangePayload) => {
+        const event = payload.eventType as RealtimeActivityChangeEvent;
+        const result = applyRealtimeActivityChange(
+          queryClient,
+          event,
+          (payload.new as Record<string, unknown> | null) ?? null,
+          (payload.old as Record<string, unknown> | null) ?? null,
+        );
+
+        if (!result.applied) {
+          return;
+        }
+
+        onActivityChange?.({
+          event: result.event,
+          activity: result.activity,
+          applied: result.applied,
+        });
+      };
+
+      const handleRecordPayload = (payload: PostgresChangePayload) => {
+        const event =
+          payload.eventType as RealtimeActivityRecordChangeEvent;
+        const result = applyRealtimeActivityRecordChange(
+          queryClient,
+          event,
+          (payload.new as Record<string, unknown> | null) ?? null,
+          (payload.old as Record<string, unknown> | null) ?? null,
+        );
+
+        if (!result.applied) {
+          return;
+        }
+
+        onRecordChange?.({
+          event: result.event,
+          record: result.record,
+          applied: result.applied,
+        });
+      };
+
       const channel = supabase
         .channel(`activities-realtime-${user.id}`)
         .on(
           "postgres_changes",
           {
-            event: "*",
+            event: "INSERT",
             schema: "public",
             table: ACTIVITIES_TABLE,
-            filter: `user_id=eq.${user.id}`,
+            filter: userFilter,
           },
-          (payload) => {
-            const event = payload.eventType as RealtimeActivityChangeEvent;
-            const result = applyRealtimeActivityChange(
-              queryClient,
-              event,
-              (payload.new as Record<string, unknown> | null) ?? null,
-              (payload.old as Record<string, unknown> | null) ?? null,
-            );
-
-            if (!result.applied) {
-              return;
-            }
-
-            onActivityChange?.({
-              event: result.event,
-              activity: result.activity,
-              applied: result.applied,
-            });
-          },
+          handleActivityPayload,
         )
         .on(
           "postgres_changes",
           {
-            event: "*",
+            event: "UPDATE",
+            schema: "public",
+            table: ACTIVITIES_TABLE,
+            filter: userFilter,
+          },
+          handleActivityPayload,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: ACTIVITIES_TABLE,
+          },
+          handleActivityPayload,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
             schema: "public",
             table: ACTIVITY_RECORDS_TABLE,
-            filter: `user_id=eq.${user.id}`,
+            filter: userFilter,
           },
-          (payload) => {
-            const event =
-              payload.eventType as RealtimeActivityRecordChangeEvent;
-            const result = applyRealtimeActivityRecordChange(
-              queryClient,
-              event,
-              (payload.new as Record<string, unknown> | null) ?? null,
-              (payload.old as Record<string, unknown> | null) ?? null,
-            );
-
-            if (!result.applied) {
-              return;
-            }
-
-            onRecordChange?.({
-              event: result.event,
-              record: result.record,
-              applied: result.applied,
-            });
+          handleRecordPayload,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: ACTIVITY_RECORDS_TABLE,
+            filter: userFilter,
           },
+          handleRecordPayload,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: ACTIVITY_RECORDS_TABLE,
+          },
+          handleRecordPayload,
         )
         .subscribe();
 
