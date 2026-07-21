@@ -11,9 +11,14 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import type { Activity, ActivityKind } from "@/entities/activity";
-import { useActivitiesQuery, useActivityRealtimeSync } from "@/entities/activity/client";
+import {
+  useActivitiesQuery,
+  useActivityRealtimeSync,
+} from "@/entities/activity/client";
+import { createActivityOfflineSyncAdapter } from "@/entities/activity/offline";
 import { ActivityDrawer } from "@/features/activity/activity-drawer";
 import { notifyActivityDrawerRealtime } from "@/features/activity/activity-drawer/model/activity-realtime-drawer-bridge";
 import { buildActivityPageCopy } from "@/features/activity/activity-page/lib/activity-page-copy";
@@ -28,6 +33,11 @@ import { ActivityFilter } from "@/features/activity/activity-page/ui/activity-fi
 import { ActivityViewsSection } from "@/features/activity/activity-page/ui/activity-views-section";
 import { ActivityRecordDrawer } from "@/features/activity/activity-record-drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
+import {
+  OfflineBanner,
+  useAuthUserId,
+  useOfflineSync,
+} from "@/shared/offline-queue";
 import { ViewSwitcherMobile } from "@/shared/view-switcher";
 
 export interface ActivityPageClientProps {
@@ -48,6 +58,13 @@ export function ActivityPageClient({
   title,
   subtitle,
 }: ActivityPageClientProps) {
+  const queryClient = useQueryClient();
+  const userId = useAuthUserId();
+  const activityOfflineAdapter = useMemo(
+    () => createActivityOfflineSyncAdapter(queryClient),
+    [queryClient],
+  );
+
   const copy = useMemo(
     () => buildActivityPageCopy(kind, title, subtitle),
     [kind, subtitle, title],
@@ -73,7 +90,7 @@ export function ActivityPageClient({
     onActivityChange: notifyActivityDrawerRealtime,
   });
 
-  // Phase 6 — mount useOfflineSync(userId, [activityOfflineAdapter]) here.
+  useOfflineSync(userId, [activityOfflineAdapter]);
 
   const { data } = useActivitiesQuery(kind);
   const activities = data?.activities ?? [];
@@ -103,6 +120,7 @@ export function ActivityPageClient({
 
   return (
     <ActivityFilterProvider>
+      <OfflineBanner />
       <div className="mx-auto flex h-full w-full flex-col gap-4">
         <section className="flex shrink-0 flex-col gap-2">
           <h2 className="text-h2">{copy.title}</h2>

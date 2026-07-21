@@ -10,6 +10,8 @@
 
 import type { ReactNode } from "react";
 
+import { OfflineBanner } from "@/shared/offline-queue";
+
 export interface ProgressPageShellProps {
   /** Month navigator island or its loading placeholder. */
   monthControls: ReactNode;
@@ -25,30 +27,33 @@ export function ProgressPageShell({
   children,
 }: ProgressPageShellProps) {
   return (
-    <div className="mx-auto flex h-full w-full flex-col gap-4">
-      <section className="flex shrink-0 flex-col gap-2">
-        <h2 className="text-h2">Progress</h2>
-        <p className="page-header__subtitle">
-          Monthly task progress, weekly breakdowns, and all-time totals.
-        </p>
-      </section>
+    <>
+      <OfflineBanner />
+      <div className="mx-auto flex h-full w-full flex-col gap-4">
+        <section className="flex shrink-0 flex-col gap-2">
+          <h2 className="text-h2">Progress</h2>
+          <p className="page-header__subtitle">
+            Monthly task progress, weekly breakdowns, and all-time totals.
+          </p>
+        </section>
 
-      <section
-        aria-label="Progress month controls"
-        className="flex shrink-0 flex-row items-center gap-3"
-      >
-        {monthControls}
-      </section>
+        <section
+          aria-label="Progress month controls"
+          className="flex shrink-0 flex-row items-center gap-3"
+        >
+          {monthControls}
+        </section>
 
-      <div className="relative min-h-0 flex-1">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-[-10] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
-        />
-        <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
-          {children}
+        <div className="relative min-h-0 flex-1">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-[-10] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
+          />
+          <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
