@@ -43,6 +43,7 @@ export type {
 } from "@/entities/payment/schema";
 export {
   applyRealtimePaymentChange,
+  findPaymentInCache,
   synchronizePaymentCaches,
   type ApplyRealtimePaymentChangeResult,
   type PaymentChange,

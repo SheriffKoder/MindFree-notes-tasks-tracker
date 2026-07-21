@@ -7,12 +7,12 @@
  * Used for: Create-vs-patch decisions, save payloads, and orchestrator hook contracts.
  */
 
+import type { Payment } from "@/entities/payment";
 import type {
   PaymentFormChangeMeta,
   PaymentFormValues,
   PaymentSaveStatus,
 } from "@/entities/payment/editor";
-import type { Payment } from "@/entities/payment/model/types";
 
 /** Resolved save intent after the create-vs-patch decision. */
 export type PaymentSaveAction = "create" | "patch" | "noop";
