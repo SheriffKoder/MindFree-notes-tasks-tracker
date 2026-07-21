@@ -19,12 +19,16 @@ Need:
 ### Decision
 
 1. Shared package `shared/offline-queue`: user-scoped `localStorage`, online listener, page hook (`useOfflineSync`), banner.
-2. Entity **adapter** (notes: `notes-offline-storage.ts`) owns payload shape, optimistic cache apply, merge-on-load, flush-to-API.
+2. Entity **adapter** (notes: `notes-offline-storage.ts`; activity:
+   `activity-offline-storage.ts`) owns payload shape, optimistic cache apply,
+   merge-on-load, flush-to-API.
 3. Orchestrator: when a debounced mutation would run and `!isOnline()`, write pending storage + optimistic cache + “saved” UI — skip network.
 4. **Last-write-wins** per resource key (`savedAt` vs server `lastEditedAt` on merge).
 5. Flush on reconnect and window focus; remove key on success.
 6. Listen for cross-tab `storage` events so sibling tabs merge without polling.
-7. Successful flush maps into `NoteChange` → `synchronizeNoteCaches` (same hub as online writes).
+7. Successful flush maps into the entity change type → sync hub
+   (`NoteChange` → `synchronizeNoteCaches`; `ActivityChange` →
+   `synchronizeActivityCaches`).
 
 ### Why (simple vs complex)
 
@@ -55,4 +59,6 @@ Trade-offs:
 
 - [shared/offline-queue/README.md](../../shared/offline-queue/README.md)
 - [entities/note/docs/offline.md](../../entities/note/docs/offline.md)
-- Workflow Step 13 / offline docs in `app/development/workflow/`
+- [entities/activity/docs/offline.md](../../entities/activity/docs/offline.md)
+  (Activity adapter shipped — same ADR contract)
+- Workflow offline plans under `app/development/workflow/`

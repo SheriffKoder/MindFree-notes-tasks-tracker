@@ -12,6 +12,7 @@ lookup, use [`./responsibilities.md`](./responsibilities.md). For entry points
 | [progress.md](./progress.md) | Progress report: due-day Option B **and** period-goal path |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Definition autosave; daily record writes; cache hub |
 | [realtime.md](./realtime.md) | Multi-tab / multi-device cache sync (`postgres_changes`) |
+| [offline.md](./offline.md) | Offline queue; flush on reconnect (ADR 0009) |
 | [responsibilities.md](./responsibilities.md) | File map + quick lookup |
 
 **App concepts:** [docs/concepts/terminology.md](../../../docs/concepts/terminology.md) (folder + layer names)

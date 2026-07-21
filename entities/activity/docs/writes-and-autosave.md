@@ -203,21 +203,37 @@ so realtime can skip echoing its own writes.
 
 ---
 
-## Realtime (shipped) & offline (deferred)
+## Realtime & offline (both shipped)
 
 - **Realtime** — `postgres_changes` on `mf_task` + `mf_task_record` maps into
   the same `ActivityChange` hub, gated by newer-wins + mutation-pending.
   Details: [realtime.md](./realtime.md).
-- **Offline (Phase 6)** — a queue adapter would persist pending writes and flush
-  them through the same hub (still deferred).
+- **Offline** — `entities/activity/offline` persists pending writes in
+  user-scoped localStorage and flushes through the same hub on reconnect/focus
+  (ADR 0009). Orchestrators / quick-record / picker branch on `isOnline()`;
+  mutation hooks stay online-only. Details: [offline.md](./offline.md).
 
-Mount points (one subscription per surface):
+Mount points (one sync mount per surface; banner can appear without a mount):
 
-- Tasks + Reminders:
-  `features/activity/activity-page/ui/activity-page-client.tsx`
-- Home: `views/home/ui/home-activity-realtime.tsx` (once from
-  `views/home/index.tsx` — not inside both Today lists)
-- Progress: not mounted (pure SSR)
+| Concern | Tasks / Reminders | Home | Progress |
+| ------- | ----------------- | ---- | -------- |
+| Realtime | `activity-page-client.tsx` | `home-activity-realtime.tsx` | — |
+| Offline | `activity-page-client.tsx` | `home-activity-offline.tsx` | banner only |
+| Banner | yes | yes | `ProgressPageShell` |
+
+Never mount realtime or offline inside both Home Today lists.
+
+### Offline path (sketch)
+
+```text
+!isOnline()
+  → saveActivityOfflinePending (localStorage + optimistic hub apply)
+  → UI “saved”
+
+online / focus
+  → useOfflineSync → adapter.flush
+  → API → activityChangeFromOfflineFlush → synchronizeActivityCaches
+```
 
 ---
 
@@ -228,5 +244,6 @@ Mount points (one subscription per surface):
 | [domain-model.md](./domain-model.md) | Lifecycle: create → archive/restore → delete |
 | [read-models.md](./read-models.md) | The two caches the hub keeps consistent |
 | [realtime.md](./realtime.md) | Multi-tab sync that echoes local writes |
-| [responsibilities.md](./responsibilities.md) | `mutations/`, `cache/`, `hooks/` file map |
+| [offline.md](./offline.md) | Offline queue, keys, mount points |
+| [responsibilities.md](./responsibilities.md) | `mutations/`, `cache/`, `hooks/`, `offline/` file map |
 | [views/home/docs/today-list.md](../../../views/home/docs/today-list.md) | Home's inline-recording consumer boundary |

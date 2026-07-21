@@ -112,6 +112,7 @@ Definition drawer remote pull:
 | Doc | Why |
 | --- | --- |
 | [writes-and-autosave.md](./writes-and-autosave.md) | Local writes that realtime will echo |
+| [offline.md](./offline.md) | Offline queue (idle while online realtime runs) |
 | [read-models.md](./read-models.md) | Cache keys Home/Tasks share |
 | [progress.md](./progress.md) | Why Progress stays SSR-only |
 | [responsibilities.md](./responsibilities.md) | Realtime file map |

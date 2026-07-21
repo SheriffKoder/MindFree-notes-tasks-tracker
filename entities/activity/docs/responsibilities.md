@@ -167,11 +167,24 @@ reminders + one records fetch)
 `cache/record/remove-record-from-cache.ts` — remove by `(taskId, date)`
 `cache/record/record-month-key.ts` — derive `YYYY-MM` from a record date
 `cache/purge-activity-records-in-cache.ts` — drop one task's records from a month bucket
-`cache/find-activity-in-cache.ts` — `findActivityByIdInCache`
+`cache/find-activity-in-cache.ts` — `findActivityByIdInCache`, `findActivityInEitherKind`
 `cache/find-record-in-cache.ts` — `findRecordInCache`, `findRecordByIdInCache`, `hasRecordMonthCache`
 `cache/apply-realtime-activity-change.ts` — `mf_task` event → gated hub call
 `cache/apply-realtime-activity-record-change.ts` — `mf_task_record` → gated hub
 `cache/synchronize-activity-caches.ts` — definition + record `ActivityChange` fan-out hub
+
+---
+
+## Offline (`offline/`)
+
+`offline/activity-offline-storage.ts` — keys/payloads, pending apply, merge, flush,
+`saveActivityOfflinePending`, `createActivityOfflineSyncAdapter`
+`offline/activity-change-from-offline.ts` — successful flush → `ActivityChange`
+(incl. optimistic-create id reconcile)
+`offline/index.ts` — offline adapter surface
+
+Offline transport is separate from cache policy; successful replay rejoins the
+same hub as online mutations and realtime. WHY: [offline.md](./offline.md).
 
 ---
 
@@ -181,6 +194,9 @@ reminders + one records fetch)
 `hooks/use-activity-records-query.ts` — `useActivityRecordsQuery(month)`
 `hooks/use-home-today-query.ts` — `useHomeTodayQuery(kind)`, a memoized selector
 over the matching definitions bucket + shared current-month records
+`hooks/build-optimistic-activity.ts` — shared optimistic definition create shape
+(+ `pinnedDraftActivityId` for offline drafts)
+`hooks/merge-form-values-into-activity.ts` — shared optimistic definition patch shape
 `hooks/use-create-activity-mutation.ts` — create + optimistic upsert + rollback
 `hooks/use-update-activity-mutation.ts` — patch autosave + optimistic + newer-wins
 `hooks/use-archive-activity-mutation.ts` — `useArchiveActivityMutation`, `useRestoreActivityMutation`
@@ -290,8 +306,9 @@ records remain keyed independently of kind.
 | Fix optimistic UI after save | `cache/synchronize-activity-caches.ts`, `activity-cache-mutations.ts`, `cache/record/*` |
 | Fix list/calendar not updating | `hooks/use-activities-query.ts`, `use-activity-records-query.ts` |
 | Fix multi-tab / live sync | [realtime.md](./realtime.md), `hooks/use-activity-realtime-sync.ts`, `cache/apply-realtime-*` |
+| Fix offline replay / pending keys | [offline.md](./offline.md), `offline/activity-offline-storage.ts`, `offline/activity-change-from-offline.ts` |
 | Fix remote overwrite while typing in definition drawer | `features/activity/activity-drawer/model/activity-editor-sync-guard.ts`, `use-activity-drawer-realtime-sync.ts` |
 | Change autosave decision | `features/activity/activity-drawer/pre-save-orchestrator/evaluate-activity-save.ts` |
-| Wire drawer save routing | `features/activity/activity-drawer/model/use-config-orchestrator.ts` |
+| Wire drawer save routing (incl. offline branch) | `features/activity/activity-drawer/model/use-config-orchestrator.ts` |
 | Change form fields / validation | `editor/model/*`, `editor/fields/*`, `schema/activity-form.schema.ts` |
 | Change schedule inputs | `editor/schedule-input/*` |
