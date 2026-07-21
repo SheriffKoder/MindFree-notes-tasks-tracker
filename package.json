@@ -28,6 +28,7 @@
     "react-hook-form": "^7.80.0",
     "supabase": "^2.109.1",
     "tailwind-merge": "^3.3.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -36,6 +37,7 @@
     "@types/react": "^19.2.17",
     "@types/react-date-range": "^1.4.10",
     "@types/react-dom": "^19.2.3",
+    "@types/xlsx": "^0.0.35",
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "^16.2.10",

@@ -41,3 +41,21 @@ export function getDemoLoginCredentials(): {
 export function isDemoLoginConfigured(): boolean {
   return getDemoLoginCredentials() !== null;
 }
+
+/**
+ * Whether `email` matches the configured demo account (`DEMO_LOGIN_EMAIL`).
+ *
+ * Used to restrict features (e.g. Profile) for the shared demo user. Compares
+ * against the env email alone — does not require `ENABLE_DEMO_LOGIN`.
+ *
+ * @param email - signed-in user email from Supabase Auth
+ */
+export function isDemoUserEmail(email: string | null | undefined): boolean {
+  const demoEmail = process.env.DEMO_LOGIN_EMAIL;
+
+  if (!demoEmail || !email) {
+    return false;
+  }
+
+  return email.trim().toLowerCase() === demoEmail.trim().toLowerCase();
+}

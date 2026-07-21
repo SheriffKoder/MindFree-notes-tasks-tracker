@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/shared/lib/supabase/server";
+import { clearAppLockUnlocked } from "@/features/app-lock/server";
 
 /**
  * Signs the current user out and redirects to the appropriate follow-up screen.
@@ -19,6 +20,9 @@ export async function logout() {
 
   // Ask Supabase to remove the active session and clear auth cookies.
   const { error } = await supabase.auth.signOut();
+
+  // Always drop the app-lock unlock flag so a later login must re-verify.
+  await clearAppLockUnlocked();
 
   // Keep the user on the protected page when sign-out fails.
   if (error) {

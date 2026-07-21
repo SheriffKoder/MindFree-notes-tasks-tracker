@@ -55,10 +55,14 @@ Analytics derived from task completion (not a separate progress table).
 
 Standalone reminders list and Home stack.
 
-### Profile _(coming soon)_
+### Profile _(shipped)_
 
-Theme preferences and app lock settings.
+Account display name, theme (light / dark / custom + accent), app lock, and Excel data export. Preferences hydrate in the protected layout and apply app-wide. The shared demo account cannot open Profile.
+
+- [User session and preferences](docs/architecture/user-session-and-preferences.md)
+- [App lock](docs/architecture/app-lock.md)
+- [Profile docs index](docs/README.md#reading-order-profile)
 
 ## Documentation
 
-Start at **[docs/README.md](docs/README.md)** for reading order (setup → concepts → architecture → Notes).
+Start at **[docs/README.md](docs/README.md)** for reading order (setup → concepts → architecture → Notes / Activity / Profile).
