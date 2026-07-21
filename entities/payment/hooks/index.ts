@@ -4,7 +4,7 @@
  *
  * Purpose: Public exports for TanStack payment hooks and pending-id helpers.
  * Used in: entities/payment/client.ts, payment drawer orchestrators
- * Used for: Month reads, create/update/delete mutations, and realtime dedupe flags.
+ * Used for: Month reads, mutations, realtime sync, and realtime dedupe flags.
  */
 
 export { usePaymentsMonthQuery } from "@/entities/payment/hooks/use-payments-month-query";
@@ -19,3 +19,8 @@ export {
   isPaymentMutationPending,
   markPaymentMutationPending,
 } from "@/entities/payment/hooks/payment-mutation-pending";
+export { usePaymentsRealtimeSync } from "@/entities/payment/hooks/use-payments-realtime-sync";
+export type {
+  RealtimePaymentChangePayload,
+  UsePaymentsRealtimeSyncOptions,
+} from "@/entities/payment/hooks/use-payments-realtime-sync";

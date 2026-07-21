@@ -8,8 +8,9 @@
  *
  * Steps:
  * 1. Read URL month and fetch that month’s payments.
- * 2. Own drawer controller (create / edit request).
- * 3. Render header → controls → week list → PaymentDrawer.
+ * 2. Subscribe to mf_payments realtime → warm month caches.
+ * 3. Own drawer controller (create / edit request).
+ * 4. Render header → controls → week list → PaymentDrawer.
  */
 
 "use client";
@@ -17,7 +18,10 @@
 import { useCallback } from "react";
 
 import type { Payment } from "@/entities/payment";
-import { usePaymentsMonthQuery } from "@/entities/payment/client";
+import {
+  usePaymentsMonthQuery,
+  usePaymentsRealtimeSync,
+} from "@/entities/payment/client";
 import { PaymentDrawer } from "@/features/payments/payment-drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { usePaymentsDrawer } from "@/views/payments/model/use-payments-drawer";
@@ -35,7 +39,11 @@ export function PaymentsClient() {
   const { data, isPending, isError, error } = usePaymentsMonthQuery(month);
 
   /////////////////////////////////
-  // 2. Drawer controller — add → create, card → edit
+  // 2. Realtime — multi-tab / multi-device month list sync
+  usePaymentsRealtimeSync();
+
+  /////////////////////////////////
+  // 3. Drawer controller — add → create, card → edit
   const drawer = usePaymentsDrawer();
 
   const handleAddPayment = useCallback(() => {
@@ -50,7 +58,7 @@ export function PaymentsClient() {
   );
 
   /////////////////////////////////
-  // 3. Page composition
+  // 4. Page composition
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
       {/* Page header */}

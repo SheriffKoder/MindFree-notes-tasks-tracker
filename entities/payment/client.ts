@@ -24,13 +24,16 @@ export {
   useCreatePaymentMutation,
   useDeletePaymentMutation,
   usePaymentsMonthQuery,
+  usePaymentsRealtimeSync,
   useUpdatePaymentMutation,
   clearPaymentMutationPending,
   isPaymentMutationPending,
   markPaymentMutationPending,
   type CreatePaymentMutationInput,
   type DeletePaymentMutationInput,
+  type RealtimePaymentChangePayload,
   type UpdatePaymentMutationInput,
+  type UsePaymentsRealtimeSyncOptions,
 } from "@/entities/payment/hooks";
 export type { Payment } from "@/entities/payment/model/types";
 export type { PaymentsMonthResponse } from "@/entities/payment/model/read-models";
@@ -39,6 +42,9 @@ export type {
   UpdatePaymentBody,
 } from "@/entities/payment/schema";
 export {
+  applyRealtimePaymentChange,
   synchronizePaymentCaches,
+  type ApplyRealtimePaymentChangeResult,
   type PaymentChange,
+  type RealtimePaymentChangeEvent,
 } from "@/entities/payment/cache";
