@@ -25,3 +25,18 @@ export function findActivityByIdInCache(
 
   return data?.activities.find((entry) => entry.id === activityId);
 }
+
+/**
+ * Finds one activity by id in either kind bucket (`task` then `reminder`).
+ *
+ * @returns the cached activity, or `undefined` when missing from both caches
+ */
+export function findActivityInEitherKind(
+  queryClient: QueryClient,
+  activityId: string,
+): Activity | undefined {
+  return (
+    findActivityByIdInCache(queryClient, "task", activityId) ??
+    findActivityByIdInCache(queryClient, "reminder", activityId)
+  );
+}

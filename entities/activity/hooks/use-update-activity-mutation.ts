@@ -21,6 +21,7 @@ import {
   clearActivityMutationPending,
   markActivityMutationPending,
 } from "@/entities/activity/hooks/activity-mutation-pending";
+import { mergeFormValuesIntoActivity } from "@/entities/activity/hooks/merge-form-values-into-activity";
 import { normalizeActivityDefinition } from "@/entities/activity/lib/definition";
 import { isRemoteActivityNewer } from "@/entities/activity/lib/is-remote-activity-newer";
 import type { ActivitiesResponse } from "@/entities/activity/model/read-models";
@@ -40,35 +41,6 @@ interface CacheSnapshot {
 
 interface UpdateActivityMutationContext {
   previousSnapshots: CacheSnapshot[];
-}
-
-function mergeFormValuesIntoActivity(
-  activity: Activity,
-  values: ActivityFormValues,
-): Activity {
-  // Build the optimistic row from the same kind-safe values sent to the API.
-  // This keeps the cache from briefly exposing invalid reminder presentation.
-  const normalized = normalizeActivityDefinition(activity.kind, values);
-
-  return {
-    ...activity,
-    title: values.title,
-    description: values.description ?? null,
-    color: normalized.color,
-    trackingMode: normalized.trackingMode,
-    scheduleType: values.scheduleType,
-    scheduleConfig: values.scheduleConfig,
-    goal: normalized.goal,
-    goalDuration: normalized.goalDuration,
-    goalPeriod: normalized.goalPeriod,
-    periodGoal: normalized.periodGoal,
-    periodGoalDuration: normalized.periodGoalDuration,
-    priority: normalized.priority,
-    icon: activity.icon,
-    startsAt: values.startsAt ?? null,
-    endsAt: values.endsAt ?? null,
-    updatedAt: new Date().toISOString(),
-  };
 }
 
 /**

@@ -9,7 +9,10 @@
 
 import type { QueryClient } from "@tanstack/react-query";
 
-import { findActivityByIdInCache } from "@/entities/activity/cache/find-activity-in-cache";
+import {
+  findActivityByIdInCache,
+  findActivityInEitherKind,
+} from "@/entities/activity/cache/find-activity-in-cache";
 import { synchronizeActivityCaches } from "@/entities/activity/cache/synchronize-activity-caches";
 import { isActivityMutationPending } from "@/entities/activity/hooks/activity-mutation-pending";
 import { isRemoteActivityNewer } from "@/entities/activity/lib/is-remote-activity-newer";
@@ -42,16 +45,6 @@ function mapRealtimeRow(row: Record<string, unknown>): Activity | null {
   }
 
   return mapActivityRow(row as unknown as ActivityRow);
-}
-
-function findActivityInEitherKind(
-  queryClient: QueryClient,
-  activityId: string,
-): Activity | undefined {
-  return (
-    findActivityByIdInCache(queryClient, "task", activityId) ??
-    findActivityByIdInCache(queryClient, "reminder", activityId)
-  );
 }
 
 /**
