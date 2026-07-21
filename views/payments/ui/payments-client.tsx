@@ -9,21 +9,29 @@
  * Steps:
  * 1. Read URL month and fetch that month’s payments.
  * 2. Subscribe to mf_payments realtime → warm month caches.
- * 3. Own drawer controller (create / edit request).
- * 4. Render header → controls → week list → PaymentDrawer.
+ * 3. Merge/flush offline payment writes via shared queue.
+ * 4. Own drawer controller (create / edit request).
+ * 5. Render header → controls → week list → PaymentDrawer.
  */
 
 "use client";
 
-import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 
 import type { Payment } from "@/entities/payment";
 import {
   usePaymentsMonthQuery,
   usePaymentsRealtimeSync,
 } from "@/entities/payment/client";
+import { createPaymentsOfflineSyncAdapter } from "@/entities/payment/offline";
 import { PaymentDrawer } from "@/features/payments/payment-drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
+import {
+  OfflineBanner,
+  useAuthUserId,
+  useOfflineSync,
+} from "@/shared/offline-queue";
 import { usePaymentsDrawer } from "@/views/payments/model/use-payments-drawer";
 import { usePaymentsUrlState } from "@/views/payments/model/use-payments-url-state";
 import { PaymentsAddButton } from "@/views/payments/ui/payments-add-button";
@@ -34,6 +42,15 @@ import { PaymentsMonthList } from "@/views/payments/ui/payments-month-list";
  */
 export function PaymentsClient() {
   /////////////////////////////////
+  // Offline sync — merge on load; flush on reconnect / focus
+  const queryClient = useQueryClient();
+  const userId = useAuthUserId();
+  const paymentsOfflineAdapter = useMemo(
+    () => createPaymentsOfflineSyncAdapter(queryClient),
+    [queryClient],
+  );
+
+  /////////////////////////////////
   // 1. URL month + month query
   const { month, previousMonth, nextMonth } = usePaymentsUrlState();
   const { data, isPending, isError, error } = usePaymentsMonthQuery(month);
@@ -43,7 +60,11 @@ export function PaymentsClient() {
   usePaymentsRealtimeSync();
 
   /////////////////////////////////
-  // 3. Drawer controller — add → create, card → edit
+  // 3. Offline queue — payment entity adapter
+  useOfflineSync(userId, [paymentsOfflineAdapter]);
+
+  /////////////////////////////////
+  // 4. Drawer controller — add → create, card → edit
   const drawer = usePaymentsDrawer();
 
   const handleAddPayment = useCallback(() => {
@@ -58,9 +79,11 @@ export function PaymentsClient() {
   );
 
   /////////////////////////////////
-  // 4. Page composition
+  // 5. Page composition
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
+      <OfflineBanner />
+
       {/* Page header */}
       <section className="flex shrink-0 flex-col gap-2">
         <h2 className="text-h2">Payments</h2>

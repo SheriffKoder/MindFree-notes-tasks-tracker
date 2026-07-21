@@ -4,14 +4,14 @@
  *
  * Purpose: Bridge dumb PaymentForm onChange events to debounced TanStack writes.
  * Used in: features/payments/payment-drawer/ui/payment-drawer.tsx
- * Used for: Autosave create/patch and immediate delete (online-only until Step 10).
+ * Used for: Autosave create/patch and immediate delete (online + offline queue).
  *
  * Function Index:
  * - clearDebounceTimer / markSaveSuccess / markSaveError — status helpers
- * - runPendingMutation — flush queued create or patch
+ * - runPendingMutation — flush queued create or patch (offline branch first)
  * - scheduleMutation / scheduleFromEvaluation — debounce + route actions
  * - handleChange — evaluate → schedule
- * - remove — hard-delete (not debounced)
+ * - remove — hard-delete (not debounced; offline-aware)
  *
  * Steps (handleChange):
  * 1. evaluate — run pure create-vs-patch pipeline.
@@ -19,11 +19,11 @@
  * 3. scheduleFromEvaluation — enqueue debounced create/patch mutation.
  *
  * Delete fires immediately and is never debounced.
- * Offline persistence lands in Step 10.
  */
 
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
@@ -32,16 +32,24 @@ import type {
   PaymentSaveStatus,
 } from "@/entities/payment/editor";
 import {
+  synchronizePaymentCaches,
   useCreatePaymentMutation,
   useDeletePaymentMutation,
   useUpdatePaymentMutation,
 } from "@/entities/payment/client";
+import {
+  OPTIMISTIC_PAYMENT_DRAFT_ID,
+  PAYMENT_OFFLINE_DRAFT_KEY,
+  isOptimisticPaymentId,
+  savePaymentOfflinePending,
+} from "@/entities/payment/offline";
 import { evaluatePaymentSave } from "@/features/payments/payment-drawer/pre-save-orchestrator/evaluate-payment-save";
 import type {
   EvaluatePaymentSaveResult,
   UsePaymentSaveOrchestratorOptions,
   UsePaymentSaveOrchestratorResult,
 } from "@/features/payments/payment-drawer/pre-save-orchestrator/types";
+import { isOnline, removeOfflineWrite } from "@/shared/offline-queue";
 
 const MUTATION_DEBOUNCE_MS = 600;
 const SAVED_STATUS_RESET_MS = 2000;
@@ -64,11 +72,13 @@ type PendingMutation =
 export function usePaymentSaveOrchestrator({
   payment,
   isOpen,
+  userId,
   onPaymentCreated,
   onDeleted,
 }: UsePaymentSaveOrchestratorOptions): UsePaymentSaveOrchestratorResult {
   /////////////////////////////////
   // Wiring — mutations + save UI state
+  const queryClient = useQueryClient();
   const { mutate: createPayment } = useCreatePaymentMutation();
   const { mutate: patchPayment } = useUpdatePaymentMutation();
   const { mutate: deletePayment } = useDeletePaymentMutation();
@@ -144,7 +154,7 @@ export function usePaymentSaveOrchestrator({
   }, [clearDebounceTimer]);
 
   /////////////////////////////////
-  // Flush — run the queued create or patch against TanStack mutations
+  // Flush — offline queue or TanStack mutations
 
   const runPendingMutation = useCallback(() => {
     // 1. Take ownership of the pending payload (or bail)
@@ -157,6 +167,52 @@ export function usePaymentSaveOrchestrator({
     pendingMutationRef.current = null;
     setSaveStatus("saving");
 
+    /////////////////////////////////
+    // Offline — persist locally, optimistic hub, skip network
+    if (!isOnline()) {
+      if (!userId) {
+        markSaveError();
+        return;
+      }
+
+      switch (pending.kind) {
+        case "create":
+          savePaymentOfflinePending(userId, queryClient, {
+            kind: "create",
+            values: pending.values,
+          });
+          markSaveSuccess();
+          onPaymentCreated(OPTIMISTIC_PAYMENT_DRAFT_ID);
+          return;
+        case "patch": {
+          const current = paymentRef.current;
+
+          if (!current || current.id !== pending.paymentId) {
+            markSaveError();
+            return;
+          }
+
+          // Still a draft — overwrite the create slot (one flush POST later)
+          if (isOptimisticPaymentId(current.id)) {
+            savePaymentOfflinePending(userId, queryClient, {
+              kind: "create",
+              values: pending.values,
+            });
+            markSaveSuccess();
+            return;
+          }
+
+          savePaymentOfflinePending(userId, queryClient, {
+            kind: "patch",
+            payment: current,
+            values: pending.values,
+          });
+          markSaveSuccess();
+          return;
+        }
+      }
+    }
+
     const mutationOptions = {
       onSuccess: () => {
         markSaveSuccess();
@@ -166,7 +222,7 @@ export function usePaymentSaveOrchestrator({
       },
     };
 
-    // 2. Route by pending kind
+    // 2. Online — route by pending kind
     switch (pending.kind) {
       case "create":
         createPayment(
@@ -220,6 +276,8 @@ export function usePaymentSaveOrchestrator({
     markSaveSuccess,
     onPaymentCreated,
     patchPayment,
+    queryClient,
+    userId,
   ]);
 
   /////////////////////////////////
@@ -309,7 +367,7 @@ export function usePaymentSaveOrchestrator({
   const remove = useCallback(() => {
     const current = paymentRef.current;
 
-    // 1. Guard — nothing to delete in create drafts
+    // 1. Guard — nothing to delete in create drafts without an id
     if (!current?.id) {
       return;
     }
@@ -319,7 +377,43 @@ export function usePaymentSaveOrchestrator({
     pendingMutationRef.current = null;
     setSaveStatus("saving");
 
-    // 3. Fire delete mutation; close drawer on success
+    /////////////////////////////////
+    // 3a. Offline — queue delete + optimistic remove
+    if (!isOnline()) {
+      if (!userId) {
+        markSaveError();
+        return;
+      }
+
+      // Unsynced draft — drop create slot + cache only (nothing to DELETE on server)
+      if (isOptimisticPaymentId(current.id)) {
+        removeOfflineWrite(userId, PAYMENT_OFFLINE_DRAFT_KEY);
+        synchronizePaymentCaches(queryClient, {
+          type: "delete",
+          payment: current,
+        });
+        markSaveSuccess();
+        onDeleted?.();
+        return;
+      }
+
+      savePaymentOfflinePending(userId, queryClient, {
+        kind: "delete",
+        payment: current,
+        values: {
+          title: current.title,
+          amount: current.amount,
+          description: current.description,
+          date: current.date,
+          group: current.group,
+        },
+      });
+      markSaveSuccess();
+      onDeleted?.();
+      return;
+    }
+
+    // 3b. Online — fire delete mutation; close drawer on success
     deletePayment(
       { payment: current },
       {
@@ -338,6 +432,8 @@ export function usePaymentSaveOrchestrator({
     markSaveError,
     markSaveSuccess,
     onDeleted,
+    queryClient,
+    userId,
   ]);
 
   return {

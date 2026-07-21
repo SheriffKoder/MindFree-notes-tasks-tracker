@@ -26,6 +26,7 @@ import { usePaymentSaveOrchestrator } from "@/features/payments/payment-drawer/m
 import { useResolvedDrawerPayment } from "@/features/payments/payment-drawer/model/use-resolved-drawer-payment";
 import { PaymentDrawerFooter } from "@/features/payments/payment-drawer/ui/payment-drawer-footer";
 import { AppDrawer } from "@/shared/drawer";
+import { useAuthUserId } from "@/shared/offline-queue";
 
 export interface PaymentDrawerProps {
   /** Page-level drawer open/close state and editor request. */
@@ -55,6 +56,7 @@ export function PaymentDrawer({
   /////////////////////////////////
   // 1. Drawer request + cache resolution
   const { isOpen, request, setOpen, openEdit } = drawer;
+  const userId = useAuthUserId();
   const payment = useResolvedDrawerPayment(request, month);
   const [footerMeta, setFooterMeta] =
     useState<PaymentFormFooterMeta>(INITIAL_FOOTER_META);
@@ -108,6 +110,7 @@ export function PaymentDrawer({
     usePaymentSaveOrchestrator({
       payment,
       isOpen,
+      userId,
       onPaymentCreated: handlePaymentCreated,
       onDeleted: handleDeleted,
     });

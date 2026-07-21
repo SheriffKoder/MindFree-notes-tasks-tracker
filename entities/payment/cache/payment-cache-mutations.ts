@@ -104,12 +104,18 @@ export function removePaymentFromMonthCache(
 
 /**
  * Builds an optimistic payment before the server assigns an id.
+ *
+ * @param input - create body fields
+ * @param options.id - optional stable client id (offline draft); defaults to timestamped id
  */
-export function buildOptimisticPayment(input: CreatePaymentBody): Payment {
+export function buildOptimisticPayment(
+  input: CreatePaymentBody,
+  options?: { id?: string },
+): Payment {
   const now = new Date().toISOString();
 
   return {
-    id: `optimistic-payment-${now}`,
+    id: options?.id ?? `optimistic-payment-${now}`,
     title: input.title,
     amount: input.amount,
     description: input.description,

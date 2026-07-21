@@ -108,10 +108,10 @@ export function synchronizePaymentCaches(
       break;
 
     /////////////////////////////////
-    // 2. update — remove everywhere, then upsert into next.date month
-    //    (covers same-month edits and cross-month date moves)
+    // 2. update — remove previous id everywhere, then upsert next
+    //    (same-month edits, cross-month moves, and optimistic→server id swaps)
     case "update":
-      removePaymentFromAllWarmMonths(queryClient, change.next.id);
+      removePaymentFromAllWarmMonths(queryClient, change.previous.id);
       upsertPaymentIntoWarmMonth(queryClient, change.next);
       break;
 

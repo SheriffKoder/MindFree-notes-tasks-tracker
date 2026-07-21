@@ -37,6 +37,8 @@ export interface UsePaymentSaveOrchestratorOptions {
   payment: Payment | null;
   /** Drawer open flag — resets save UI when a session starts. */
   isOpen: boolean;
+  /** Signed-in user — scopes offline writes in localStorage. */
+  userId: string | null;
   /** Switches create intent to edit mode after the first row exists. */
   onPaymentCreated: (paymentId: string) => void;
   /** Closes the drawer after a successful hard-delete. */

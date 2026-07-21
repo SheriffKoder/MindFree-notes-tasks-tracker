@@ -122,6 +122,34 @@ describe("synchronizePaymentCaches", () => {
     expect(august?.totalAmount).toBe(100);
   });
 
+  it("swaps optimistic id for server id on update", () => {
+    const previous = buildPayment({
+      id: "optimistic-payment-draft",
+      amount: 40,
+    });
+    const next = buildPayment({
+      id: "server-pay-1",
+      amount: 40,
+      updatedAt: "2026-07-02T10:00:00.000Z",
+    });
+
+    queryClient.setQueryData(paymentsMonthQueryKey("2026-07"), {
+      month: "2026-07",
+      payments: [previous],
+      totalAmount: 40,
+    });
+
+    synchronizePaymentCaches(queryClient, { type: "update", previous, next });
+
+    const month = queryClient.getQueryData<PaymentsMonthResponse>(
+      paymentsMonthQueryKey("2026-07"),
+    );
+
+    expect(month?.payments).toHaveLength(1);
+    expect(month?.payments[0]?.id).toBe("server-pay-1");
+    expect(month?.totalAmount).toBe(40);
+  });
+
   it("deletes from all warm month caches", () => {
     const payment = buildPayment();
     queryClient.setQueryData(paymentsMonthQueryKey("2026-07"), {
