@@ -16,11 +16,11 @@ MindFree needs a production-ready authentication foundation in the Next.js App R
 - Google OAuth sign-in
 - logout support and auth fallback notices
 
-The app currently does not use a separate profile table. Authentication is the only user system required for this phase.
+When this ADR was accepted, authentication was the only user system required. App-owned profile tables were intentionally deferred.
 
 ### Decision
 
-We use Supabase Auth as the source of truth for user accounts in the current phase.
+We use Supabase Auth as the source of truth for **identity** (who is signed in).
 
 The architecture is:
 
@@ -35,7 +35,7 @@ The architecture is:
 6. Complete email confirmation on the server with `verifyOtp` in `app/auth/confirm/route.ts`.
 7. Complete OAuth on the server with `exchangeCodeForSession` in `app/auth/callback/route.ts`.
 8. Keep the protected app entry route at `/`.
-9. Treat Supabase Auth users as the only required "users" data model for now. Do not introduce `public.profiles` until the app has real profile fields that need persistence.
+9. Resolve identity from the Auth session on demand (`getUser()` / helpers). Do **not** introduce a React `UserContext` / `AuthProvider` — there is no in-app user object store.
 
 ### Why
 
@@ -48,7 +48,7 @@ It also matches the current code structure:
 - `app/auth/confirm/route.ts` verifies email confirmation tokens
 - `app/auth/callback/route.ts` exchanges OAuth codes for sessions
 
-Using Supabase Auth directly avoids premature schema work while the app is still building its first authenticated flows.
+Using Supabase Auth keeps identity consistent across server rendering, route handlers, redirects, and protected routes without a custom auth stack.
 
 ### Consequences
 
@@ -57,13 +57,13 @@ Positive:
 - user creation is available immediately through Supabase Auth
 - email confirmation and Google OAuth are supported without custom auth infrastructure
 - protected routes and server-side redirects stay centralized
-- the app can ship without a custom user table
+- identity stays session-based (no global React user store)
 
 Trade-offs:
 
 - Supabase dashboard configuration is required before real sign-ups work
 - the confirm-signup email template must match the server-side confirmation route
-- app-specific user data such as display name, avatar, onboarding state, or preferences will need a separate table later
+- each server boundary re-resolves the session when it needs `user.id` / email
 
 ### Operational Requirements
 
@@ -78,16 +78,20 @@ The Supabase project must be configured with:
 
 ### Deferred Decisions
 
-The following are intentionally deferred:
+The following remain deferred:
 
-- adding `public.profiles`
-- syncing auth users into app-specific tables
 - role-based authorization
 - password reset and account recovery flows
 - MFA
+- avatars / rich onboarding metadata beyond current Profile fields
 
-### Follow-up
+### Follow-up (profile tables introduced later)
 
-See [docs/setup/1-supabase-auth-dashboard-setup.md](../setup/1-supabase-auth-dashboard-setup.md) for the dashboard and provider setup checklist needed to make real users work.
+App-owned profile data now lives in `mf_profiles`, `mf_user_preferences`, and `mf_user_security_settings` (migration `006_profile.sql`), keyed by `auth.users.id` with RLS. Auth remains the identity source of truth; profile rows are settings and account display data, not a second auth system.
 
-Security layers: [docs/guides/security.md](../guides/security.md).
+See:
+
+- [user-session-and-preferences.md](../architecture/user-session-and-preferences.md)
+- [app-lock.md](../architecture/app-lock.md)
+- [docs/setup/1-supabase-auth-dashboard-setup.md](../setup/1-supabase-auth-dashboard-setup.md)
+- [docs/guides/security.md](../guides/security.md)

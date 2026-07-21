@@ -154,6 +154,8 @@ DEMO_LOGIN_PASSWORD=password
 - Profile is disabled for the signed-in user whose email matches `DEMO_LOGIN_EMAIL`
   (`isDemoUserEmail`): nav link hidden, `/profile` redirects home (page + `proxy.ts`),
   non-GET `/api/profile/*` returns 403. GET `/api/profile` stays allowed for theme.
+- Broader session/prefs model: [docs/architecture/user-session-and-preferences.md](../../../docs/architecture/user-session-and-preferences.md)
+- App lock (separate from Auth): [docs/architecture/app-lock.md](../../../docs/architecture/app-lock.md)
 
 ---
 

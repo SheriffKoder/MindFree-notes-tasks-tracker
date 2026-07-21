@@ -161,14 +161,10 @@ After the dashboard configuration is complete, verify:
 
 ### 9. Current Scope Boundary
 
-For this phase, Supabase Auth users are enough to represent "users".
+Supabase Auth remains the identity source of truth (who is signed in). Apply migrations so app-owned profile rows exist — especially `supabase/migrations/006_profile.sql`, which creates:
 
-A separate `public.profiles` table is not required yet because the app does not currently store:
+- `mf_profiles` — display name + email copy
+- `mf_user_preferences` — theme, accent, export email, …
+- `mf_user_security_settings` — app lock flag + password hash
 
-- display names
-- avatars
-- user preferences
-- onboarding state
-- app-specific user metadata
-
-Create `public.profiles` later when the product needs profile data beyond authentication.
+Those tables are seeded on signup (DB trigger) and/or lazily on first profile read. They are not a replacement for Auth; they store settings keyed by `auth.users.id`. See [user-session-and-preferences.md](../architecture/user-session-and-preferences.md).

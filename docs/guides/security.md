@@ -25,8 +25,9 @@ RLS must be applied in every environment (see migrations under `supabase/migrati
 
 ```text
 Request
-  ├─ proxy.ts                 pages → /login; /api/* → JSON 401
-  ├─ app/(app)/layout.tsx     second session check
+  ├─ proxy.ts                 pages → /login; /api/* → JSON 401;
+  │                           demo user: /profile → /; non-GET /api/profile → 403
+  ├─ app/(app)/layout.tsx     second session check + app lock + theme seed
   ├─ API handlers             requireAuthenticatedUserId() → pass userId
   └─ repository + RLS         user_id scope + auth.uid() = user_id
 ```
@@ -37,7 +38,7 @@ Request
 
 | Layer | Behavior |
 | ----- | -------- |
-| `proxy.ts` | Refresh session; redirect guests from protected pages; JSON 401 for unauthenticated `/api/*` |
+| `proxy.ts` | Refresh session; redirect guests; JSON 401 for unauthenticated `/api/*`; demo Profile gate |
 | `(app)` layout | Redirect if session missing when the layout resolves |
 | Public | `/login`, `/signup`, `/auth/callback`, `/auth/confirm` |
 
@@ -63,12 +64,19 @@ Realtime subscriptions filter by `user_id` and still respect RLS ([realtime](../
 
 ---
 
+## Profile / app lock
+
+- **App lock ≠ Auth password.** Lock uses `mf_user_security_settings.app_password_hash` (scrypt) and an HttpOnly unlock cookie. See [app-lock.md](../architecture/app-lock.md).
+- **Client read models never include the hash** — `ProfileSecurity` exposes only `appLockEnabled`.
+- **Demo Profile gate:** when the signed-in email matches `DEMO_LOGIN_EMAIL`, `proxy.ts` redirects `/profile` home and returns 403 on non-GET `/api/profile/*` (GET stays allowed for theme). Details: [shared/lib/auth/README.md](../../shared/lib/auth/README.md).
+
 ## Ops checklist
 
-- Apply migrations so RLS policies exist in production
+- Apply migrations so RLS policies exist in production (include `006_profile.sql`)
 - Keep confirm/callback URLs and email templates aligned ([setup](../setup/1-supabase-auth-dashboard-setup.md))
 - Never ship a service-role key to the client
 - Gate demo login behind env flags if used
+- Confirm demo users cannot open Profile or mutate profile APIs
 
 ---
 
@@ -78,4 +86,6 @@ Realtime subscriptions filter by `user_id` and still respect RLS ([realtime](../
 | --- | --- |
 | [routing.md](../architecture/routing.md) | Where gates sit in the route tree |
 | [data-flow.md](../architecture/data-flow.md) | userId through use-cases |
+| [user-session-and-preferences.md](../architecture/user-session-and-preferences.md) | Session vs prefs; demo gate |
+| [app-lock.md](../architecture/app-lock.md) | Unlock cookie + gate |
 | [ADR 0001](../adr/0001-auth-architecture.md) | Why Supabase Auth |
