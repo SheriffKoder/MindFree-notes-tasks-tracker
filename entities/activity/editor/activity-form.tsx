@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { ActivityFormStatusBanner } from "@/entities/activity/editor/activity-form-status-banner";
 import { ActivityFormColorRow } from "@/entities/activity/editor/fields/activity-form-color-row";
 import { ActivityFormGoalRow } from "@/entities/activity/editor/fields/activity-form-goal-row";
+import { ActivityFormPeriodGoalRow } from "@/entities/activity/editor/fields/activity-form-period-goal-row";
+import { ActivityFormPriorityRow } from "@/entities/activity/editor/fields/activity-form-priority-row";
 import { ActivityFormScheduleRow } from "@/entities/activity/editor/fields/activity-form-schedule-row";
 import { ActivityFormSection } from "@/entities/activity/editor/fields/activity-form-section";
 import { ActivityFormTitleRow } from "@/entities/activity/editor/fields/activity-form-title-row";
@@ -29,8 +31,8 @@ import type { ActivityFormProps } from "@/entities/activity/editor/model/types";
  * Layout:
  * - Title (h2) + archive/restore/delete actions + dimmer description
  * - Status banner (upcoming / expired only)
- * - Details: mode-aware count/duration goals + color, starts + ends
- * - Tracking: type, schedule, schedule dependents
+ * - Details: priority + color + starts/ends (tasks); window only (reminders)
+ * - Tracking: type, schedule, then day/period goals (tasks)
  */
 export function ActivityForm({
   activity,
@@ -57,6 +59,10 @@ export function ActivityForm({
     setScheduleConfig,
     setGoal,
     setGoalDuration,
+    setGoalPeriod,
+    setPeriodGoal,
+    setPeriodGoalDuration,
+    setPriority,
     setStartsAt,
     setEndsAt,
   } = useActivityForm({ activity, resetKey, commitKey, onChange });
@@ -73,6 +79,9 @@ export function ActivityForm({
   const showDurationGoal =
     values.trackingMode === "duration" ||
     values.trackingMode === "count+duration";
+  /** Boolean uses count-shaped period targets (decision 3). */
+  const showPeriodCountGoal =
+    values.trackingMode === "boolean" || showCountGoal;
   const isReminder = kind === "reminder";
 
   return (
@@ -104,28 +113,17 @@ export function ActivityForm({
         description={
           isReminder
             ? "Choose the window when this reminder is active."
-            : "Optional goals, color, and the window when this task is active."
+            : "Priority, color, and the window when this task is active."
         }
         title="Details"
       >
         {!isReminder ? (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-            {showCountGoal ? (
-              <ActivityFormGoalRow
-                error={errors.goal}
-                label="Count goal"
-                value={values.goal}
-                onChange={setGoal}
-              />
-            ) : null}
-            {showDurationGoal ? (
-              <ActivityFormGoalRow
-                error={errors.goalDuration}
-                label="Duration goal (minutes)"
-                value={values.goalDuration}
-                onChange={setGoalDuration}
-              />
-            ) : null}
+            <ActivityFormPriorityRow
+              error={errors.priority}
+              priority={values.priority}
+              onChange={setPriority}
+            />
             <ActivityFormColorRow
               color={values.color}
               error={errors.color}
@@ -148,7 +146,7 @@ export function ActivityForm({
         description={
           isReminder
             ? "Choose which days the reminder appears."
-            : "How completion is recorded and which days the schedule covers."
+            : "How completion is recorded, which days the schedule covers, and optional day or period goals."
         }
         title={isReminder ? "Schedule" : "Tracking"}
       >
@@ -168,6 +166,46 @@ export function ActivityForm({
           onScheduleConfigChange={setScheduleConfig}
           onScheduleTypeChange={setScheduleType}
         />
+
+        {!isReminder ? (
+          <>
+            <div
+              aria-hidden
+              className="border-t border-[var(--color-border)]"
+            />
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {showCountGoal ? (
+                <ActivityFormGoalRow
+                  error={errors.goal}
+                  label="Daily count"
+                  value={values.goal}
+                  onChange={setGoal}
+                />
+              ) : null}
+              {showDurationGoal ? (
+                <ActivityFormGoalRow
+                  error={errors.goalDuration}
+                  label="Daily minutes"
+                  value={values.goalDuration}
+                  onChange={setGoalDuration}
+                />
+              ) : null}
+              <ActivityFormPeriodGoalRow
+                goalPeriod={values.goalPeriod}
+                goalPeriodError={errors.goalPeriod}
+                periodGoal={values.periodGoal}
+                periodGoalDuration={values.periodGoalDuration}
+                periodGoalDurationError={errors.periodGoalDuration}
+                periodGoalError={errors.periodGoal}
+                showCountGoal={showPeriodCountGoal}
+                showDurationGoal={showDurationGoal}
+                onGoalPeriodChange={setGoalPeriod}
+                onPeriodGoalChange={setPeriodGoal}
+                onPeriodGoalDurationChange={setPeriodGoalDuration}
+              />
+            </div>
+          </>
+        ) : null}
       </ActivityFormSection>
     </form>
   );

@@ -6,6 +6,9 @@
  *          legacy/unbounded secondary lines. Formatting only — no Progress math.
  * Used in: `features/activity/activity-progress-card/ui/progress-card-weeks.tsx`.
  * Used for: Bottom row of each Progress card.
+ *
+ * Actual-only weeks (`percent`/`goal` null) — common for `month`-shaped period
+ * goals — render `—` and a raw actual (no `0%` chip, no `/ goal`).
  */
 
 import type { TaskWeekProgress } from "@/entities/activity";
@@ -21,7 +24,7 @@ export interface ProgressWeekColumnProps {
 }
 
 /**
- * Renders a single week column: label, percent, actual/goal, secondary lines.
+ * Renders a single week column: label, percent (or `—`), actual/goal.
  */
 export function ProgressWeekColumn({ week }: ProgressWeekColumnProps) {
   return (

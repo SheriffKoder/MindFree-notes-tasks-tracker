@@ -36,6 +36,10 @@ function buildActivity(overrides: Partial<Activity> = {}): Activity {
     goal: 5,
     goalDuration: null,
     icon: null,
+    goalPeriod: null,
+    periodGoal: null,
+    periodGoalDuration: null,
+    priority: null,
     startsAt: null,
     endsAt: null,
     archivedAt: null,
@@ -400,5 +404,384 @@ describe("buildProgressPageData", () => {
     expect(
       page.tasks[0].weeks.filter((week) => week.metrics[0].goal === null),
     ).toHaveLength(5);
+  });
+});
+
+describe("buildProgressPageData period goals", () => {
+  it("grades full weeks at 100% and prorates partial edge weeks", () => {
+    // July 2026: W1 = Jul 1–5 (5 days), W2 = Jul 6–12 (full).
+    // Record 4 counts in W2 (= full periodGoal) and nothing in W1.
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          goal: null,
+          goalPeriod: "week",
+          periodGoal: 4,
+        }),
+      ],
+      monthRecords: [
+        buildRecord({ date: "2026-07-06", count: 1, goalSnapshot: null }),
+        buildRecord({
+          id: "r2",
+          date: "2026-07-07",
+          count: 1,
+          goalSnapshot: null,
+        }),
+        buildRecord({
+          id: "r3",
+          date: "2026-07-08",
+          count: 1,
+          goalSnapshot: null,
+        }),
+        buildRecord({
+          id: "r4",
+          date: "2026-07-09",
+          count: 1,
+          goalSnapshot: null,
+        }),
+      ],
+      allTimeValues: [],
+    });
+
+    const w2 = page.tasks[0].weeks.find((week) => week.weekNumber === 2);
+    const w1 = page.tasks[0].weeks.find((week) => week.weekNumber === 1);
+
+    expect(w2?.metrics[0]).toMatchObject({
+      totalActual: 4,
+      goal: 4,
+      percent: 100,
+    });
+    expect(w1?.metrics[0]?.goal).toBeCloseTo((4 * 5) / 7);
+    expect(w1?.metrics[0]).toMatchObject({
+      totalActual: 0,
+      percent: 0,
+    });
+  });
+
+  it("includes prorated edge weeks in the month donut denominator", () => {
+    // 60m/week; W1 (5d) + W5 (5d) + 3 full weeks.
+    // Actual: 60m in W1 + 60m in W4 + 20m in W5 = 140m.
+    // Goal: 60*(5/7) + 60*3 + 60*(5/7) = 60*(3 + 10/7) ≈ 265.71m → ~53%.
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          trackingMode: "duration",
+          goal: null,
+          goalDuration: null,
+          goalPeriod: "week",
+          periodGoalDuration: 60,
+        }),
+      ],
+      monthRecords: [
+        buildRecord({
+          date: "2026-07-01",
+          trackingModeSnapshot: "duration",
+          goalSnapshot: null,
+          goalDurationSnapshot: null,
+          count: 0,
+          duration: 60,
+        }),
+        buildRecord({
+          id: "r2",
+          date: "2026-07-20",
+          trackingModeSnapshot: "duration",
+          goalSnapshot: null,
+          goalDurationSnapshot: null,
+          count: 0,
+          duration: 60,
+        }),
+        buildRecord({
+          id: "r3",
+          date: "2026-07-27",
+          trackingModeSnapshot: "duration",
+          goalSnapshot: null,
+          goalDurationSnapshot: null,
+          count: 0,
+          duration: 20,
+        }),
+      ],
+      allTimeValues: [],
+    });
+
+    const monthMetric = page.tasks[0].month.metrics[0];
+    const expectedGoal = 60 * (3 + 10 / 7);
+
+    expect(monthMetric.totalActual).toBe(140);
+    expect(monthMetric.goal).toBeCloseTo(expectedGoal);
+    expect(monthMetric.percent).toBe(
+      Math.round((140 / expectedGoal) * 100),
+    );
+
+    const w1 = page.tasks[0].weeks.find((week) => week.weekNumber === 1);
+    const w5 = page.tasks[0].weeks.find((week) => week.weekNumber === 5);
+
+    expect(w1?.percent).not.toBeNull();
+    expect(w5?.percent).not.toBeNull();
+    expect(w1?.metrics[0].goal).toBeCloseTo((60 * 5) / 7);
+    expect(w5?.metrics[0].goal).toBeCloseTo((60 * 5) / 7);
+  });
+
+  it("shows a month-level percent and actual-only weeks for a month period goal", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          trackingMode: "duration",
+          goal: null,
+          goalDuration: null,
+          goalPeriod: "month",
+          periodGoalDuration: 100,
+        }),
+      ],
+      monthRecords: [
+        buildRecord({
+          date: "2026-07-10",
+          trackingModeSnapshot: "duration",
+          goalSnapshot: null,
+          goalDurationSnapshot: null,
+          count: 0,
+          duration: 40,
+        }),
+      ],
+      allTimeValues: [],
+    });
+
+    expect(page.tasks[0].month.metrics[0]).toMatchObject({
+      metric: "duration",
+      totalActual: 40,
+      goal: 100,
+      percent: 40,
+    });
+    expect(
+      page.tasks[0].weeks.every(
+        (week) => week.metrics[0].goal === null && week.percent === null,
+      ),
+    ).toBe(true);
+  });
+
+  it("grades boolean period goals as count (not completion)", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          trackingMode: "boolean",
+          goal: null,
+          goalPeriod: "week",
+          periodGoal: 4,
+        }),
+      ],
+      monthRecords: [
+        buildRecord({
+          date: "2026-07-06",
+          trackingModeSnapshot: "boolean",
+          goalSnapshot: null,
+          count: 1,
+        }),
+        buildRecord({
+          id: "r2",
+          date: "2026-07-07",
+          trackingModeSnapshot: "boolean",
+          goalSnapshot: null,
+          count: 1,
+        }),
+        buildRecord({
+          id: "r3",
+          date: "2026-07-08",
+          trackingModeSnapshot: "boolean",
+          goalSnapshot: null,
+          count: 1,
+        }),
+      ],
+      allTimeValues: [],
+    });
+
+    const w2 = page.tasks[0].weeks.find((week) => week.weekNumber === 2);
+
+    expect(w2?.metrics).toEqual([
+      expect.objectContaining({
+        metric: "count",
+        totalActual: 3,
+        goal: 4,
+        percent: 75,
+      }),
+    ]);
+  });
+
+  it("keeps an unset count dimension goal-less under count+duration", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          trackingMode: "count+duration",
+          goal: null,
+          goalDuration: null,
+          goalPeriod: "week",
+          periodGoal: null,
+          periodGoalDuration: 60,
+        }),
+      ],
+      monthRecords: [
+        buildRecord({
+          date: "2026-07-06",
+          trackingModeSnapshot: "count+duration",
+          goalSnapshot: null,
+          goalDurationSnapshot: null,
+          count: 2,
+          duration: 30,
+        }),
+      ],
+      allTimeValues: [],
+    });
+
+    const w2 = page.tasks[0].weeks.find((week) => week.weekNumber === 2);
+
+    expect(w2?.metrics[0]).toMatchObject({
+      metric: "count",
+      totalActual: 2,
+      goal: null,
+      percent: null,
+    });
+    expect(w2?.metrics[1]).toMatchObject({
+      metric: "duration",
+      totalActual: 30,
+      goal: 60,
+      percent: 50,
+    });
+    expect(w2?.percent).toBe(50);
+  });
+
+  it("includes a non-archived period-goal task with zero month records", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          goal: null,
+          goalPeriod: "week",
+          periodGoal: 4,
+        }),
+      ],
+      monthRecords: [],
+      allTimeValues: [],
+    });
+
+    expect(page.tasks).toHaveLength(1);
+
+    const weeksWithGoals = page.tasks[0].weeks.filter(
+      (week) => week.metrics[0].goal !== null,
+    );
+
+    expect(weeksWithGoals.length).toBeGreaterThan(0);
+    expect(weeksWithGoals.every((week) => week.percent === 0)).toBe(true);
+  });
+
+  it("excludes an archived period-goal task with no month records", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          archivedAt: "2026-07-01T00:00:00.000Z",
+          goalPeriod: "week",
+          periodGoal: 4,
+        }),
+      ],
+      monthRecords: [],
+      allTimeValues: [],
+    });
+
+    expect(page.tasks).toEqual([]);
+  });
+
+  it("excludes a period-goal task from months before startsAt", () => {
+    const page = buildProgressPageData({
+      month: PAST_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          startsAt: "2026-07-01",
+          goalPeriod: "week",
+          periodGoal: 4,
+        }),
+      ],
+      monthRecords: [],
+      allTimeValues: [],
+    });
+
+    expect(page.tasks).toEqual([]);
+  });
+
+  it("excludes a period-goal task from months after endsAt", () => {
+    const page = buildProgressPageData({
+      month: FUTURE_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          endsAt: "2026-07-31",
+          goalPeriod: "month",
+          periodGoal: 10,
+        }),
+      ],
+      monthRecords: [],
+      allTimeValues: [],
+    });
+
+    expect(page.tasks).toEqual([]);
+  });
+
+  it("includes a period-goal task in the month that contains startsAt", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          startsAt: "2026-07-01",
+          goalPeriod: "week",
+          periodGoal: 4,
+        }),
+      ],
+      monthRecords: [],
+      allTimeValues: [],
+    });
+
+    expect(page.tasks).toHaveLength(1);
+  });
+
+  it("uses the period-goal path when both due-day and period goals are set", () => {
+    const page = buildProgressPageData({
+      month: CURRENT_MONTH,
+      todayIso: TODAY,
+      tasks: [
+        buildActivity({
+          scheduleType: "daily",
+          goal: 5,
+          goalPeriod: "month",
+          periodGoal: 20,
+        }),
+      ],
+      monthRecords: [
+        buildRecord({
+          date: "2026-07-10",
+          count: 4,
+          goalSnapshot: 5,
+        }),
+      ],
+      allTimeValues: [],
+    });
+
+    // Period path: month goal is periodGoal (20), not 31 × day goal (5).
+    // No projection of missing due days.
+    expect(page.tasks[0].month.metrics[0]).toMatchObject({
+      totalActual: 4,
+      goal: 20,
+      percent: 20,
+    });
   });
 });

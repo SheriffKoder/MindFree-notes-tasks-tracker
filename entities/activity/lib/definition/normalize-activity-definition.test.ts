@@ -12,24 +12,40 @@ const DIRTY_VALUES = {
   color: "#ff0000",
   goal: 5,
   goalDuration: 30,
+  goalPeriod: "week" as const,
+  periodGoal: 4,
+  periodGoalDuration: 150,
+  priority: "high" as const,
+};
+
+const CLEARED_PERIOD_AND_PRIORITY = {
+  goalPeriod: null,
+  periodGoal: null,
+  periodGoalDuration: null,
+  priority: null,
 };
 
 describe("normalizeActivityDefinition", () => {
-  it("forces boolean and clears color/goals for reminders", () => {
+  it("forces boolean and clears color/goals/period/priority for reminders", () => {
     expect(normalizeActivityDefinition("reminder", DIRTY_VALUES)).toEqual({
       trackingMode: "boolean",
       color: null,
       goal: null,
       goalDuration: null,
+      ...CLEARED_PERIOD_AND_PRIORITY,
     });
   });
 
-  it("keeps tracking mode and color for tasks, normalizing goals", () => {
+  it("keeps tracking mode, color, period goals, and priority for tasks", () => {
     expect(normalizeActivityDefinition("task", DIRTY_VALUES)).toEqual({
       trackingMode: "count+duration",
       color: "#ff0000",
       goal: 5,
       goalDuration: 30,
+      goalPeriod: "week",
+      periodGoal: 4,
+      periodGoalDuration: 150,
+      priority: "high",
     });
   });
 
@@ -40,12 +56,18 @@ describe("normalizeActivityDefinition", () => {
         color: null,
         goal: 3,
         goalDuration: 20,
+        goalPeriod: "month",
+        periodGoal: 10,
       }),
     ).toEqual({
       trackingMode: "count",
       color: null,
       goal: 3,
       goalDuration: null,
+      goalPeriod: "month",
+      periodGoal: 10,
+      periodGoalDuration: null,
+      priority: null,
     });
   });
 
@@ -62,6 +84,7 @@ describe("normalizeActivityDefinition", () => {
       color: "#abc",
       goal: null,
       goalDuration: null,
+      ...CLEARED_PERIOD_AND_PRIORITY,
     });
   });
 
@@ -77,6 +100,7 @@ describe("normalizeActivityDefinition", () => {
       color: null,
       goal: null,
       goalDuration: 15,
+      ...CLEARED_PERIOD_AND_PRIORITY,
     });
   });
 });

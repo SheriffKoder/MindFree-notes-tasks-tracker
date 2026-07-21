@@ -24,4 +24,10 @@ export interface AppDrawerProps {
    * @default "Panel"
    */
   ariaLabel?: string;
+  /**
+   * When true, desktop width is drag-resizable (persisted via
+   * `useResizableWidth`). Notes only — other drawers stay fixed at 25vw.
+   * @default false
+   */
+  resizable?: boolean;
 }

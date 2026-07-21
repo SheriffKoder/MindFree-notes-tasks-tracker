@@ -28,6 +28,10 @@ type ActivityRowPatch = Partial<
     | "schedule_config"
     | "goal"
     | "goal_duration"
+    | "goal_period"
+    | "period_goal"
+    | "period_goal_duration"
+    | "priority"
     | "starts_at"
     | "ends_at"
     | "archived_at"
@@ -81,6 +85,22 @@ export async function updateActivityById(
 
   if (patch.goalDuration !== undefined) {
     dbPatch.goal_duration = patch.goalDuration ?? null;
+  }
+
+  if (patch.goalPeriod !== undefined) {
+    dbPatch.goal_period = patch.goalPeriod ?? null;
+  }
+
+  if (patch.periodGoal !== undefined) {
+    dbPatch.period_goal = patch.periodGoal ?? null;
+  }
+
+  if (patch.periodGoalDuration !== undefined) {
+    dbPatch.period_goal_duration = patch.periodGoalDuration ?? null;
+  }
+
+  if (patch.priority !== undefined) {
+    dbPatch.priority = patch.priority ?? null;
   }
 
   if (patch.startsAt !== undefined) {

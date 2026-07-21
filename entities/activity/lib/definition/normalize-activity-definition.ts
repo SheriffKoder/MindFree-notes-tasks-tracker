@@ -9,6 +9,8 @@
 import { normalizeActivityGoals } from "@/entities/activity/editor/model/normalize-activity-goals";
 import type {
   ActivityKind,
+  ActivityPriority,
+  GoalPeriod,
   TrackingMode,
 } from "@/entities/activity/model/types";
 
@@ -18,6 +20,10 @@ export interface ActivityDefinitionValues {
   color?: string | null;
   goal?: number | null;
   goalDuration?: number | null;
+  goalPeriod?: GoalPeriod | null;
+  periodGoal?: number | null;
+  periodGoalDuration?: number | null;
+  priority?: ActivityPriority | null;
 }
 
 /** Canonical values safe to persist for the given kind. */
@@ -26,6 +32,10 @@ export interface NormalizedActivityDefinition {
   color: string | null;
   goal: number | null;
   goalDuration: number | null;
+  goalPeriod: GoalPeriod | null;
+  periodGoal: number | null;
+  periodGoalDuration: number | null;
+  priority: ActivityPriority | null;
 }
 
 /**
@@ -45,6 +55,10 @@ export function normalizeActivityDefinition(
       color: null,
       goal: null,
       goalDuration: null,
+      goalPeriod: null,
+      periodGoal: null,
+      periodGoalDuration: null,
+      priority: null,
     };
   }
 
@@ -55,5 +69,9 @@ export function normalizeActivityDefinition(
     color: values.color ?? null,
     goal: goals.goal,
     goalDuration: goals.goalDuration,
+    goalPeriod: values.goalPeriod ?? null,
+    periodGoal: values.periodGoal ?? null,
+    periodGoalDuration: values.periodGoalDuration ?? null,
+    priority: values.priority ?? null,
   };
 }

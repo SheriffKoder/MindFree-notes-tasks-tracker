@@ -14,7 +14,9 @@
  *
  * Steps:
  * 1. Bucket month records and all-time values by `taskId`.
- * 2. Filter tasks: include when the month has a record OR a projectable due day.
+ * 2. Filter tasks: include when the month has a record, OR a non-archived
+ *    period-goal task whose validity window overlaps the month, OR a
+ *    projectable due day.
  * 3. Order: active tasks first, archived second (definition creation order kept).
  * 4. Map each included task through `buildTaskProgress`.
  */
@@ -24,6 +26,7 @@ import {
   hasProjectableDueDay,
   type ProgressAllTimeRecordValue,
 } from "@/entities/activity/lib/progress/build-task-progress";
+import { overlapsValidityWindow } from "@/entities/activity/lib/schedule/resolve-schedule";
 import type { ProgressPageData } from "@/entities/activity/model/progress-read-models";
 import type { Activity, ActivityRecord } from "@/entities/activity/model/types";
 
@@ -53,6 +56,16 @@ function isTaskIncluded(
   hasMonthRecord: boolean,
 ): boolean {
   if (hasMonthRecord) {
+    return true;
+  }
+
+  // Non-archived period-goal tasks appear when the month overlaps their
+  // validity window (startsAt/endsAt) — not every month on the calendar.
+  if (
+    activity.archivedAt === null &&
+    activity.goalPeriod !== null &&
+    overlapsValidityWindow(activity, month)
+  ) {
     return true;
   }
 

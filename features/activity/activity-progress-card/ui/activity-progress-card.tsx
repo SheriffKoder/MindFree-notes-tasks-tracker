@@ -76,7 +76,11 @@ export function ActivityProgressCard({ task }: ActivityProgressCardProps) {
         </div>
       </header>
 
-      <ProgressCardSummary allTime={task.allTime} month={task.month} />
+      <ProgressCardSummary
+        allTime={task.allTime}
+        goalPeriod={task.goalPeriod}
+        month={task.month}
+      />
 
       <ProgressCardWeeks weeks={task.weeks} />
     </article>

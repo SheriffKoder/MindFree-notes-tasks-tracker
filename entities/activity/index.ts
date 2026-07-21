@@ -11,10 +11,12 @@ export { WEEKDAYS } from "@/entities/activity/model/types";
 export type {
   Activity,
   ActivityKind,
+  ActivityPriority,
   ActivityRecord,
   ActivityRecordRow,
   ActivityRow,
   ActivityStatus,
+  GoalPeriod,
   ScheduleConfig,
   ScheduleType,
   TrackingMode,

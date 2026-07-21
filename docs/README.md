@@ -15,7 +15,7 @@ Onboarding and architecture for MindFree. Prefer these **WHY** docs over the lon
 3. [entities/note/docs/domain-model.md](../entities/note/docs/domain-model.md)  
 4. [entities/note/docs/read-models.md](../entities/note/docs/read-models.md)  
 5. [architecture/state-management.md](./architecture/state-management.md) · [caching.md](./caching.md)  
-6. [architecture/rendering.md](./rendering.md) · [data-flow.md](./data-flow.md) · [routing.md](./routing.md)  
+6. [architecture/rendering.md](./architecture/rendering.md) · [data-flow.md](./architecture/data-flow.md) · [views/notes/docs/data-flow.md](../views/notes/docs/data-flow.md) · [routing.md](./architecture/routing.md)  
 7. Writes / sync: [writes-and-autosave](../entities/note/docs/writes-and-autosave.md), [realtime](../entities/note/docs/realtime.md), [offline](../entities/note/docs/offline.md)  
 8. [adr/README.md](./adr/README.md) — decisions (auth, hydrate, selectedDate, hub, …)  
 9. File maps: [entities/note/RESPONSIBILITIES.md](../entities/note/RESPONSIBILITIES.md)  

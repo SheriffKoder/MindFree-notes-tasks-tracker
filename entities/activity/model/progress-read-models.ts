@@ -20,7 +20,7 @@
  * - ProgressPageData — full page payload for one month
  */
 
-import type { TrackingMode } from "@/entities/activity/model/types";
+import type { GoalPeriod, TrackingMode } from "@/entities/activity/model/types";
 
 /**
  * Semantic metric family used by Progress aggregations.
@@ -122,6 +122,11 @@ export interface ProgressTask {
   icon: string | null;
   /** Current tracking mode selecting primary card metrics. */
   trackingMode: TrackingMode;
+  /**
+   * Period-goal unit when Progress grades against a week/month target;
+   * `null` means the due-day model (card shows “This month”).
+   */
+  goalPeriod: GoalPeriod | null;
   /** Archive timestamp when archived; `null` when active. */
   archivedAt: string | null;
   /** Selected-month aggregation. */
