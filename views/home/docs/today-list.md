@@ -14,6 +14,7 @@ what the Home view must not own.
 
 ```text
 Home
+  ├─ HomeActivityRealtime ─── useActivityRealtimeSync() once
   ├─ "Today's Tasks"
   │    └─ HomeTodayList ─────── useHomeTodayQuery("task")
   │         └─ HomeTodayPriorityList  (High → Medium → Low → Other; omit empty)
@@ -48,7 +49,8 @@ shared records drawer.
 | Group today's rows by priority for display | Priority persistence or editor |
 | Render `QuickRecordCard` for each item | Record API calls or cache mutation logic |
 | Render pending, error, and empty states | A second save/sync pipeline |
-| Future realtime/offline mount points | Activity-definition editing |
+| Mount realtime once via `HomeActivityRealtime` | Duplicate mounts inside both lists |
+| Future offline mount (Phase 6) | Activity-definition editing |
 
 `useHomeTodayQuery(kind)` is a memoized selector over the matching
 `["activities", kind]` bucket and `["activityRecords", currentMonth]`. Tasks and
@@ -132,7 +134,9 @@ QuickRecord
 ```
 
 Home does not have a branch in the synchronization hub. Every consumer derives
-from the same definitions and month-record caches.
+from the same definitions and month-record caches. Realtime patches those caches
+from `HomeActivityRealtime` — not from inside each Today list
+([realtime.md](../../../entities/activity/docs/realtime.md)).
 
 ---
 
@@ -141,5 +145,6 @@ from the same definitions and month-record caches.
 | Doc | Why |
 | --- | --- |
 | [notes-strip.md](./notes-strip.md) | Parallel Home-consumer ownership doctrine |
+| [realtime.md](../../../entities/activity/docs/realtime.md) | Live sync mount + gates |
 | [ADR 0014](../../../docs/adr/0014-flat-records-client-side-join.md) | Why records stay flat and views join client-side |
 | [ADR 0012](../../../docs/adr/0012-calendar-records-always-visible.md) | Why recorded history survives schedule changes |

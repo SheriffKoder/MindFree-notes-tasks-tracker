@@ -18,10 +18,10 @@ import { HomeTodayPriorityList } from "@/views/home/ui/home-today-priority-list"
  * Separation is whitespace + hover, not dividers.
  */
 export function HomeTodayList() {
-  // Phase 5 — mount useActivityRealtimeSync(...) here (mirrors
-  // useNotesRealtimeSync in views/home/ui/home-notes-section.tsx).
+  // Realtime: shared HomeActivityRealtime island in views/home/index.tsx
+  // (do not mount useActivityRealtimeSync here — one subscription per surface).
   // Phase 6 — mount useOfflineSync(userId, [activityOfflineAdapter]) here
-  // (mirrors createNotesOfflineSyncAdapter + useOfflineSync in the same file).
+  // (mirrors createNotesOfflineSyncAdapter + useOfflineSync in home-notes-section).
 
   const { today, isPending, isError } = useHomeTodayQuery("task");
 

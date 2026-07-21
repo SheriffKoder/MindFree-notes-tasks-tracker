@@ -9,6 +9,7 @@ import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
 import { cn } from "@/lib/utils";
 import { HomeAsideShell } from "@/views/home/model/home-aside-drawer-context";
+import { HomeActivityRealtime } from "@/views/home/ui/home-activity-realtime";
 import { HomeAsideContent } from "@/views/home/ui/home-aside-content";
 import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
 import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
@@ -37,6 +38,7 @@ export function HomeView({ notice = null }: HomeViewProps) {
   return (
     <HomeAsideShell>
       <div className="mx-auto flex h-full w-full flex-col gap-4">
+        <HomeActivityRealtime />
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h2 className="text-h2 flex items-center gap-2">

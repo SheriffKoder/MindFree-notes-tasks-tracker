@@ -34,6 +34,7 @@ export {
   markActivityMutationPending,
   markRecordMutationPending,
   useActivitiesQuery,
+  useActivityRealtimeSync,
   useActivityRecordsQuery,
   useArchiveActivityMutation,
   useCreateActivityMutation,
@@ -46,7 +47,10 @@ export {
 } from "@/entities/activity/hooks";
 export type {
   DeleteActivityRecordMutationInput,
+  RealtimeActivityChangePayload,
+  RealtimeActivityRecordChangePayload,
   UpsertActivityRecordMutationInput,
+  UseActivityRealtimeSyncOptions,
   UseHomeTodayQueryResult,
 } from "@/entities/activity/hooks";
 

@@ -33,6 +33,10 @@ export interface UseNotesRealtimeSyncOptions {
 
 /**
  * Subscribes to mf_notes changes for the signed-in user and updates read caches.
+ *
+ * INSERT/UPDATE use a `user_id` filter. DELETE cannot — Postgres replica
+ * identity / Realtime omit filterable non-PK columns on delete — so DELETE is
+ * unfiltered and `applyRealtimeNoteChange` only clears ids already in cache.
  */
 export function useNotesRealtimeSync({
   onNoteChange,
@@ -52,35 +56,62 @@ export function useNotesRealtimeSync({
         return;
       }
 
+      const handlePayload = (payload: {
+        eventType: string;
+        new: Record<string, unknown>;
+        old: Record<string, unknown>;
+      }) => {
+        const event = payload.eventType as RealtimeNoteChangeEvent;
+        const result = applyRealtimeNoteChange(
+          queryClient,
+          event,
+          (payload.new as Record<string, unknown> | null) ?? null,
+          (payload.old as Record<string, unknown> | null) ?? null,
+        );
+
+        if (!result.applied) {
+          return;
+        }
+
+        onNoteChange?.({
+          event: result.event,
+          note: result.note,
+          applied: result.applied,
+        });
+      };
+
+      const userFilter = `user_id=eq.${user.id}`;
+
       const channel = supabase
         .channel(`notes-realtime-${user.id}`)
         .on(
           "postgres_changes",
           {
-            event: "*",
+            event: "INSERT",
             schema: "public",
             table: NOTES_TABLE,
-            filter: `user_id=eq.${user.id}`,
+            filter: userFilter,
           },
-          (payload) => {
-            const event = payload.eventType as RealtimeNoteChangeEvent;
-            const result = applyRealtimeNoteChange(
-              queryClient,
-              event,
-              (payload.new as Record<string, unknown> | null) ?? null,
-              (payload.old as Record<string, unknown> | null) ?? null,
-            );
-
-            if (!result.applied) {
-              return;
-            }
-
-            onNoteChange?.({
-              event: result.event,
-              note: result.note,
-              applied: result.applied,
-            });
+          handlePayload,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: NOTES_TABLE,
+            filter: userFilter,
           },
+          handlePayload,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: NOTES_TABLE,
+          },
+          handlePayload,
         )
         .subscribe();
 

@@ -3,7 +3,7 @@
 Three tables, one auth user. Auth (`auth.users`) remains identity; these rows
 hold display name, theme/export preferences, and app-lock settings.
 
-Migration: `supabase/migrations/006_profile.sql`  
+Migration: `supabase/migrations/009_profile.sql`  
 Defaults (TS mirror): `entities/profile/lib/default-profile-values.ts`  
 Table constants: `shared/config/supabase-tables.ts`
 

@@ -25,7 +25,7 @@ overwrite user-edited preferences.
 
 ## A — Signup trigger
 
-Defined in `supabase/migrations/006_profile.sql`:
+Defined in `supabase/migrations/009_profile.sql`:
 
 - Function `mf_handle_new_user` runs **after insert** on `auth.users`.
 - Inserts into `mf_profiles`, `mf_user_preferences`, `mf_user_security_settings`

@@ -47,6 +47,11 @@ export interface ActivityFormProps {
   resetKey: string;
   /** Incremented after a successful autosave to snap the dirty baseline. */
   commitKey?: number;
+  /**
+   * Bumped when an idle open drawer may accept a remote server revision into
+   * fields (realtime sync). Does not reset on every cache write.
+   */
+  remoteSyncKey?: number;
   /** Called when local field state changes. No network I/O in the form. */
   onChange?: (values: ActivityFormValues, meta: ActivityFormChangeMeta) => void;
   /** Optional save feedback from the drawer island (Step 13). */
@@ -69,6 +74,8 @@ export interface UseActivityFormOptions {
   resetKey: string;
   /** Incremented after a successful autosave to snap the dirty baseline. */
   commitKey?: number;
+  /** Bumped when remote sync is allowed to pull server fields into the form. */
+  remoteSyncKey?: number;
   onChange?: (values: ActivityFormValues, meta: ActivityFormChangeMeta) => void;
 }
 

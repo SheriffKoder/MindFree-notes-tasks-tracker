@@ -148,8 +148,8 @@ Record API surfaces (thin route → record mutation use-cases):
 
 Both mutation hooks optimistically update only the target month bucket and
 restore its snapshot on error. Upsert success uses `isRemoteRecordNewer` before
-replacing the optimistic row; pending natural keys provide the future realtime
-echo-suppression seam.
+replacing the optimistic row; pending natural keys suppress realtime echoes of
+in-flight local writes ([realtime.md](./realtime.md)).
 
 Optimistic rows apply the submitted `trackingMode` / `goal` / `goalDuration`
 (`hooks/record/build-optimistic-activity-record.ts`). The server response then
@@ -194,31 +194,30 @@ in isolation
 Definition `onSuccess` re-applies the server row only when
 `isRemoteActivityNewer` says it is newer than what's cached. Record upserts use
 the equivalent `isRemoteRecordNewer` gate for `(taskId, date)`. Both compare
-`updatedAt`, preventing a slow response from clobbering a later edit and
-providing the same gate a realtime adapter will reuse (Phase 5).
+`updatedAt`, preventing a slow response from clobbering a later edit. The same
+gates are reused by realtime apply adapters ([realtime.md](./realtime.md)).
 
 `hooks/activity-mutation-pending.ts` tracks in-flight definition ids;
-`hooks/record/record-mutation-pending.ts` tracks in-flight record natural keys,
-so a future realtime subscription can skip echoing its own writes.
+`hooks/record/record-mutation-pending.ts` tracks in-flight record natural keys
+so realtime can skip echoing its own writes.
 
 ---
 
-## Offline & realtime (deferred)
+## Realtime (shipped) & offline (deferred)
 
-Both remain inert seams:
-
-- **Realtime (Phase 5)** — a `postgres_changes` subscription would map events to
-  the same `ActivityChange` hub, gated by the matching definition/record
-  newer-wins check and mutation-pending registry.
+- **Realtime** — `postgres_changes` on `mf_task` + `mf_task_record` maps into
+  the same `ActivityChange` hub, gated by newer-wins + mutation-pending.
+  Details: [realtime.md](./realtime.md).
 - **Offline (Phase 6)** — a queue adapter would persist pending writes and flush
-  them through the same hub.
+  them through the same hub (still deferred).
 
-The shared page mount point is
-`features/activity/activity-page/ui/activity-page-client.tsx`, covering both
-`/tasks` and `/reminders`. Home activity islands live in
-`views/home/ui/home-today-list.tsx` and
-`views/home/ui/home-reminders-list.tsx`; realtime/offline work should reuse one
-kind-aware integration rather than fork task and reminder synchronization.
+Mount points (one subscription per surface):
+
+- Tasks + Reminders:
+  `features/activity/activity-page/ui/activity-page-client.tsx`
+- Home: `views/home/ui/home-activity-realtime.tsx` (once from
+  `views/home/index.tsx` — not inside both Today lists)
+- Progress: not mounted (pure SSR)
 
 ---
 
@@ -228,5 +227,6 @@ kind-aware integration rather than fork task and reminder synchronization.
 | --- | --- |
 | [domain-model.md](./domain-model.md) | Lifecycle: create → archive/restore → delete |
 | [read-models.md](./read-models.md) | The two caches the hub keeps consistent |
+| [realtime.md](./realtime.md) | Multi-tab sync that echoes local writes |
 | [responsibilities.md](./responsibilities.md) | `mutations/`, `cache/`, `hooks/` file map |
 | [views/home/docs/today-list.md](../../../views/home/docs/today-list.md) | Home's inline-recording consumer boundary |

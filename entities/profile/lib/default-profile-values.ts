@@ -1,8 +1,8 @@
 /**
  * @file entities/profile/lib/default-profile-values.ts
- * Canonical insert defaults for profile seed (mirror `006_profile.sql` trigger).
+ * Canonical insert defaults for profile seed (mirror `009_profile.sql` trigger).
  *
- * When defaults change, update this file and `supabase/migrations/006_profile.sql`.
+ * When defaults change, update this file and `supabase/migrations/009_profile.sql`.
  */
 
 import type {

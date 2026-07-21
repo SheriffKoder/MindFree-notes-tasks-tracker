@@ -71,7 +71,7 @@ After create / patch / delete:
 2. Avoid invalidating the whole world unless the server changed unexpected rows.
 3. Route every normalized change through **`synchronizeNoteCaches`** so calendar, general, and home stay consistent.
 
-Realtime (`postgres_changes`) and offline flush adapt their payloads into the same `NoteChange` shape, then call the hub — sources differ; cache rules do not.
+Realtime (`postgres_changes`) and offline flush adapt their payloads into the same `NoteChange` shape, then call the hub — sources differ; cache rules do not. Activity mirrors this for definitions + records; see [entities/activity/docs/realtime.md](../../entities/activity/docs/realtime.md) (Progress stays pure SSR — no TanStack key).
 
 ---
 
@@ -98,6 +98,8 @@ Adjacent calendar months are prefetched from the Notes views section and the dra
 | --- | --- |
 | [state-management.md](./state-management.md) | Which state belongs in Query vs URL vs UI |
 | [read-models.md](../../entities/note/docs/read-models.md) | Payload ↔ key mapping |
+| [entities/note/docs/realtime.md](../../entities/note/docs/realtime.md) | Notes live sync |
+| [entities/activity/docs/realtime.md](../../entities/activity/docs/realtime.md) | Activity live sync (Progress excluded) |
 | [views/progress/docs/data-flow.md](../../views/progress/docs/data-flow.md) | Progress pure-SSR exception (no hydrate) |
 | ADRs | [0003](../adr/0003-rsc-first-with-query-hydration.md), [0007](../adr/0007-synchronize-note-caches-hub.md), [0009](../adr/0009-offline-writes-simple-queue.md) |
 | Workflow | `02-notes-page.md` Step 5; `home/notes-strip.md` sync hub |

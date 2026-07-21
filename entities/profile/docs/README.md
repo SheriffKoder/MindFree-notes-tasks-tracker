@@ -20,7 +20,7 @@ React user store — see
 - [App lock](../../../docs/architecture/app-lock.md) — unlock cookie + gate
 - Theme apply: [`features/profile/apply-theme/README.md`](../../../features/profile/apply-theme/README.md)
 - Page composition: [`views/profile/docs/`](../../../views/profile/docs/)
-- Migration: `supabase/migrations/006_profile.sql`
+- Migration: `supabase/migrations/009_profile.sql`
 
 ## Reading order
 

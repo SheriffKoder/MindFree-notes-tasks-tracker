@@ -87,7 +87,7 @@ The following remain deferred:
 
 ### Follow-up (profile tables introduced later)
 
-App-owned profile data now lives in `mf_profiles`, `mf_user_preferences`, and `mf_user_security_settings` (migration `006_profile.sql`), keyed by `auth.users.id` with RLS. Auth remains the identity source of truth; profile rows are settings and account display data, not a second auth system.
+App-owned profile data now lives in `mf_profiles`, `mf_user_preferences`, and `mf_user_security_settings` (migration `009_profile.sql`), keyed by `auth.users.id` with RLS. Auth remains the identity source of truth; profile rows are settings and account display data, not a second auth system.
 
 See:
 
