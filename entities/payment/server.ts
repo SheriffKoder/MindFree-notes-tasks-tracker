@@ -16,6 +16,7 @@ export {
   deletePayment,
   updatePayment,
 } from "@/entities/payment/mutations";
+export { seedPaymentsPageCache } from "@/entities/payment/hydration";
 export { getAuthenticatedUserId } from "@/entities/payment/repository";
 export type {
   CreatePaymentBody,
