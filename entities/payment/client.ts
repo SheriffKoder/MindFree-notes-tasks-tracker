@@ -2,6 +2,10 @@
  * @file entities/payment/client.ts
  * Client-side TanStack Query exports for payment read caches + write mutations.
  *
+ * Purpose: Single import surface for `"use client"` payment modules.
+ * Used in: views/payments/*, features/payments/*, payment drawer orchestrators
+ * Used for: Browser fetchers, query hooks, mutations, and cache hub helpers.
+ *
  * Import from here in `"use client"` modules — no server/repository code.
  */
 

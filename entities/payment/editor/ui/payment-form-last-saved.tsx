@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/ui/payment-form-last-saved.tsx
  * Thin last-saved / save-status label for the payment drawer footer.
+ *
+ * Purpose: Render autosave feedback or last-edited timestamp in the footer slot.
+ * Used in: features/payments/payment-drawer/ui/payment-drawer-footer.tsx
+ * Used for: Transient saving/saved/error labels and idle last-edited text.
  */
 
 import { cn } from "@/lib/utils";
@@ -22,6 +26,8 @@ export function PaymentFormLastSaved({
   const saveStatusLabel = getSaveStatusLabel(saveStatus);
   const label = saveStatusLabel ?? formattedLastEditedAt ?? "New payment";
 
+  /////////////////////////////////
+  // Status label — transient save feedback overrides last-edited text
   return (
     <p
       className={cn(

@@ -4,6 +4,21 @@
  *
  * Purpose: Own form state only — no network I/O or save routing.
  * Used in: entities/payment/editor/ui/payment-form.tsx
+ * Used for: Controlled fields, dirty/valid meta, and baseline snaps after autosave.
+ *
+ * Function Index:
+ * - emptyValues — create-draft defaults (today’s date, zero amount)
+ * - paymentToFormValues — map Payment | null → form snapshot
+ * - valuesAreEqual — shallow equality for dirty detection
+ * - getFieldErrors — Zod issues → field error map
+ * - usePaymentForm — controlled editor state machine
+ *
+ * Steps (usePaymentForm lifecycle):
+ * 1. Seed values from the loaded payment or empty defaults.
+ * 2. On resetKey / payment id change — reload fields (context switch).
+ * 3. On remoteSyncKey bump — pull server revision into fields when idle.
+ * 4. On commitKey bump — snap dirty baseline after successful autosave.
+ * 5. Emit onChange with isDirty/isValid meta on every field update.
  */
 
 "use client";
@@ -21,6 +36,10 @@ import type {
 import type { Payment } from "@/entities/payment/model/types";
 import { getTodayIsoDate } from "@/shared/calendar";
 
+/////////////////////////////////////////////////////////////
+// Pure helpers — seed, compare, validate (no React).
+
+/** Create-mode defaults: empty title, zero amount, today’s date. */
 function emptyValues(): PaymentFormValues {
   return {
     title: "",
@@ -31,11 +50,18 @@ function emptyValues(): PaymentFormValues {
   };
 }
 
+/**
+ * Maps a cached payment (or null draft) into editable form values.
+ *
+ * @param payment - persisted row, or `null` for create
+ */
 function paymentToFormValues(payment: Payment | null): PaymentFormValues {
+  // 1. No row yet — return create defaults
   if (!payment) {
     return emptyValues();
   }
 
+  // 2. Copy editable fields from the domain object
   return {
     title: payment.title,
     amount: payment.amount,
@@ -45,6 +71,9 @@ function paymentToFormValues(payment: Payment | null): PaymentFormValues {
   };
 }
 
+/**
+ * @returns whether two form snapshots are field-equal (dirty detection).
+ */
 function valuesAreEqual(
   left: PaymentFormValues,
   right: PaymentFormValues,
@@ -58,13 +87,20 @@ function valuesAreEqual(
   );
 }
 
+/**
+ * Runs Zod validation and returns the first message per field.
+ *
+ * @param values - current form snapshot
+ */
 function getFieldErrors(values: PaymentFormValues): PaymentFormFieldErrors {
+  // 1. Parse against the editor schema
   const result = paymentFormSchema.safeParse(values);
 
   if (result.success) {
     return {};
   }
 
+  // 2. Fold issues into a Partial<field, message> map (first wins)
   const errors: PaymentFormFieldErrors = {};
 
   for (const issue of result.error.issues) {
@@ -85,6 +121,9 @@ function getFieldErrors(values: PaymentFormValues): PaymentFormFieldErrors {
   return errors;
 }
 
+/////////////////////////////////////////////////////////////
+// Hook — controlled editor state.
+
 /**
  * Manages controlled payment editor state derived from an optional existing row.
  *
@@ -98,6 +137,8 @@ export function usePaymentForm({
   remoteSyncKey = 0,
   onChange,
 }: UsePaymentFormOptions): UsePaymentFormResult {
+  /////////////////////////////////
+  // 1. Identity + initial seed from payment / empty draft
   const paymentKey = payment?.id ?? "draft";
   const initialValues = useMemo(
     () => paymentToFormValues(payment),
@@ -109,20 +150,25 @@ export function usePaymentForm({
   const [values, setValues] = useState<PaymentFormValues>(initialValues);
   const [errors, setErrors] = useState<PaymentFormFieldErrors>({});
 
+  // Keep latest snapshots for commit/remote effects without re-subscribing
   const valuesRef = useRef(values);
   valuesRef.current = values;
 
   const paymentRef = useRef(payment);
   paymentRef.current = payment;
 
-  useEffect(() => {
+  /////////////////////////////////
+  // 2. Context switch — reload fields when drawer target changes
+  useEffect(function resetOnContextSwitch() {
     const nextValues = paymentToFormValues(payment);
     setBaselineValues(nextValues);
     setValues(nextValues);
     setErrors({});
   }, [paymentKey, resetKey]);
 
-  useEffect(() => {
+  /////////////////////////////////
+  // 3. Remote sync — pull cached payment only when remoteSyncKey bumps
+  useEffect(function applyRemoteSync() {
     if (remoteSyncKey === 0) {
       return;
     }
@@ -133,7 +179,9 @@ export function usePaymentForm({
     setErrors({});
   }, [remoteSyncKey]);
 
-  useEffect(() => {
+  /////////////////////////////////
+  // 4. Successful autosave — snap baseline without overwriting inputs
+  useEffect(function snapBaselineAfterCommit() {
     if (commitKey === 0) {
       return;
     }
@@ -141,6 +189,8 @@ export function usePaymentForm({
     setBaselineValues(valuesRef.current);
   }, [commitKey]);
 
+  /////////////////////////////////
+  // 5. Derived meta — dirty, valid, last-edited label
   const isDirty = useMemo(
     () => !valuesAreEqual(values, baselineValues),
     [baselineValues, values],
@@ -156,12 +206,14 @@ export function usePaymentForm({
     [payment?.updatedAt],
   );
 
+  /////////////////////////////////
+  // 6. Field writers — update values + field errors together
   const updateValues = useCallback((nextValues: PaymentFormValues) => {
     setValues(nextValues);
     setErrors(getFieldErrors(nextValues));
   }, []);
 
-  useEffect(() => {
+  useEffect(function emitChangeMeta() {
     onChange?.(values, { isDirty, isValid });
   }, [isDirty, isValid, onChange, values]);
 

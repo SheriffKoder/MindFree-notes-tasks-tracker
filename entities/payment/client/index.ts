@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/client/index.ts
  * Segment barrel for browser payment fetchers, keys, and query options.
+ *
+ * Purpose: Public exports for client-side payment network + query keys.
+ * Used in: entities/payment/client.ts, mutation hooks
+ * Used for: Browser fetchers and TanStack query option factories.
  */
 
 export {

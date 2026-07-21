@@ -1,6 +1,14 @@
 /**
  * @file entities/payment/repository/delete-payment.ts
  * Deletes one payment row owned by the current user (RLS).
+ *
+ * Purpose: Supabase DELETE for one owner-scoped payment row.
+ * Used in: entities/payment/mutations/delete-payment.ts
+ * Used for: Hard-delete from the drawer and DELETE /api/payments/:id.
+ *
+ * Steps:
+ * 1. Delete row matching id + userId.
+ * 2. Return whether a row was removed.
  */
 
 import { PAYMENTS_TABLE } from "@/shared/config/supabase-tables";

@@ -1,6 +1,15 @@
 /**
  * @file entities/payment/hooks/payment-mutation-pending.ts
  * Tracks in-flight payment mutation ids so realtime can skip echo events.
+ *
+ * Purpose: Module-level pending-id registry for mutation vs realtime dedupe.
+ * Used in: entities/payment/hooks/use-*-payment-mutation.ts, cache sync hub
+ * Used for: Skipping Supabase realtime echoes while TanStack mutations settle.
+ *
+ * Function Index:
+ * markPaymentMutationPending — register an in-flight payment id
+ * clearPaymentMutationPending — clear after mutation settles
+ * isPaymentMutationPending — gate for realtime apply paths
  */
 
 const pendingPaymentIds = new Set<string>();

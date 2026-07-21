@@ -3,7 +3,8 @@
  * Server-side payment barrel — queries and mutation use-cases.
  *
  * Purpose: Single import surface for server-only payment operations.
- * Used in: app/api/payments/*, Server Components, hydration seeders
+ * Used in: app/api/payments/*, views/payments/ui/payments-hydration-seed.tsx
+ * Used for: API routes, SSR hydration, and Server Component reads without client code.
  */
 
 export {

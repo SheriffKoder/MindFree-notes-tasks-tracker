@@ -1,6 +1,14 @@
 /**
  * @file app/api/payments/[id]/route.ts
  * PATCH and DELETE for an existing payment row.
+ *
+ * Purpose: HTTP entrypoints for partial updates and hard-delete.
+ * Used in: entities/payment/client/patch-payment.ts, delete-payment.ts
+ * Used for: Drawer autosave patches and immediate delete mutations.
+ *
+ * Function Index:
+ * PATCH — partial update one payment
+ * DELETE — remove one payment (204 on success)
  */
 
 import { deletePayment, updatePayment } from "@/entities/payment/server";
@@ -27,6 +35,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   const { id } = await context.params;
 
   try {
+    // 1. Body — validated in updatePayment use-case
     const body = await request.json();
     const payment = await updatePayment(userId, id, body);
 
@@ -64,6 +73,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
   const { id } = await context.params;
 
   try {
+    // 1. Delete — owner-scoped row removal via use-case
     await deletePayment(userId, id);
 
     return new Response(null, { status: 204 });

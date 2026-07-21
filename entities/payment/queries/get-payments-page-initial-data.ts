@@ -1,6 +1,14 @@
 /**
  * @file entities/payment/queries/get-payments-page-initial-data.ts
  * Read use-case: SSR initial payload for the Payments page.
+ *
+ * Purpose: Bundle month payments for SSR cache seeding.
+ * Used in: views/payments/ui/payments-hydration-seed.tsx
+ * Used for: Writing the first warm month cache before client hydration.
+ *
+ * Steps:
+ * 1. Load month payments via getPaymentsMonthResponse.
+ * 2. Wrap in PaymentsPageInitialData for the hydration seeder.
  */
 
 import type { PaymentsMonthResponse } from "@/entities/payment/model/read-models";
@@ -25,7 +33,9 @@ export async function getPaymentsPageInitialData(
   userId: string,
   monthParam: string | null | undefined,
 ): Promise<PaymentsPageInitialData> {
+  // 1. Month payload — list + total for SSR seed
   const monthPayments = await getPaymentsMonthResponse(userId, monthParam);
 
+  // 2. Wrap — shape consumed by hydration seeder
   return { monthPayments };
 }

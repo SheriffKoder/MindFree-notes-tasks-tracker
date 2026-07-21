@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/hooks/use-payments-month-query.ts
  * Reads month payments from the TanStack cache.
+ *
+ * Purpose: Client hook wrapper around paymentsMonthQueryOptions.
+ * Used in: views/payments/ui/payments-client.tsx, use-resolved-drawer-payment.ts
+ * Used for: Month list rendering and drawer payment re-resolution after hub writes.
  */
 
 "use client";

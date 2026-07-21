@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/fields/payment-form-date-row.tsx
  * Payment date picker — DropdownMenu with calendar content.
+ *
+ * Purpose: ISO date selection for payment.date in the editor form.
+ * Used in: entities/payment/editor/ui/payment-form.tsx
+ * Used for: Picking the payment day that drives month list placement.
  */
 
 "use client";
@@ -42,7 +46,7 @@ export function PaymentFormDateRow({
   const selectedDate = value || getTodayIsoDate();
 
   const handleDateChange = useCallback(
-    (isoDate: string) => {
+    function applySelectedPaymentDate(isoDate: string) {
       if (!isoDate) {
         return;
       }
@@ -53,6 +57,8 @@ export function PaymentFormDateRow({
     [onChange],
   );
 
+  /////////////////////////////////
+  // Date menu — calendar dropdown with z-index above drawer chrome
   return (
     <PaymentFormFieldRow error={error} label="Date">
       <DropdownMenu open={open} onOpenChange={setOpen}>

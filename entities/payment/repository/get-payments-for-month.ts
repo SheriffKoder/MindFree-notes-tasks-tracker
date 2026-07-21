@@ -1,6 +1,15 @@
 /**
  * @file entities/payment/repository/get-payments-for-month.ts
  * Fetches payments whose `date` falls in a `YYYY-MM` month.
+ *
+ * Purpose: Month-scoped SELECT for the payments list query.
+ * Used in: entities/payment/queries/get-payments-month-response.ts
+ * Used for: SSR hydration, GET /api/payments, and TanStack month caches.
+ *
+ * Steps:
+ * 1. Derive inclusive start / exclusive end dates for the month key.
+ * 2. Query owner rows in range, newest `updated_at` first.
+ * 3. Map each Supabase row to domain `Payment`.
  */
 
 import { getMonthRange } from "@/entities/payment/lib/parse-month";
@@ -20,9 +29,12 @@ export async function getPaymentsForMonth(
   userId: string,
   month: string,
 ): Promise<Payment[]> {
+  // 1. Month bounds — SQL date filter for payment.date
   const { monthStart, monthEnd } = getMonthRange(month);
   const supabase = await createClient();
 
+  /////////////////////////////////
+  // 2. Query — owner rows in month, newest edits first
   const { data, error } = await supabase
     .from(PAYMENTS_TABLE)
     .select("*")
@@ -35,5 +47,7 @@ export async function getPaymentsForMonth(
     throw new Error(`Failed to fetch payments: ${error.message}`);
   }
 
+  /////////////////////////////////
+  // 3. Map — rows → domain payments
   return (data as PaymentRow[] | null)?.map(mapPaymentRow) ?? [];
 }

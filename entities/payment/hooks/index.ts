@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/hooks/index.ts
  * Segment barrel for payment React read hooks and write mutations.
+ *
+ * Purpose: Public exports for TanStack payment hooks and pending-id helpers.
+ * Used in: entities/payment/client.ts, payment drawer orchestrators
+ * Used for: Month reads, create/update/delete mutations, and realtime dedupe flags.
  */
 
 export { usePaymentsMonthQuery } from "@/entities/payment/hooks/use-payments-month-query";

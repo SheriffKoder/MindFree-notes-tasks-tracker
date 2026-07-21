@@ -1,6 +1,10 @@
 /**
  * @file views/payments/ui/payments-add-button.tsx
  * Icon-only control that opens the payment editor drawer for a new payment.
+ *
+ * Purpose: Compact "+" affordance beside the month navigator.
+ * Used in: views/payments/ui/payments-client.tsx
+ * Used for: Opening the drawer in create mode for a new payment draft.
  */
 
 "use client";
@@ -11,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface PaymentsAddButtonProps {
-  /** Opens the drawer in create mode (wired in Step 8). */
+  /** Opens the drawer in create mode. */
   onClick: () => void;
   className?: string;
 }
@@ -24,6 +28,8 @@ export function PaymentsAddButton({
   onClick,
   className,
 }: PaymentsAddButtonProps) {
+  /////////////////////////////////
+  // Add control — bordered pill matching Notes add button chrome
   return (
     <div
       className={cn(

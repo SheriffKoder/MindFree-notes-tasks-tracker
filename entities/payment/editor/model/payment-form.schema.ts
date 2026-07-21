@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/model/payment-form.schema.ts
  * Zod schema for the payment editor form.
+ *
+ * Purpose: Client-side validation for editable drawer fields.
+ * Used in: entities/payment/editor/model/use-payment-form.ts
+ * Used for: Field-level errors and dirty/valid meta before autosave orchestration.
  */
 
 import { z } from "zod";

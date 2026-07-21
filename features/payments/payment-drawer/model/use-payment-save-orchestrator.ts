@@ -3,7 +3,23 @@
  * Thin hook — refs, debounce, TanStack mutations; rules live in evaluate-payment-save.
  *
  * Purpose: Bridge dumb PaymentForm onChange events to debounced TanStack writes.
- * Offline persistence lands in Step 10 — this orchestrator is online-only for now.
+ * Used in: features/payments/payment-drawer/ui/payment-drawer.tsx
+ * Used for: Autosave create/patch and immediate delete (online-only until Step 10).
+ *
+ * Function Index:
+ * - clearDebounceTimer / markSaveSuccess / markSaveError — status helpers
+ * - runPendingMutation — flush queued create or patch
+ * - scheduleMutation / scheduleFromEvaluation — debounce + route actions
+ * - handleChange — evaluate → schedule
+ * - remove — hard-delete (not debounced)
+ *
+ * Steps (handleChange):
+ * 1. evaluate — run pure create-vs-patch pipeline.
+ * 2. Gate — skip scheduling when action is noop (clear timer if clean).
+ * 3. scheduleFromEvaluation — enqueue debounced create/patch mutation.
+ *
+ * Delete fires immediately and is never debounced.
+ * Offline persistence lands in Step 10.
  */
 
 "use client";
@@ -30,6 +46,7 @@ import type {
 const MUTATION_DEBOUNCE_MS = 600;
 const SAVED_STATUS_RESET_MS = 2000;
 
+/** Queued write waiting for the debounce window to elapse. */
 type PendingMutation =
   | {
       kind: "create";
@@ -50,6 +67,8 @@ export function usePaymentSaveOrchestrator({
   onPaymentCreated,
   onDeleted,
 }: UsePaymentSaveOrchestratorOptions): UsePaymentSaveOrchestratorResult {
+  /////////////////////////////////
+  // Wiring — mutations + save UI state
   const { mutate: createPayment } = useCreatePaymentMutation();
   const { mutate: patchPayment } = useUpdatePaymentMutation();
   const { mutate: deletePayment } = useDeletePaymentMutation();
@@ -60,9 +79,15 @@ export function usePaymentSaveOrchestrator({
   const pendingMutationRef = useRef<PendingMutation | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Always read the latest payment inside debounced flush / delete
   const paymentRef = useRef(payment);
   paymentRef.current = payment;
 
+  /////////////////////////////////
+  // Status helpers
+
+  /** Clears the pending debounce timer if one is armed. */
   const clearDebounceTimer = useCallback(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -70,10 +95,13 @@ export function usePaymentSaveOrchestrator({
     }
   }, []);
 
+  /** Marks saved, bumps commitKey (baseline snap), then resets status after delay. */
   const markSaveSuccess = useCallback(() => {
+    // 1. Surface “Saved” and snap form baseline via commitKey
     setSaveStatus("saved");
     setCommitKey((previous) => previous + 1);
 
+    // 2. Reset footer status back to idle after a short window
     if (savedResetTimerRef.current) {
       clearTimeout(savedResetTimerRef.current);
     }
@@ -83,11 +111,15 @@ export function usePaymentSaveOrchestrator({
     }, SAVED_STATUS_RESET_MS);
   }, []);
 
+  /** Surfaces a save failure in the footer. */
   const markSaveError = useCallback(() => {
     setSaveStatus("error");
   }, []);
 
-  useEffect(() => {
+  /////////////////////////////////
+  // Session lifecycle — reset when drawer closes; clear timers on unmount
+
+  useEffect(function resetSaveStateWhenClosed() {
     if (!isOpen) {
       clearDebounceTimer();
       pendingMutationRef.current = null;
@@ -101,8 +133,8 @@ export function usePaymentSaveOrchestrator({
     }
   }, [clearDebounceTimer, isOpen]);
 
-  useEffect(() => {
-    return () => {
+  useEffect(function cleanupTimersOnUnmount() {
+    return function clearTimers() {
       clearDebounceTimer();
 
       if (savedResetTimerRef.current) {
@@ -111,7 +143,11 @@ export function usePaymentSaveOrchestrator({
     };
   }, [clearDebounceTimer]);
 
+  /////////////////////////////////
+  // Flush — run the queued create or patch against TanStack mutations
+
   const runPendingMutation = useCallback(() => {
+    // 1. Take ownership of the pending payload (or bail)
     const pending = pendingMutationRef.current;
 
     if (!pending) {
@@ -130,6 +166,7 @@ export function usePaymentSaveOrchestrator({
       },
     };
 
+    // 2. Route by pending kind
     switch (pending.kind) {
       case "create":
         createPayment(
@@ -142,6 +179,7 @@ export function usePaymentSaveOrchestrator({
           },
           {
             onSuccess: (serverPayment) => {
+              // Flip create → edit so later patches target the real id
               markSaveSuccess();
               onPaymentCreated(serverPayment.id);
             },
@@ -154,6 +192,7 @@ export function usePaymentSaveOrchestrator({
       case "patch": {
         const current = paymentRef.current;
 
+        // Stale queue (drawer switched target) — abort
         if (!current || current.id !== pending.paymentId) {
           markSaveError();
           return;
@@ -183,9 +222,14 @@ export function usePaymentSaveOrchestrator({
     patchPayment,
   ]);
 
+  /////////////////////////////////
+  // Schedule — debounce writes; map evaluate result → pending mutation
+
   const scheduleMutation = useCallback(
     (mutation: PendingMutation) => {
+      // 1. Replace any prior pending write with the latest snapshot
       pendingMutationRef.current = mutation;
+      // 2. Restart debounce window
       clearDebounceTimer();
       debounceTimerRef.current = setTimeout(
         runPendingMutation,
@@ -219,6 +263,7 @@ export function usePaymentSaveOrchestrator({
           return;
         }
         case "noop":
+          // Cancel any armed write when evaluation says nothing to do
           pendingMutationRef.current = null;
           clearDebounceTimer();
       }
@@ -226,14 +271,25 @@ export function usePaymentSaveOrchestrator({
     [clearDebounceTimer, scheduleMutation],
   );
 
+  /////////////////////////////////
+  // Public API — form change handler + immediate delete
+
+  /**
+   * Steps:
+   * 1. evaluate — pure create/patch/noop decision.
+   * 2. Gate — noop clears timer when form is clean.
+   * 3. scheduleFromEvaluation — debounce create/patch.
+   */
   const handleChange = useCallback(
     (values: PaymentFormValues, meta: PaymentFormChangeMeta) => {
+      // 1. Decide create vs patch vs noop
       const result = evaluatePaymentSave({
         values,
         meta,
         payment: paymentRef.current,
       });
 
+      // 2. Noop — only clear the queue when the form is clean again
       if (result.action === "noop") {
         if (!meta.isDirty) {
           pendingMutationRef.current = null;
@@ -243,22 +299,27 @@ export function usePaymentSaveOrchestrator({
         return;
       }
 
+      // 3. Enqueue debounced mutation
       scheduleFromEvaluation(result);
     },
     [clearDebounceTimer, scheduleFromEvaluation],
   );
 
+  /** Hard-delete the persisted payment (immediate, not debounced). */
   const remove = useCallback(() => {
     const current = paymentRef.current;
 
+    // 1. Guard — nothing to delete in create drafts
     if (!current?.id) {
       return;
     }
 
+    // 2. Cancel any pending autosave so it cannot resurrect the row
     clearDebounceTimer();
     pendingMutationRef.current = null;
     setSaveStatus("saving");
 
+    // 3. Fire delete mutation; close drawer on success
     deletePayment(
       { payment: current },
       {

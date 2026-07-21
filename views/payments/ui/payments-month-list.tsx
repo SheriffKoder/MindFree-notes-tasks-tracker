@@ -1,6 +1,15 @@
 /**
  * @file views/payments/ui/payments-month-list.tsx
  * Month payments body — total row + week-grouped list cards.
+ *
+ * Purpose: Present query data as total + WeekOrganizer list via ListView.
+ * Used in: views/payments/ui/payments-client.tsx
+ * Used for: Loading/error/empty states and click → edit wiring.
+ *
+ * Steps:
+ * 1. Build weekGrouping config for the active URL month.
+ * 2. Branch on error / pending / empty.
+ * 3. Render total row, then ListView of PaymentListCard rows.
  */
 
 "use client";
@@ -21,10 +30,11 @@ export interface PaymentsMonthListProps {
   isPending: boolean;
   isError: boolean;
   error: Error | null;
-  /** Opens edit for a payment (wired to drawer in Step 8). */
+  /** Opens edit for a payment (drawer openEdit). */
   onPaymentClick: (payment: Payment) => void;
 }
 
+/** Stable React key for each payment row. */
 function getPaymentKey(payment: Payment): string {
   return payment.id;
 }
@@ -40,6 +50,8 @@ export function PaymentsMonthList({
   error,
   onPaymentClick,
 }: PaymentsMonthListProps) {
+  /////////////////////////////////
+  // 1. Week grouping config for ListView / WeekOrganizer
   const weekGrouping = useMemo(
     () => ({
       month,
@@ -60,6 +72,8 @@ export function PaymentsMonthList({
     [onPaymentClick],
   );
 
+  /////////////////////////////////
+  // 2. Query branches — error, first load, empty month
   if (isError) {
     return (
       <QueryStatePanel
@@ -83,6 +97,8 @@ export function PaymentsMonthList({
     );
   }
 
+  /////////////////////////////////
+  // 3. Total + week-grouped cards
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 px-1">

@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/cache/index.ts
  * Segment barrel for pure Payment TanStack cache helpers + sync hub.
+ *
+ * Purpose: Public exports for cache lookup, newer-wins gate, and hub sync.
+ * Used in: entities/payment/client.ts, mutation hooks, drawer resolve hook
+ * Used for: Cross-month lookup and coordinated month cache updates.
  */
 
 export {

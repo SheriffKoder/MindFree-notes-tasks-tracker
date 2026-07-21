@@ -4,6 +4,12 @@
  *
  * Purpose: Dumb editor shell; delegates save routing to the drawer orchestrator.
  * Used in: features/payments/payment-drawer/ui/payment-drawer.tsx
+ * Used for: Controlled fields + footer meta emission (no network I/O).
+ *
+ * Layout / Steps:
+ * 1. Bind usePaymentForm (values, setters, last-edited).
+ * 2. Push footer meta (last-edited + saveStatus) upward on change.
+ * 3. Render title/description, then amount / date / group rows.
  */
 
 "use client";
@@ -20,10 +26,6 @@ import type { PaymentFormProps } from "@/entities/payment/editor/model/types";
 
 /**
  * Controlled payment editor for the drawer shell.
- *
- * Layout:
- * - Title + delete + description
- * - Amount / date / group rows
  */
 export function PaymentForm({
   payment,
@@ -36,6 +38,8 @@ export function PaymentForm({
   onDelete,
   className,
 }: PaymentFormProps) {
+  /////////////////////////////////
+  // 1. Local form state (no network)
   const {
     values,
     errors,
@@ -53,13 +57,17 @@ export function PaymentForm({
     onChange,
   });
 
-  useEffect(() => {
+  /////////////////////////////////
+  // 2. Footer meta — last-edited label + transient save status
+  useEffect(function emitFooterMeta() {
     onFooterMetaChange?.({
       formattedLastEditedAt,
       saveStatus,
     });
   }, [formattedLastEditedAt, onFooterMetaChange, saveStatus]);
 
+  /////////////////////////////////
+  // 3. Fields — title/description, then amount / date / group
   return (
     <form
       className={cn("flex min-h-0 flex-1 flex-col gap-4", className)}

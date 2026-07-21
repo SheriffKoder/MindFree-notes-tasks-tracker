@@ -1,6 +1,14 @@
 /**
  * @file entities/payment/repository/update-payment.ts
  * Partial payment updates for a row owned by the current user (RLS).
+ *
+ * Purpose: Supabase PATCH merge for editable payment columns.
+ * Used in: entities/payment/mutations/update-payment.ts
+ * Used for: Applying partial form snapshots from the drawer autosave PATCH route.
+ *
+ * Steps:
+ * 1. Build a sparse db patch from defined payload keys only.
+ * 2. Update row scoped by id + userId; return mapped payment or null.
  */
 
 import type { Payment, PaymentRow } from "@/entities/payment/model/types";
@@ -24,6 +32,8 @@ export async function updatePaymentById(
 ): Promise<Payment | null> {
   const supabase = await createClient();
 
+  /////////////////////////////////
+  // 1. Patch — only merge fields present in the payload
   const dbPatch: Partial<
     Pick<PaymentRow, "title" | "amount" | "description" | "date" | "group">
   > = {};
@@ -48,6 +58,8 @@ export async function updatePaymentById(
     dbPatch.group = patch.group;
   }
 
+  /////////////////////////////////
+  // 2. Update — owner-scoped row; maybeSingle for not-found
   const { data, error } = await supabase
     .from(PAYMENTS_TABLE)
     .update(dbPatch)

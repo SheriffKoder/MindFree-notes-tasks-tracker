@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/lib/form-classes.ts
  * Shared class tokens for the payment editor form.
+ *
+ * Purpose: Central Tailwind class tokens and save-status label helper.
+ * Used in: entities/payment/editor/fields/*, payment-form-last-saved.tsx
+ * Used for: Consistent editor typography, menu z-index, and footer save labels.
  */
 
 import type { PaymentSaveStatus } from "@/entities/payment/editor/model/types";

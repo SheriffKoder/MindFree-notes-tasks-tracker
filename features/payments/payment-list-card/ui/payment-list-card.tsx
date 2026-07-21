@@ -1,6 +1,10 @@
 /**
  * @file features/payments/payment-list-card/ui/payment-list-card.tsx
  * Payment list row: title ····· amount.
+ *
+ * Purpose: Compact month-list row for one payment.
+ * Used in: views/payments/ui/payments-month-list.tsx
+ * Used for: Displaying title/amount and opening the drawer on click.
  */
 
 "use client";
@@ -14,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 export interface PaymentListCardProps {
   payment: Payment;
-  /** Opens the payment drawer when the card is clicked (Step 8). */
+  /** Opens the payment drawer when the card is clicked. */
   onClick?: () => void;
 }
 
@@ -27,6 +31,8 @@ export const PaymentListCard = memo(function PaymentListCard({
 }: PaymentListCardProps) {
   const title = payment.title.trim() || "Untitled payment";
 
+  /////////////////////////////////
+  // Card row — title left, formatted amount right
   return (
     <article
       aria-label={`${title}, ${formatPaymentAmount(payment.amount)}`}

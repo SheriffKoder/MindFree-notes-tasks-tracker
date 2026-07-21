@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/model/types.ts
  * Domain and database-row types for payments.
+ *
+ * Purpose: Shared Payment and PaymentRow contracts across layers.
+ * Used in: repository, API routes, editor form, list card, cache helpers
+ * Used for: Type-safe payment shape from DB row through UI and client cache.
  */
 
 /**

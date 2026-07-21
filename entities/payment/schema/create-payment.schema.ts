@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/schema/create-payment.schema.ts
  * Zod contract for POST payment creation.
+ *
+ * Purpose: Validate POST /api/payments request bodies.
+ * Used in: entities/payment/mutations/create-payment.ts, client create mutation
+ * Used for: Server-side validation and typed create payloads in the drawer save path.
  */
 
 import { z } from "zod";

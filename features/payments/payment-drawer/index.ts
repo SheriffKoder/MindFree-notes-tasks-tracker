@@ -1,6 +1,10 @@
 /**
  * @file features/payments/payment-drawer/index.ts
  * Public exports for the Payment drawer island.
+ *
+ * Purpose: Feature barrel for drawer UI, save orchestrator, and types.
+ * Used in: views/payments/ui/payments-client.tsx
+ * Used for: Mounting PaymentDrawer with controller + save pipeline exports.
  */
 
 export {

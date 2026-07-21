@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/fields/payment-form-title-row.tsx
  * Title (h2) + dimmer description for the payment editor form.
+ *
+ * Purpose: Hero title/description inputs with optional delete affordance.
+ * Used in: entities/payment/editor/ui/payment-form.tsx
+ * Used for: Primary editable copy and hard-delete entry point in edit mode.
  */
 
 import { PaymentFormTitleActions } from "@/entities/payment/editor/fields/payment-form-title-actions";
@@ -33,6 +37,7 @@ export function PaymentFormTitleRow({
 }: PaymentFormTitleRowProps) {
   return (
     <div className="flex shrink-0 flex-col gap-2">
+      {/* Title row — hero input + delete actions */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <input
@@ -54,6 +59,7 @@ export function PaymentFormTitleRow({
         ) : null}
       </div>
 
+      {/* Description — optional quieter textarea */}
       <div className="flex flex-col gap-1">
         <textarea
           aria-invalid={Boolean(errors.description)}

@@ -1,6 +1,10 @@
 /**
  * @file features/payments/payment-drawer/pre-save-orchestrator/types.ts
  * Contracts for the payment pre-save evaluation pipeline and save orchestrator.
+ *
+ * Purpose: Shared types for evaluate-payment-save and usePaymentSaveOrchestrator.
+ * Used in: features/payments/payment-drawer/pre-save-orchestrator/*, model/*
+ * Used for: Create-vs-patch decisions, save payloads, and orchestrator hook contracts.
  */
 
 import type {

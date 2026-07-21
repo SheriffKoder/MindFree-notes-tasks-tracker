@@ -1,6 +1,14 @@
 /**
  * @file views/payments/model/use-payments-url-state.ts
  * Payments page URL state — reads `month` and mutates via the router.
+ *
+ * Purpose: Derive active month from search params and expose navigation actions.
+ * Used in: views/payments/ui/payments-client.tsx
+ * Used for: Month navigator previous/next and preserving other URL params.
+ *
+ * Steps:
+ * 1. Parse `?month=` from search params (default current month).
+ * 2. Delegate prev/next navigation to shared useMonthNavigation.
  */
 
 "use client";
@@ -27,11 +35,15 @@ export interface UsePaymentsUrlStateResult {
 export function usePaymentsUrlState(): UsePaymentsUrlStateResult {
   const searchParams = useSearchParams();
 
+  /////////////////////////////////
+  // 1. Month — normalize URL param to YYYY-MM
   const month = useMemo(
     () => parseMonthParam(searchParams.get("month")),
     [searchParams],
   );
 
+  /////////////////////////////////
+  // 2. Navigation — shared month prev/next helpers
   const { navigateToMonth, onPrevious, onNext } = useMonthNavigation(month);
 
   return {

@@ -1,6 +1,10 @@
 /**
  * @file shared/config/payment-groups.ts
  * UI dropdown options for payment `group`. DB column is unconstrained text.
+ *
+ * Purpose: Product vocabulary for payment group labels and stored ids.
+ * Used in: entities/payment/editor/fields/payment-form-group-row.tsx
+ * Used for: Editor dropdown options while the DB accepts any string value.
  */
 
 /**

@@ -1,6 +1,14 @@
 /**
  * @file app/api/payments/route.ts
  * GET month payments; POST create payment.
+ *
+ * Purpose: HTTP entrypoints for month reads and payment creation.
+ * Used in: entities/payment/client/post-payment.ts, payments-month-query.ts
+ * Used for: TanStack month fetchers and create mutation confirmation.
+ *
+ * Function Index:
+ * GET — month payments list + totalAmount
+ * POST — create payment for authenticated user
  */
 
 import {
@@ -23,6 +31,7 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 1. Month param — optional YYYY-MM from query string
     const { searchParams } = new URL(request.url);
     const response = await getPaymentsMonthResponse(
       userId,
@@ -52,6 +61,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    // 1. Body — validated in createPayment use-case
     const body = await request.json();
     const payment = await createPayment(userId, body);
 

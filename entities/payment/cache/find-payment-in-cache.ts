@@ -1,6 +1,14 @@
 /**
  * @file entities/payment/cache/find-payment-in-cache.ts
  * Locates a payment across warm month TanStack caches.
+ *
+ * Purpose: Cross-month lookup by payment id without a dedicated fetch.
+ * Used in: features/payments/payment-drawer/model/use-resolved-drawer-payment.ts
+ * Used for: Binding the drawer editor to a cached row after hub writes.
+ *
+ * Steps:
+ * 1. Collect all warm queries under the payments prefix.
+ * 2. Scan each month bucket for a matching payment id.
  */
 
 import type { QueryClient } from "@tanstack/react-query";
@@ -20,10 +28,14 @@ export function findPaymentInCache(
   queryClient: QueryClient,
   paymentId: string,
 ): Payment | null {
+  /////////////////////////////////
+  // 1. Warm caches — every seeded month query under ["payments"]
   const monthQueries = queryClient.getQueriesData<PaymentsMonthResponse>({
     queryKey: paymentsQueryKeyPrefix,
   });
 
+  /////////////////////////////////
+  // 2. Scan — first id match wins
   for (const [, data] of monthQueries) {
     const match = data?.payments.find((payment) => payment.id === paymentId);
 

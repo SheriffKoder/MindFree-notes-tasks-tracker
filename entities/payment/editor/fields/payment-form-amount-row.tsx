@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/fields/payment-form-amount-row.tsx
  * Amount field as a right-aligned numeric input.
+ *
+ * Purpose: Major-currency amount input for payment.amount.
+ * Used in: entities/payment/editor/ui/payment-form.tsx
+ * Used for: Editing payment totals shown in the month list card.
  */
 
 "use client";
@@ -22,6 +26,8 @@ export function PaymentFormAmountRow({
   error,
   onChange,
 }: PaymentFormAmountRowProps) {
+  /////////////////////////////////
+  // Amount input — right-aligned decimal with empty → 0 coercion
   return (
     <PaymentFormFieldRow error={error} htmlFor="payment-amount" label="Amount">
       <input
@@ -38,11 +44,13 @@ export function PaymentFormAmountRow({
         onChange={(event) => {
           const raw = event.target.value;
 
+          // 1. Empty — treat as zero for form validity
           if (raw === "") {
             onChange(0);
             return;
           }
 
+          // 2. Parse — ignore non-finite keystrokes
           const next = Number(raw);
 
           if (Number.isFinite(next)) {

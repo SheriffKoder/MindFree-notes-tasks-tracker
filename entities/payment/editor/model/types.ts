@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/model/types.ts
  * Contracts for the payment editor form and drawer wiring.
+ *
+ * Purpose: Shared types between the dumb form, usePaymentForm, and the drawer.
+ * Used in: entities/payment/editor/ui/payment-form.tsx, payment drawer feature
+ * Used for: Form values, validation errors, save status, and drawer prop contracts.
  */
 
 import type { Payment } from "@/entities/payment/model/types";

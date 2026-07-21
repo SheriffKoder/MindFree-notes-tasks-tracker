@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/schema/update-payment.schema.ts
  * Zod contract for PATCH payment updates.
+ *
+ * Purpose: Validate PATCH /api/payments/:id partial bodies.
+ * Used in: entities/payment/mutations/update-payment.ts, client update mutation
+ * Used for: Autosave patches with optional field subsets from the editor form.
  */
 
 import { z } from "zod";

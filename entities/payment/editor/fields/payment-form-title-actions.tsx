@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/fields/payment-form-title-actions.tsx
  * Delete control for the payment title row.
+ *
+ * Purpose: Optional hard-delete icon beside the title input.
+ * Used in: entities/payment/editor/fields/payment-form-title-row.tsx
+ * Used for: Triggering immediate delete from the drawer in edit mode.
  */
 
 import { Trash2 } from "lucide-react";

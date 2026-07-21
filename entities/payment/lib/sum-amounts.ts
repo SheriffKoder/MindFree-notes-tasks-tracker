@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/lib/sum-amounts.ts
  * Cent-precision sum for payment amounts.
+ *
+ * Purpose: Avoid floating-point drift when totaling month amounts.
+ * Used in: entities/payment/queries/get-payments-month-response.ts
+ * Used for: Month header total in API responses and TanStack month caches.
  */
 
 /**

@@ -1,6 +1,15 @@
 /**
  * @file views/payments/ui/payments-client.tsx
  * Client boundary for the Payments page — layout, URL state, and query island.
+ *
+ * Purpose: Compose month navigator, list, add button, and editor drawer.
+ * Used in: views/payments/index.tsx (via PaymentsPage).
+ * Used for: Wire URL month + React Query + drawer openCreate / openEdit.
+ *
+ * Steps:
+ * 1. Read URL month and fetch that month’s payments.
+ * 2. Own drawer controller (create / edit request).
+ * 3. Render header → controls → week list → PaymentDrawer.
  */
 
 "use client";
@@ -20,8 +29,13 @@ import { PaymentsMonthList } from "@/views/payments/ui/payments-month-list";
  * Renders the Payments page shell with month controls, list, and editor drawer.
  */
 export function PaymentsClient() {
+  /////////////////////////////////
+  // 1. URL month + month query
   const { month, previousMonth, nextMonth } = usePaymentsUrlState();
   const { data, isPending, isError, error } = usePaymentsMonthQuery(month);
+
+  /////////////////////////////////
+  // 2. Drawer controller — add → create, card → edit
   const drawer = usePaymentsDrawer();
 
   const handleAddPayment = useCallback(() => {
@@ -35,8 +49,11 @@ export function PaymentsClient() {
     [drawer.openEdit],
   );
 
+  /////////////////////////////////
+  // 3. Page composition
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
+      {/* Page header */}
       <section className="flex shrink-0 flex-col gap-2">
         <h2 className="text-h2">Payments</h2>
         <p className="page-header__subtitle">
@@ -44,6 +61,7 @@ export function PaymentsClient() {
         </p>
       </section>
 
+      {/* Month switcher + add */}
       <section
         aria-label="Payments controls"
         className="flex shrink-0 flex-row items-center justify-between gap-3"
@@ -57,6 +75,7 @@ export function PaymentsClient() {
         <PaymentsAddButton onClick={handleAddPayment} />
       </section>
 
+      {/* Scrollable week-grouped list */}
       <div className="relative min-h-0 flex-1">
         <div
           aria-hidden
@@ -76,6 +95,7 @@ export function PaymentsClient() {
         </div>
       </div>
 
+      {/* Editor island */}
       <PaymentDrawer drawer={drawer} month={month} />
     </div>
   );

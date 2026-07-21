@@ -1,6 +1,14 @@
 /**
  * @file entities/payment/repository/create-payment.ts
  * Inserts a payment row for the authenticated user.
+ *
+ * Purpose: Supabase INSERT for one payment owned by `userId`.
+ * Used in: entities/payment/mutations/create-payment.ts
+ * Used for: Persisting validated create payloads from the POST API route.
+ *
+ * Steps:
+ * 1. Insert row with owner + editable fields.
+ * 2. Select the created row and map to domain `Payment`.
  */
 
 import type { Payment, PaymentRow } from "@/entities/payment/model/types";
@@ -22,6 +30,8 @@ export async function createPayment(
 ): Promise<Payment> {
   const supabase = await createClient();
 
+  /////////////////////////////////
+  // 1. Insert — owner-scoped row with editable fields
   const { data, error } = await supabase
     .from(PAYMENTS_TABLE)
     .insert({
@@ -39,5 +49,7 @@ export async function createPayment(
     throw new Error(`Failed to create payment: ${error.message}`);
   }
 
+  /////////////////////////////////
+  // 2. Map — Supabase row → domain Payment
   return mapPaymentRow(data as PaymentRow);
 }

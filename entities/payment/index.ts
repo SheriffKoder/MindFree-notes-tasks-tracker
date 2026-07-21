@@ -2,8 +2,12 @@
  * @file entities/payment/index.ts
  * Shared domain exports — types and pure helpers only.
  *
+ * Purpose: Cross-layer domain types and month parsing helpers.
+ * Used in: views/payments/*, features/payments/* (type-only imports)
+ * Used for: Shared Payment types and month utilities without server/client code.
+ *
  * Server reads/writes: `entities/payment/server`
- * Client cache: `entities/payment/client` (later steps)
+ * Client cache: `entities/payment/client`
  */
 
 export {

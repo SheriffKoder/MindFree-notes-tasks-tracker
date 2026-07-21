@@ -1,6 +1,10 @@
 /**
  * @file features/payments/payment-list-card/lib/format-payment-amount.ts
  * Formats payment amounts for list display.
+ *
+ * Purpose: Locale-aware two-decimal amount formatting for list rows.
+ * Used in: features/payments/payment-list-card/ui/payment-list-card.tsx
+ * Used for: Consistent major-currency display in cards and aria labels.
  */
 
 /**

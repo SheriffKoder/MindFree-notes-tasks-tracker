@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/fields/payment-form-group-row.tsx
  * Payment group as a DropdownMenu beside its label.
+ *
+ * Purpose: Group picker wired to shared payment-groups config.
+ * Used in: entities/payment/editor/ui/payment-form.tsx
+ * Used for: Optional category selection stored on payment.group.
  */
 
 "use client";
@@ -44,6 +48,8 @@ export function PaymentFormGroupRow({
   const radioValue = group === "" ? NONE_VALUE : group;
   const label = matched?.label ?? (group === "" ? "None" : group);
 
+  /////////////////////////////////
+  // Group menu — radio list with explicit None option
   return (
     <PaymentFormFieldRow error={error} label="Group">
       <DropdownMenu>

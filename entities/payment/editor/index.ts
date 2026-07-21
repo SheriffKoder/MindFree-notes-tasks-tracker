@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/index.ts
  * Payment editor form — schema, hook, and UI.
+ *
+ * Purpose: Public surface for the reusable payment editor island.
+ * Used in: features/payments/payment-drawer/ui/payment-drawer.tsx
+ * Used for: Form schema, hook, fields, and last-saved footer primitives.
  */
 
 export { formatPaymentLastEditedAt } from "@/entities/payment/editor/lib/format-last-edited";

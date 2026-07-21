@@ -1,6 +1,15 @@
 /**
  * @file entities/payment/lib/parse-month.ts
  * Month param parsing and date-range helpers for payment month queries.
+ *
+ * Purpose: Normalize URL month params and derive SQL date bounds.
+ * Used in: entities/payment/queries/*, views/payments/model/use-payments-url-state.ts
+ * Used for: Month navigation, repository filters, and default-to-current-month behavior.
+ *
+ * Function Index:
+ * getCurrentMonth — local YYYY-MM for today
+ * parseMonthParam — validate URL month or fall back
+ * getMonthRange — inclusive start / exclusive end + calendar metadata
  */
 
 const MONTH_PARAM_PATTERN = /^\d{4}-\d{2}$/;
@@ -25,6 +34,7 @@ export function getCurrentMonth(): string {
  * @returns valid `YYYY-MM` month or the current month when invalid
  */
 export function parseMonthParam(value: string | null | undefined): string {
+  // 1. Guard — missing or malformed YYYY-MM → current month
   if (!value || !MONTH_PARAM_PATTERN.test(value)) {
     return getCurrentMonth();
   }
@@ -32,6 +42,7 @@ export function parseMonthParam(value: string | null | undefined): string {
   const [, monthPart] = value.split("-");
   const monthNumber = Number(monthPart);
 
+  // 2. Range — reject impossible month numbers
   if (monthNumber < 1 || monthNumber > 12) {
     return getCurrentMonth();
   }

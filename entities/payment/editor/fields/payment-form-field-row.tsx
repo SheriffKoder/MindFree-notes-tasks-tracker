@@ -1,6 +1,10 @@
 /**
  * @file entities/payment/editor/fields/payment-form-field-row.tsx
  * Label + control row — flex justify-between.
+ *
+ * Purpose: Shared settings-row layout for editor field controls.
+ * Used in: entities/payment/editor/fields/payment-form-*-row.tsx
+ * Used for: Consistent label/control alignment and inline error display.
  */
 
 import type { ReactNode } from "react";
@@ -28,6 +32,7 @@ export function PaymentFormFieldRow({
 }: PaymentFormFieldRowProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
+      {/* Label + control — single settings row */}
       <div className="flex flex-row items-center justify-between gap-3">
         <label className={FIELD_LABEL_CLASS} htmlFor={htmlFor}>
           {label}
