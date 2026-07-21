@@ -9,6 +9,7 @@
  * - getActivities           (get-activities)
  * - getActivityById         (get-activity-by-id)
  * - getRecordsForMonth      (get-records-for-month)
+ * - getAllActivityRecords   (get-all-activity-records)
  * - getAllTimeTaskRecordValues (progress/*)
  * - createActivity          (create-activity)
  * - updateActivityById, archiveActivityById (update-activity)
@@ -20,6 +21,7 @@ export { getAuthenticatedUserId } from "@/entities/activity/repository/get-authe
 export { getActivities } from "@/entities/activity/repository/get-activities";
 export { getActivityById } from "@/entities/activity/repository/get-activity-by-id";
 export { getRecordsForMonth } from "@/entities/activity/repository/get-records-for-month";
+export { getAllActivityRecords } from "@/entities/activity/repository/get-all-activity-records";
 export {
   getAllTimeTaskRecordValues,
   type AllTimeTaskRecordValue,

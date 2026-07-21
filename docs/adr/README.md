@@ -21,6 +21,7 @@ Records of significant technical decisions. Each ADR is one decision — context
 | [0013](./0013-precompute-month-progress-map.md) | Precompute month completion as a `Map<taskId, percent>` | Accepted |
 | [0014](./0014-flat-records-client-side-join.md) | Ship flat activity records, join on the client (vs. Notes) | Accepted |
 | [0015](./0015-record-configuration-snapshots.md) | Record configuration snapshots on first insert | Accepted |
+| [0016](./0016-app-lock-session-cookie.md) | App lock via session cookie and scrypt hash | Accepted |
 
 ## Template
 

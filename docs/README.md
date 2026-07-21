@@ -29,16 +29,28 @@ Onboarding and architecture for MindFree. Prefer these **WHY** docs over the lon
 5. Decisions: ADR [0011](./adr/0011-one-activity-model-two-kinds.md) · [0012](./adr/0012-calendar-records-always-visible.md) · [0013](./adr/0013-precompute-month-progress-map.md)  
 6. File map: [entities/activity/docs/responsibilities.md](../entities/activity/docs/responsibilities.md)  
 
+## Reading order (Profile)
+
+1. [architecture/user-session-and-preferences.md](./architecture/user-session-and-preferences.md) — session vs prefs; theme reaches the whole app  
+2. [architecture/app-lock.md](./architecture/app-lock.md) — unlock cookie + gate (not Auth password); decision: [ADR 0016](./adr/0016-app-lock-session-cookie.md)  
+3. [entities/profile/docs/README.md](../entities/profile/docs/README.md) — domain index  
+4. [entities/profile/docs/domain-model.md](../entities/profile/docs/domain-model.md) · [seeding.md](../entities/profile/docs/seeding.md) · [responsibilities.md](../entities/profile/docs/responsibilities.md)  
+5. [views/profile/docs/](../views/profile/docs/) — page composition + split section forms  
+6. [features/profile/apply-theme/README.md](../features/profile/apply-theme/README.md) — CSS vars, boot script, localStorage  
+7. [guides/security.md](./guides/security.md) — hash never in client read model; demo Profile gate  
+
 ## Index
 
 | Path | Contents |
 | ---- | -------- |
 | [setup/](./setup/) | Clone and run |
-| [architecture/](./architecture/) | Rendering, state, cache, data flow, routing |
+| [architecture/](./architecture/) | Rendering, state, cache, data flow, routing, user session, app lock |
 | [adr/](./adr/) | Architecture Decision Records |
 | [concepts/](./concepts/) | Glossary + terminology |
 | [guides/security.md](./guides/security.md) | Auth gates, RLS, IDOR |
 | [entities/note/docs/](../entities/note/docs/) | Notes domain WHY |
 | [entities/activity/docs/](../entities/activity/docs/) | Activity (tasks + reminders) domain WHY |
-| [views/notes/docs/](../views/notes/docs/) | Notes page data flow and drawer navigation |
+| [entities/profile/docs/](../entities/profile/docs/) | Profile domain WHY (tables, seeding, APIs) |
+| [views/notes/docs/](../views/notes/docs/) | Notes page drawer navigation |
 | [views/home/docs/](../views/home/docs/) | Home as Notes consumer |
+| [views/profile/docs/](../views/profile/docs/) | Profile page composition |
