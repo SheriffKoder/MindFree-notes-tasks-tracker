@@ -14,6 +14,11 @@ import { AppMobileNav } from "@/views/app-shell/components/app-mobile-nav";
 export interface AppShellProps {
   /** Main route content rendered inside the protected shell. */
   children: ReactNode;
+  /**
+   * Whether Profile appears in desktop + mobile nav.
+   * Hidden for the shared demo account (`DEMO_LOGIN_EMAIL`).
+   */
+  showProfileNav?: boolean;
 }
 
 /**
@@ -22,12 +27,12 @@ export interface AppShellProps {
  * @param props - shell content
  * @returns Protected app shell with only route content and app navigation
  */
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, showProfileNav = true }: AppShellProps) {
   return (
     <div className="flex h-screen flex-row md:pl-24">
 
       <div className="w-fit hidden md:block absolute top-0 left-0 h-full z-50 p-3">
-        <AppDesktopNav />
+        <AppDesktopNav showProfileNav={showProfileNav} />
       </div>
 
       <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-6 md:py-6">
@@ -35,7 +40,7 @@ export function AppShell({ children }: AppShellProps) {
       </main>
 
       <div className="md:hidden">
-        <AppMobileNav />
+        <AppMobileNav showProfileNav={showProfileNav} />
       </div>
     </div>
   );

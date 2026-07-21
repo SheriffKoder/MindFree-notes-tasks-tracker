@@ -13,6 +13,7 @@ import {
 import { ProfileThemeApplier } from "@/features/profile/apply-theme";
 import { ProfilePreferencesHydrationSeed } from "@/features/profile/apply-theme/server";
 import { getSecurityRow } from "@/entities/profile/server";
+import { isDemoUserEmail } from "@/shared/lib/auth/demo-login-config";
 import { createClient } from "@/shared/lib/supabase/server";
 import { AppQueryProvider } from "@/shared/react-query";
 import { AppShell } from "@/views/app-shell";
@@ -50,6 +51,8 @@ async function ProtectedAppLayoutContent({
     isAppLockUnlocked(user.id),
   ]);
 
+  const showProfileNav = !isDemoUserEmail(user.email);
+
   return (
     <AppQueryProvider>
       <Suspense fallback={null}>
@@ -60,7 +63,7 @@ async function ProtectedAppLayoutContent({
         initialAppLockEnabled={security?.appLockEnabled ?? false}
         initialUnlocked={unlocked}
       >
-        <AppShell>{children}</AppShell>
+        <AppShell showProfileNav={showProfileNav}>{children}</AppShell>
       </AppLockGate>
     </AppQueryProvider>
   );

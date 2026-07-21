@@ -151,6 +151,9 @@ DEMO_LOGIN_PASSWORD=password
 - Credentials are **server-only** — the client form posts only `next`; `submitDemoLoginForm` reads env vars.
 - Login page calls `isDemoLoginConfigured()` and hides the button when unset.
 - Direct POSTs when disabled redirect to `/login?error=demo_unavailable`.
+- Profile is disabled for the signed-in user whose email matches `DEMO_LOGIN_EMAIL`
+  (`isDemoUserEmail`): nav link hidden, `/profile` redirects home (page + `proxy.ts`),
+  non-GET `/api/profile/*` returns 403. GET `/api/profile` stays allowed for theme.
 
 ---
 

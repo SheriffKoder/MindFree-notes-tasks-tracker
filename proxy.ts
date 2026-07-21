@@ -3,6 +3,7 @@
  * Root request guard that refreshes Supabase auth state and redirects guests away from protected routes.
  */
 
+import { isDemoUserEmail } from "@/shared/lib/auth/demo-login-config";
 import { updateSession } from "@/shared/lib/supabase/proxy";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -34,6 +35,24 @@ function isApiRoute(pathname: string) {
 }
 
 /**
+ * Checks whether the path is the Profile page (not the profile API).
+ *
+ * @param pathname - current request pathname
+ */
+function isProfilePage(pathname: string) {
+  return pathname === "/profile" || pathname.startsWith("/profile/");
+}
+
+/**
+ * Checks whether the path is under `/api/profile`.
+ *
+ * @param pathname - current request pathname
+ */
+function isProfileApiRoute(pathname: string) {
+  return pathname === "/api/profile" || pathname.startsWith("/api/profile/");
+}
+
+/**
  * Returns a JSON 401 while preserving session cookies from the proxy refresh.
  *
  * @param sessionResponse - pass-through response from `updateSession`
@@ -50,6 +69,22 @@ function createApiUnauthorizedResponse(sessionResponse: NextResponse) {
   });
 
   return unauthorized;
+}
+
+/**
+ * Returns a JSON 403 while preserving session cookies from the proxy refresh.
+ *
+ * @param sessionResponse - pass-through response from `updateSession`
+ * @returns Forbidden JSON response
+ */
+function createApiForbiddenResponse(sessionResponse: NextResponse) {
+  const forbidden = NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  sessionResponse.cookies.getAll().forEach(function copySessionCookie(cookie) {
+    forbidden.cookies.set(cookie.name, cookie.value);
+  });
+
+  return forbidden;
 }
 
 /**
@@ -123,6 +158,18 @@ export async function proxy(request: NextRequest) {
   // Prevent signed-in users from lingering on login and signup pages.
   if (user && (pathname === "/login" || pathname === "/signup")) {
     return createAuthenticatedRedirect(request);
+  }
+
+  // Shared demo account cannot open Profile or mutate profile settings.
+  // GET /api/profile stays allowed so theme prefs can still hydrate.
+  if (user && isDemoUserEmail(user.email)) {
+    if (isProfilePage(pathname)) {
+      return createAuthenticatedRedirect(request);
+    }
+
+    if (isProfileApiRoute(pathname) && request.method !== "GET") {
+      return createApiForbiddenResponse(response);
+    }
   }
 
   // Return the synchronized pass-through response for allowed requests.

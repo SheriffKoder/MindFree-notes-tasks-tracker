@@ -48,11 +48,19 @@ function isActiveNavItem(pathname: string, href: string) {
 }
 
 /**
+ * Props for the desktop app navigation rail.
+ */
+export interface AppDesktopNavProps {
+  /** When false, Profile is omitted (demo account). */
+  showProfileNav?: boolean;
+}
+
+/**
  * Renders the vertical left navigation rail for desktop app routes.
  *
  * @returns Desktop-only protected app navigation
  */
-export function AppDesktopNav() {
+export function AppDesktopNav({ showProfileNav = true }: AppDesktopNavProps) {
   // Read the current pathname on the client so the active tab can update live.
   const pathname = usePathname() ?? "/";
   const ProfileIcon = SECONDARY_NAV_ICON_BY_NAME[APP_SECONDARY_NAV_ITEM.icon];
@@ -100,34 +108,36 @@ export function AppDesktopNav() {
           );
         })}
 
-        <Link
-          aria-label={APP_SECONDARY_NAV_ITEM.label}
-          className={cn(
-            "group relative mt-auto flex w-full overflow-hidden px-2 py-3 text-caption transition-colors duration-200",
-            profileActive
-              ? "dark:[color:var(--color-accent-fg)] [color:var(--color-fg-muted)]"
-              : "[color:var(--color-fg-muted)] hover:[color:var(--color-fg)]",
-          )}
-          href={APP_SECONDARY_NAV_ITEM.href}
-        >
-          <CardBackground
-            active={profileActive}
-            activeColor="var(--color-accent)"
-            activeHoverColor="var(--color-accent-dark)"
-            defaultColor="var(--color-card-overlay)"
-            defaultHoverColor="var(--color-card-hover)"
-            defaultBorderColor="var(--color-border)"
-            activeBorderColor="var(--color-accent)"
-            backgroundOpacity={0.2}
-            borderOpacity={0.4}
-            blur={0}
-            radius="0.8rem"
-          />
-          <span className="relative z-10 flex flex-col items-center gap-1 h-full w-full">
-            <ProfileIcon size={18} />
-            <span>{APP_SECONDARY_NAV_ITEM.label}</span>
-          </span>
-        </Link>
+        {showProfileNav ? (
+          <Link
+            aria-label={APP_SECONDARY_NAV_ITEM.label}
+            className={cn(
+              "group relative mt-auto flex w-full overflow-hidden px-2 py-3 text-caption transition-colors duration-200",
+              profileActive
+                ? "dark:[color:var(--color-accent-fg)] [color:var(--color-fg-muted)]"
+                : "[color:var(--color-fg-muted)] hover:[color:var(--color-fg)]",
+            )}
+            href={APP_SECONDARY_NAV_ITEM.href}
+          >
+            <CardBackground
+              active={profileActive}
+              activeColor="var(--color-accent)"
+              activeHoverColor="var(--color-accent-dark)"
+              defaultColor="var(--color-card-overlay)"
+              defaultHoverColor="var(--color-card-hover)"
+              defaultBorderColor="var(--color-border)"
+              activeBorderColor="var(--color-accent)"
+              backgroundOpacity={0.2}
+              borderOpacity={0.4}
+              blur={0}
+              radius="0.8rem"
+            />
+            <span className="relative z-10 flex flex-col items-center gap-1 h-full w-full">
+              <ProfileIcon size={18} />
+              <span>{APP_SECONDARY_NAV_ITEM.label}</span>
+            </span>
+          </Link>
+        ) : null}
       </div>
     </nav>
   );

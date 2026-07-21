@@ -2,8 +2,8 @@
  * @file shared/config/app-secondary-navigation.ts
  * Secondary navigation for protected MindFree routes (settings / profile).
  *
- * Kept separate from primary tabs so Profile can be pinned in the desktop
- * sidebar without appearing in the mobile bottom bar.
+ * Kept separate from primary tabs so Profile can be pinned (desktop: bottom of
+ * rail via `mt-auto`; mobile: end of the bottom bar scroll row).
  */
 
 /**
@@ -26,7 +26,7 @@ export interface AppSecondaryNavigationItem {
 }
 
 /**
- * Profile / settings entry — desktop sidebar only for V1.
+ * Profile / settings entry for desktop rail and mobile bottom nav.
  */
 export const APP_SECONDARY_NAV_ITEM: AppSecondaryNavigationItem = {
   id: "profile",
