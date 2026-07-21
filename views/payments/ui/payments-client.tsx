@@ -7,13 +7,15 @@
 
 import { useCallback } from "react";
 
+import type { Payment } from "@/entities/payment";
 import { usePaymentsMonthQuery } from "@/entities/payment/client";
 import { MonthNavigator } from "@/shared/month-navigator";
 import { usePaymentsUrlState } from "@/views/payments/model/use-payments-url-state";
 import { PaymentsAddButton } from "@/views/payments/ui/payments-add-button";
+import { PaymentsMonthList } from "@/views/payments/ui/payments-month-list";
 
 /**
- * Renders the Payments page shell with month controls and a placeholder list.
+ * Renders the Payments page shell with month controls and week-grouped list.
  */
 export function PaymentsClient() {
   const { month, previousMonth, nextMonth } = usePaymentsUrlState();
@@ -21,6 +23,10 @@ export function PaymentsClient() {
 
   const handleAddPayment = useCallback(() => {
     // Drawer create lands in Step 8.
+  }, []);
+
+  const handlePaymentClick = useCallback((_payment: Payment) => {
+    // Drawer edit lands in Step 8.
   }, []);
 
   return (
@@ -51,27 +57,15 @@ export function PaymentsClient() {
           className="pointer-events-none absolute inset-x-0 top-[-10] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
         />
         <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
-          <div className="min-h-0 flex-1 space-y-3 text-sm [color:var(--color-fg-muted)]">
-            {isPending ? <p>Loading payments…</p> : null}
-            {isError ? (
-              <p role="alert">
-                {error instanceof Error
-                  ? error.message
-                  : "Failed to load payments."}
-              </p>
-            ) : null}
-            {data ? (
-              <>
-                <p>
-                  {data.payments.length} payment
-                  {data.payments.length === 1 ? "" : "s"} · total{" "}
-                  {data.totalAmount}
-                </p>
-                <pre className="overflow-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-xs [color:var(--color-fg)]">
-                  {JSON.stringify(data.payments, null, 2)}
-                </pre>
-              </>
-            ) : null}
+          <div className="min-h-0 flex-1">
+            <PaymentsMonthList
+              month={month}
+              data={data}
+              isPending={isPending}
+              isError={isError}
+              error={error}
+              onPaymentClick={handlePaymentClick}
+            />
           </div>
         </div>
       </div>
