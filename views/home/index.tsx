@@ -14,13 +14,10 @@ import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
 import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
 import { HomeRemindersList } from "@/views/home/ui/home-reminders-list";
 import { HomeRightAside } from "@/views/home/ui/home-right-aside";
+import { HOME_SECTION_HEADER_CLASS } from "@/views/home/lib/section-header-class";
 import { HomeTodayList } from "@/views/home/ui/home-today-list";
 
 export { HomeHydrationSeed } from "@/views/home/ui/home-hydration-seed";
-
-/** Shared section-header text style: h2 size, medium weight, muted. */
-const SECTION_HEADER_CLASS =
-  "text-[length:var(--text-xs)] font-medium leading-tight [color:var(--color-fg-muted)]";
 
 /**
  * Props for the protected home dashboard.
@@ -56,7 +53,7 @@ export function HomeView({ notice = null }: HomeViewProps) {
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             <section>
               <div className="mb-2 flex flex-col">
-                <h2 className={SECTION_HEADER_CLASS}>Starred Notes</h2>
+                <h2 className={HOME_SECTION_HEADER_CLASS}>Starred Notes</h2>
               </div>
               <HomeNotesSection />
             </section>
@@ -64,7 +61,7 @@ export function HomeView({ notice = null }: HomeViewProps) {
             <details open className="group/today">
               <summary
                 className={cn(
-                  SECTION_HEADER_CLASS,
+                  HOME_SECTION_HEADER_CLASS,
                   "flex w-fit cursor-pointer list-none items-center gap-1.5 py-1 marker:content-none [&::-webkit-details-marker]:hidden",
                 )}
               >
@@ -82,7 +79,7 @@ export function HomeView({ notice = null }: HomeViewProps) {
             <details open className="group/reminders">
               <summary
                 className={cn(
-                  SECTION_HEADER_CLASS,
+                  HOME_SECTION_HEADER_CLASS,
                   "flex w-fit cursor-pointer list-none items-center gap-1.5 py-1 marker:content-none [&::-webkit-details-marker]:hidden",
                 )}
               >

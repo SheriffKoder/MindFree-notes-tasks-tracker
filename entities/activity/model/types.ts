@@ -103,8 +103,8 @@ export interface Activity {
    */
   periodGoalDuration: number | null;
   /**
-   * Optional task priority; `null` means unset. Not consumed outside the editor
-   * yet.
+   * Optional task priority; `null` means unset. Home Today groups by this;
+   * lists/filters elsewhere do not consume it yet.
    */
   priority: ActivityPriority | null;
   /**

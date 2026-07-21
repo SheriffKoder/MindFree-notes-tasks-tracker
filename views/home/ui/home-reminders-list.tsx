@@ -9,11 +9,12 @@
 "use client";
 
 import { useHomeTodayQuery } from "@/entities/activity/client";
-import { QuickRecordCard } from "@/features/activity/quick-record";
 import { QueryStatePanel } from "@/shared/react-query";
+import { HomeTodayPriorityList } from "@/views/home/ui/home-today-priority-list";
 
 /**
- * Renders today's reminders as a tight list with boolean toggle controls.
+ * Renders today's reminders grouped by priority (same buckets as tasks).
+ * Reminders currently always store `priority: null`, so they land in Other.
  */
 export function HomeRemindersList() {
   const { today, isPending, isError } = useHomeTodayQuery("reminder");
@@ -41,11 +42,5 @@ export function HomeRemindersList() {
     );
   }
 
-  return (
-    <div className="flex min-h-24 flex-col gap-0.5">
-      {today.map((item) => (
-        <QuickRecordCard key={item.activity.id} today={item} />
-      ))}
-    </div>
-  );
+  return <HomeTodayPriorityList items={today} />;
 }

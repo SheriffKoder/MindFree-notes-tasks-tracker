@@ -16,8 +16,10 @@ what the Home view must not own.
 Home
   ├─ "Today's Tasks"
   │    └─ HomeTodayList ─────── useHomeTodayQuery("task")
+  │         └─ HomeTodayPriorityList  (High → Medium → Low → Other; omit empty)
   └─ "Today's Reminders"
        └─ HomeRemindersList ─── useHomeTodayQuery("reminder")
+            └─ HomeTodayPriorityList  (same buckets; reminders land in Other)
 
 Both lists
   └─ QuickRecordCard
@@ -27,6 +29,9 @@ Both lists
             └─ optional record description
 ```
 
+Priority sections are always open (no collapse). Section labels use the same
+muted header style as "Today's Tasks" and are inset to align with that title
+text (past the summary chevron). Unset priority shows as **Other**.
 The cards edit the activity's record for today inline. They do not open the
 activity-definition drawer or introduce a record drawer. Definition editing
 stays on `/tasks` or `/reminders`; selected-day editing stays in those pages'
@@ -40,6 +45,7 @@ shared records drawer.
 | ---- | ------------ |
 | Section/card composition and layout | Activity or record domain rules |
 | Mount `useHomeTodayQuery(kind)` for each section | A Home-only query key or cache |
+| Group today's rows by priority for display | Priority persistence or editor |
 | Render `QuickRecordCard` for each item | Record API calls or cache mutation logic |
 | Render pending, error, and empty states | A second save/sync pipeline |
 | Future realtime/offline mount points | Activity-definition editing |

@@ -10,12 +10,12 @@
 "use client";
 
 import { useHomeTodayQuery } from "@/entities/activity/client";
-import { QuickRecordCard } from "@/features/activity/quick-record";
 import { QueryStatePanel } from "@/shared/react-query";
+import { HomeTodayPriorityList } from "@/views/home/ui/home-today-priority-list";
 
 /**
- * Renders today's activities as a tight, hover-tinted list. Separation is
- * whitespace + hover, not dividers (styling preference, `2-home-today-plan.md`).
+ * Renders today's tasks grouped by priority (High → Medium → Low → Other).
+ * Separation is whitespace + hover, not dividers.
  */
 export function HomeTodayList() {
   // Phase 5 — mount useActivityRealtimeSync(...) here (mirrors
@@ -45,11 +45,5 @@ export function HomeTodayList() {
     );
   }
 
-  return (
-    <div className="flex min-h-24 flex-col gap-0.5">
-      {today.map((item) => (
-        <QuickRecordCard key={item.activity.id} today={item} />
-      ))}
-    </div>
-  );
+  return <HomeTodayPriorityList items={today} />;
 }
