@@ -9,25 +9,31 @@ import { useCallback } from "react";
 
 import type { Payment } from "@/entities/payment";
 import { usePaymentsMonthQuery } from "@/entities/payment/client";
+import { PaymentDrawer } from "@/features/payments/payment-drawer";
 import { MonthNavigator } from "@/shared/month-navigator";
+import { usePaymentsDrawer } from "@/views/payments/model/use-payments-drawer";
 import { usePaymentsUrlState } from "@/views/payments/model/use-payments-url-state";
 import { PaymentsAddButton } from "@/views/payments/ui/payments-add-button";
 import { PaymentsMonthList } from "@/views/payments/ui/payments-month-list";
 
 /**
- * Renders the Payments page shell with month controls and week-grouped list.
+ * Renders the Payments page shell with month controls, list, and editor drawer.
  */
 export function PaymentsClient() {
   const { month, previousMonth, nextMonth } = usePaymentsUrlState();
   const { data, isPending, isError, error } = usePaymentsMonthQuery(month);
+  const drawer = usePaymentsDrawer();
 
   const handleAddPayment = useCallback(() => {
-    // Drawer create lands in Step 8.
-  }, []);
+    drawer.openCreate();
+  }, [drawer.openCreate]);
 
-  const handlePaymentClick = useCallback((_payment: Payment) => {
-    // Drawer edit lands in Step 8.
-  }, []);
+  const handlePaymentClick = useCallback(
+    (payment: Payment) => {
+      drawer.openEdit(payment.id);
+    },
+    [drawer.openEdit],
+  );
 
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
@@ -69,6 +75,8 @@ export function PaymentsClient() {
           </div>
         </div>
       </div>
+
+      <PaymentDrawer drawer={drawer} month={month} />
     </div>
   );
 }
