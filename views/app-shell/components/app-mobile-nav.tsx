@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Bell, CheckSquare, FileText, Home, User } from "lucide-react";
+import { BarChart3, Bell, CheckSquare, FileText, Home, Receipt, User } from "lucide-react";
 
 import { CardBackground } from "@/components/ui/card-background";
 import {
@@ -25,6 +25,7 @@ const NAV_ICON_BY_NAME = {
   notes: FileText,
   tasks: CheckSquare,
   reminders: Bell,
+  payments: Receipt,
   progress: BarChart3,
 } satisfies Record<AppNavigationIcon, typeof Home>;
 

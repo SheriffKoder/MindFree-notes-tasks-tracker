@@ -10,7 +10,7 @@ import { useCallback, useMemo, useState } from "react";
 import { NoteForm } from "@/entities/note/editor";
 import type { NoteFormFooterMeta } from "@/entities/note/editor/model/types";
 import { useDeleteNoteMutation } from "@/entities/note/client";
-import { AppDrawer } from "@/shared/drawer";
+import { AppDrawer, DrawerTitle } from "@/shared/drawer";
 import { useAuthUserId } from "@/shared/offline-queue";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
 import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-drawer-date-navigation";
@@ -191,9 +191,14 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     );
   }, [deleteNoteMutation, note, onDismiss, setOpen]);
 
+  /////////////////////////////////
+  // Title — create draft vs persisted edit
+  const title = request?.mode === "edit" ? "Edit note" : "New note";
+
   return (
     <AppDrawer
-      ariaLabel="Note editor"
+      ariaLabel={title}
+      header={<DrawerTitle>{title}</DrawerTitle>}
       open={isOpen}
       resizable
       onOpenChange={handleOpenChange}

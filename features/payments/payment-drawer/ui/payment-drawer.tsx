@@ -10,7 +10,8 @@
  * 1. Resolve edit target from warm month caches (null = create draft).
  * 2. Derive resetKey so the form reseeds on create ↔ edit switches.
  * 3. Wire save orchestrator (debounced create/patch + immediate delete).
- * 4. Render AppDrawer → PaymentForm → footer meta.
+ * 4. Derive New/Edit title from request mode.
+ * 5. Render AppDrawer → PaymentForm → footer meta.
  */
 
 "use client";
@@ -25,7 +26,7 @@ import type { PaymentDrawerController } from "@/features/payments/payment-drawer
 import { usePaymentSaveOrchestrator } from "@/features/payments/payment-drawer/model/use-payment-save-orchestrator";
 import { useResolvedDrawerPayment } from "@/features/payments/payment-drawer/model/use-resolved-drawer-payment";
 import { PaymentDrawerFooter } from "@/features/payments/payment-drawer/ui/payment-drawer-footer";
-import { AppDrawer } from "@/shared/drawer";
+import { AppDrawer, DrawerTitle } from "@/shared/drawer";
 import { useAuthUserId } from "@/shared/offline-queue";
 
 export interface PaymentDrawerProps {
@@ -120,10 +121,16 @@ export function PaymentDrawer({
   }, []);
 
   /////////////////////////////////
-  // 4. Shell — form + last-saved footer
+  // 4. Title — create draft vs persisted edit
+  const title =
+    request?.mode === "edit" ? "Edit payment" : "New payment";
+
+  /////////////////////////////////
+  // 5. Shell — form + last-saved footer
   return (
     <AppDrawer
-      ariaLabel="Payment editor"
+      ariaLabel={title}
+      header={<DrawerTitle>{title}</DrawerTitle>}
       open={isOpen}
       onOpenChange={handleOpenChange}
     >

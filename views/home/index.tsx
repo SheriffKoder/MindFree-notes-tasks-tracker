@@ -15,7 +15,10 @@ import { HomeActivityRealtime } from "@/views/home/ui/home-activity-realtime";
 import { HomeAsideContent } from "@/views/home/ui/home-aside-content";
 import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
 import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
+import { HomePaymentOffline } from "@/views/home/ui/home-payment-offline";
+import { HomePaymentRealtime } from "@/views/home/ui/home-payment-realtime";
 import { HomeRemindersList } from "@/views/home/ui/home-reminders-list";
+import { HomeReminderQuickAdd } from "@/views/home/ui/home-reminder-quick-add";
 import { HomeRightAside } from "@/views/home/ui/home-right-aside";
 import { HOME_SECTION_HEADER_CLASS } from "@/views/home/lib/section-header-class";
 import { HomeTodayList } from "@/views/home/ui/home-today-list";
@@ -43,6 +46,8 @@ export function HomeView({ notice = null }: HomeViewProps) {
       <div className="mx-auto flex h-full w-full flex-col gap-4">
         <HomeActivityRealtime />
         <HomeActivityOffline />
+        <HomePaymentRealtime />
+        <HomePaymentOffline />
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h2 className="text-h2 flex items-center gap-2">
@@ -58,9 +63,6 @@ export function HomeView({ notice = null }: HomeViewProps) {
         <div className="flex min-h-0 flex-1 flex-row gap-4">
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             <section>
-              <div className="mb-2 flex flex-col">
-                <h2 className={HOME_SECTION_HEADER_CLASS}>Starred Notes</h2>
-              </div>
               <HomeNotesSection />
             </section>
 
@@ -82,23 +84,28 @@ export function HomeView({ notice = null }: HomeViewProps) {
               </div>
             </details>
 
-            <details open className="group/reminders">
-              <summary
-                className={cn(
-                  HOME_SECTION_HEADER_CLASS,
-                  "flex w-fit cursor-pointer list-none items-center gap-1.5 py-1 marker:content-none [&::-webkit-details-marker]:hidden",
-                )}
-              >
-                <ChevronRight
-                  aria-hidden
-                  className="h-4 w-4 shrink-0 transition-transform duration-200 group-open/reminders:rotate-90"
-                />
-                <span>Today&apos;s Reminders</span>
-              </summary>
-              <div className="mt-1">
-                <HomeRemindersList />
+            <div className="relative">
+              <details open className="group/reminders">
+                <summary
+                  className={cn(
+                    HOME_SECTION_HEADER_CLASS,
+                    "flex w-full cursor-pointer list-none items-center gap-1.5 py-1 pe-10 marker:content-none [&::-webkit-details-marker]:hidden",
+                  )}
+                >
+                  <ChevronRight
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 transition-transform duration-200 group-open/reminders:rotate-90"
+                  />
+                  <span>Today&apos;s Reminders</span>
+                </summary>
+                <div className="mt-1">
+                  <HomeRemindersList />
+                </div>
+              </details>
+              <div className="absolute end-0 top-0">
+                <HomeReminderQuickAdd />
               </div>
-            </details>
+            </div>
           </div>
 
           <HomeRightAside>
