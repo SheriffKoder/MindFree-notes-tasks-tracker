@@ -20,6 +20,7 @@ import {
 import { useActivitiesQuery } from "@/entities/activity/client";
 import type { ActivityKind } from "@/entities/activity/model/types";
 import type { ActivityDrawerController } from "@/features/activity/activity-drawer/model/types";
+import { useActivityDrawerRealtimeSync } from "@/features/activity/activity-drawer/model/use-activity-drawer-realtime-sync";
 import { useConfigOrchestrator } from "@/features/activity/activity-drawer/model/use-config-orchestrator";
 import { ActivityDrawerFooter } from "@/features/activity/activity-drawer/ui/activity-drawer-footer";
 import { AppDrawer } from "@/shared/drawer";
@@ -114,6 +115,15 @@ export function ActivityDrawer({
     onDeleted: handleDeleted,
   });
 
+  const activityId = activity?.id ?? null;
+  const { remoteSyncKey, handleChangeWithDirty } =
+    useActivityDrawerRealtimeSync({
+      isOpen,
+      activityId,
+      resetKey,
+      onChange: handleChange,
+    });
+
   const handleFooterMetaChange = useCallback((meta: ActivityFormFooterMeta) => {
     setFooterMeta(meta);
   }, []);
@@ -129,10 +139,11 @@ export function ActivityDrawer({
           activity={activity}
           commitKey={commitKey}
           kind={kind}
+          remoteSyncKey={remoteSyncKey}
           resetKey={resetKey}
           saveStatus={saveStatus}
           onArchive={activity?.id ? archive : undefined}
-          onChange={handleChange}
+          onChange={handleChangeWithDirty}
           onDelete={activity?.id ? remove : undefined}
           onFooterMetaChange={handleFooterMetaChange}
           onRestore={activity?.id ? restore : undefined}

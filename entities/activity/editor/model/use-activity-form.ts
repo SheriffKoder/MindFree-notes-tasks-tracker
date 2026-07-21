@@ -10,6 +10,7 @@
  * 1. Seed values from the loaded activity or empty defaults.
  * 2. Emit onChange with isDirty/isValid meta on every field update.
  * 3. Snap dirty baseline on commitKey without overwriting current inputs.
+ * 4. Pull remote fields only when remoteSyncKey bumps (idle/clean guard).
  */
 
 "use client";
@@ -168,6 +169,7 @@ export function useActivityForm({
   activity,
   resetKey,
   commitKey = 0,
+  remoteSyncKey = 0,
   onChange,
 }: UseActivityFormOptions): UseActivityFormResult {
   const activityKey = activity?.id ?? "draft";
@@ -184,6 +186,9 @@ export function useActivityForm({
   const valuesRef = useRef(values);
   valuesRef.current = values;
 
+  const activityRef = useRef(activity);
+  activityRef.current = activity;
+
   // Context switch — reload fields from the resolved activity or empty draft.
   useEffect(() => {
     const nextValues = activityToFormValues(activity);
@@ -191,6 +196,19 @@ export function useActivityForm({
     setValues(nextValues);
     setErrors({});
   }, [activityKey, resetKey]);
+
+  // Remote sync — pull cached activity fields only when remoteSyncKey bumps
+  // (not on every cache write).
+  useEffect(() => {
+    if (remoteSyncKey === 0) {
+      return;
+    }
+
+    const nextValues = activityToFormValues(activityRef.current);
+    setBaselineValues(nextValues);
+    setValues(nextValues);
+    setErrors({});
+  }, [remoteSyncKey]);
 
   // Successful autosave — snap baseline without overwriting current inputs.
   useEffect(() => {

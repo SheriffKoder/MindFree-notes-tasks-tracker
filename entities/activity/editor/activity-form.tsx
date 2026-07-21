@@ -39,6 +39,7 @@ export function ActivityForm({
   kind,
   resetKey,
   commitKey = 0,
+  remoteSyncKey = 0,
   onChange,
   saveStatus = "idle",
   onFooterMetaChange,
@@ -65,7 +66,13 @@ export function ActivityForm({
     setPriority,
     setStartsAt,
     setEndsAt,
-  } = useActivityForm({ activity, resetKey, commitKey, onChange });
+  } = useActivityForm({
+    activity,
+    resetKey,
+    commitKey,
+    remoteSyncKey,
+    onChange,
+  });
 
   useEffect(() => {
     onFooterMetaChange?.({

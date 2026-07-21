@@ -13,6 +13,7 @@
  * - mark/clear/is ActivityMutationPending (activity-mutation-pending)
  * - useUpsertActivityRecordMutation, useDeleteActivityRecordMutation,
  *   mark/clear/is RecordMutationPending (record/*)
+ * - useActivityRealtimeSync (use-activity-realtime-sync)
  */
 
 export {
@@ -22,6 +23,12 @@ export {
 } from "@/entities/activity/hooks/activity-mutation-pending";
 export { useActivitiesQuery } from "@/entities/activity/hooks/use-activities-query";
 export { useActivityRecordsQuery } from "@/entities/activity/hooks/use-activity-records-query";
+export { useActivityRealtimeSync } from "@/entities/activity/hooks/use-activity-realtime-sync";
+export type {
+  RealtimeActivityChangePayload,
+  RealtimeActivityRecordChangePayload,
+  UseActivityRealtimeSyncOptions,
+} from "@/entities/activity/hooks/use-activity-realtime-sync";
 export { useHomeTodayQuery } from "@/entities/activity/hooks/use-home-today-query";
 export type { UseHomeTodayQueryResult } from "@/entities/activity/hooks/use-home-today-query";
 export { useCreateActivityMutation } from "@/entities/activity/hooks/use-create-activity-mutation";

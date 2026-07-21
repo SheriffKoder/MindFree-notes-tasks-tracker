@@ -168,6 +168,9 @@ reminders + one records fetch)
 `cache/record/record-month-key.ts` — derive `YYYY-MM` from a record date
 `cache/purge-activity-records-in-cache.ts` — drop one task's records from a month bucket
 `cache/find-activity-in-cache.ts` — `findActivityByIdInCache`
+`cache/find-record-in-cache.ts` — `findRecordInCache`, `hasRecordMonthCache`
+`cache/apply-realtime-activity-change.ts` — `mf_task` event → gated hub call
+`cache/apply-realtime-activity-record-change.ts` — `mf_task_record` → gated hub
 `cache/synchronize-activity-caches.ts` — definition + record `ActivityChange` fan-out hub
 
 ---
@@ -182,7 +185,8 @@ over the matching definitions bucket + shared current-month records
 `hooks/use-update-activity-mutation.ts` — patch autosave + optimistic + newer-wins
 `hooks/use-archive-activity-mutation.ts` — `useArchiveActivityMutation`, `useRestoreActivityMutation`
 `hooks/use-delete-activity-mutation.ts` — delete + cache removal + record purge
-`hooks/activity-mutation-pending.ts` — in-flight ids (realtime echo skip, Phase 5)
+`hooks/activity-mutation-pending.ts` — in-flight ids (realtime echo skip)
+`hooks/use-activity-realtime-sync.ts` — dual-table `postgres_changes` → apply adapters
 `hooks/record/use-upsert-activity-record-mutation.ts` — absolute upsert + optimistic + newer-wins
 `hooks/record/build-optimistic-activity-record.ts` — apply form-submitted configuration snapshots for optimistic rows
 `hooks/record/use-delete-activity-record-mutation.ts` — optimistic delete + rollback
@@ -199,7 +203,8 @@ over the matching definitions bucket + shared current-month records
 `editor/model/normalize-period-goals.ts` — clear period fields when toggle Off;
 mode-compatible `periodGoal` / `periodGoalDuration` (boolean keeps count)
 `editor/model/use-activity-form.ts` — local fields (incl. `goalDuration`, period
-goals, `priority`), dirty/valid meta, reset on `resetKey`/`commitKey`
+goals, `priority`), dirty/valid meta, reset on `resetKey`/`commitKey`, pull on
+`remoteSyncKey` bump (realtime idle/clean)
 
 ### UI
 
@@ -284,6 +289,8 @@ records remain keyed independently of kind.
 | Change quick-record debounce/delete-on-empty | `features/activity/quick-record/model/use-quick-record.ts` |
 | Fix optimistic UI after save | `cache/synchronize-activity-caches.ts`, `activity-cache-mutations.ts`, `cache/record/*` |
 | Fix list/calendar not updating | `hooks/use-activities-query.ts`, `use-activity-records-query.ts` |
+| Fix multi-tab / live sync | [realtime.md](./realtime.md), `hooks/use-activity-realtime-sync.ts`, `cache/apply-realtime-*` |
+| Fix remote overwrite while typing in definition drawer | `features/activity/activity-drawer/model/activity-editor-sync-guard.ts`, `use-activity-drawer-realtime-sync.ts` |
 | Change autosave decision | `features/activity/activity-drawer/pre-save-orchestrator/evaluate-activity-save.ts` |
 | Wire drawer save routing | `features/activity/activity-drawer/model/use-config-orchestrator.ts` |
 | Change form fields / validation | `editor/model/*`, `editor/fields/*`, `schema/activity-form.schema.ts` |

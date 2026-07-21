@@ -12,6 +12,7 @@ page, Home Today, and Progress are consumers, not forks
 | Recurrence + validity window + status | [`docs/scheduling.md`](./docs/scheduling.md) |
 | Caches, calendar/Home joins, progress | [`docs/read-models.md`](./docs/read-models.md) |
 | Definition autosave + daily record writes | [`docs/writes-and-autosave.md`](./docs/writes-and-autosave.md) |
+| Multi-tab / multi-device live sync | [`docs/realtime.md`](./docs/realtime.md) |
 | File lookup by responsibility | [`docs/responsibilities.md`](./docs/responsibilities.md) |
 | Layer / folder names | [`docs/concepts/terminology.md`](../../docs/concepts/terminology.md) |
 
@@ -43,7 +44,7 @@ model / schema / lib / transform / repository
 
 ```text
 entities/activity/
-├── docs/         # WHY (domain, scheduling, read models, writes)
+├── docs/         # WHY (domain, scheduling, read models, writes, realtime)
 ├── model/        # Types + read-model payloads
 ├── schema/       # Zod contracts (form, definitions, record writes)
 ├── lib/          # Pure helpers (month, schedule, record, today, mapping)

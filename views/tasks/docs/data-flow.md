@@ -105,7 +105,9 @@ implementations.
 - definition and selected-day records drawer state;
 - kind-aware labels and Add behavior;
 - the calendar-only filter provider;
-- responsive calendar/list composition.
+- responsive calendar/list composition;
+- realtime subscription (`useActivityRealtimeSync`) scoped to the signed-in user,
+  with definition-drawer notify for idle/clean remote pulls.
 
 ---
 
@@ -212,6 +214,10 @@ Definition and record mutations converge through
 Reminders, and Home recompute from those same keys without page-specific sync
 branches.
 
+Realtime (`postgres_changes` on `mf_task` + `mf_task_record`) maps into the same
+hub via apply adapters — sources differ; cache rules do not. See
+[realtime.md](../../../entities/activity/docs/realtime.md).
+
 ---
 
 ## Re-render and cache boundaries
@@ -232,6 +238,7 @@ branches.
 | --- | --- |
 | [read-models.md](../../../entities/activity/docs/read-models.md) | Kind-scoped definitions, shared records, and joins |
 | [writes-and-autosave.md](../../../entities/activity/docs/writes-and-autosave.md) | Definition/record writes back into canonical caches |
+| [realtime.md](../../../entities/activity/docs/realtime.md) | Live sync → same hub; Progress excluded |
 | [calendar-cell.md](../../../features/activity/activity-calendar-cell/docs/calendar-cell.md) | Calendar pill presentation |
 | [scheduling.md](../../../entities/activity/docs/scheduling.md) | Due-day and lifecycle rules |
 | [ADR 0011](../../../docs/adr/0011-one-activity-model-two-kinds.md) | Why Tasks and Reminders share one model and page workflow |

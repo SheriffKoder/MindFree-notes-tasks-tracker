@@ -13,8 +13,9 @@
 import { useCallback, useMemo } from "react";
 
 import type { Activity, ActivityKind } from "@/entities/activity";
-import { useActivitiesQuery } from "@/entities/activity/client";
+import { useActivitiesQuery, useActivityRealtimeSync } from "@/entities/activity/client";
 import { ActivityDrawer } from "@/features/activity/activity-drawer";
+import { notifyActivityDrawerRealtime } from "@/features/activity/activity-drawer/model/activity-realtime-drawer-bridge";
 import { buildActivityPageCopy } from "@/features/activity/activity-page/lib/activity-page-copy";
 import { buildActivityViewConfig } from "@/features/activity/activity-page/lib/activity-views";
 import { ActivityFilterProvider } from "@/features/activity/activity-page/model/activity-filter-context";
@@ -68,7 +69,10 @@ export function ActivityPageClient({
   const drawer = useActivityDefinitionDrawer();
   const recordsDrawer = useActivityRecordsDrawer();
 
-  // Phase 5 — mount useActivityRealtimeSync(...) here.
+  useActivityRealtimeSync({
+    onActivityChange: notifyActivityDrawerRealtime,
+  });
+
   // Phase 6 — mount useOfflineSync(userId, [activityOfflineAdapter]) here.
 
   const { data } = useActivitiesQuery(kind);
