@@ -15,6 +15,7 @@ what the Home view must not own.
 ```text
 Home
   ├─ HomeActivityRealtime ─── useActivityRealtimeSync() once
+  ├─ HomeActivityOffline ──── useOfflineSync(activity adapter) once
   ├─ "Today's Tasks"
   │    └─ HomeTodayList ─────── useHomeTodayQuery("task")
   │         └─ HomeTodayPriorityList  (High → Medium → Low → Other; omit empty)
@@ -50,7 +51,7 @@ shared records drawer.
 | Render `QuickRecordCard` for each item | Record API calls or cache mutation logic |
 | Render pending, error, and empty states | A second save/sync pipeline |
 | Mount realtime once via `HomeActivityRealtime` | Duplicate mounts inside both lists |
-| Future offline mount (Phase 6) | Activity-definition editing |
+| Mount offline once via `HomeActivityOffline` | Activity-definition editing |
 
 `useHomeTodayQuery(kind)` is a memoized selector over the matching
 `["activities", kind]` bucket and `["activityRecords", currentMonth]`. Tasks and

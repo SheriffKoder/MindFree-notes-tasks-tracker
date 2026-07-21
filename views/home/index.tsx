@@ -8,7 +8,9 @@ import { BookMarked, ChevronRight } from "lucide-react";
 import type { AuthNotice } from "@/features/auth/model/auth-notice";
 import { AuthNoticeBanner } from "@/features/auth/ui/auth-notice-banner";
 import { cn } from "@/lib/utils";
+import { OfflineBanner } from "@/shared/offline-queue";
 import { HomeAsideShell } from "@/views/home/model/home-aside-drawer-context";
+import { HomeActivityOffline } from "@/views/home/ui/home-activity-offline";
 import { HomeActivityRealtime } from "@/views/home/ui/home-activity-realtime";
 import { HomeAsideContent } from "@/views/home/ui/home-aside-content";
 import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
@@ -37,8 +39,10 @@ export interface HomeViewProps {
 export function HomeView({ notice = null }: HomeViewProps) {
   return (
     <HomeAsideShell>
+      <OfflineBanner />
       <div className="mx-auto flex h-full w-full flex-col gap-4">
         <HomeActivityRealtime />
+        <HomeActivityOffline />
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h2 className="text-h2 flex items-center gap-2">

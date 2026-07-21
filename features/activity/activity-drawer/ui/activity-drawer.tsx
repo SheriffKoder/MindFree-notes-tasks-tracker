@@ -24,6 +24,7 @@ import { useActivityDrawerRealtimeSync } from "@/features/activity/activity-draw
 import { useConfigOrchestrator } from "@/features/activity/activity-drawer/model/use-config-orchestrator";
 import { ActivityDrawerFooter } from "@/features/activity/activity-drawer/ui/activity-drawer-footer";
 import { AppDrawer } from "@/shared/drawer";
+import { useAuthUserId } from "@/shared/offline-queue";
 
 export interface ActivityDrawerProps {
   /** Definition kind owned by the mounting page. */
@@ -51,6 +52,7 @@ export function ActivityDrawer({
   onDismiss,
 }: ActivityDrawerProps) {
   const { isOpen, request, setOpen, openEdit } = drawer;
+  const userId = useAuthUserId();
   const { data } = useActivitiesQuery(kind);
   const [footerMeta, setFooterMeta] =
     useState<ActivityFormFooterMeta>(INITIAL_FOOTER_META);
@@ -111,6 +113,7 @@ export function ActivityDrawer({
     activity,
     kind,
     isOpen,
+    userId,
     onActivityCreated: handleActivityCreated,
     onDeleted: handleDeleted,
   });

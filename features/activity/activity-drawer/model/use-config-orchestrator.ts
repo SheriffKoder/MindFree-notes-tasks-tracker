@@ -11,10 +11,12 @@
  * 3. scheduleFromEvaluation — enqueue debounced create/patch mutation.
  *
  * Archive / restore / remove fire immediately and are never debounced.
+ * Offline: persist via saveActivityOfflinePending and skip network mutations.
  */
 
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -29,12 +31,15 @@ import type {
   ActivityFormValues,
   ActivitySaveStatus,
 } from "@/entities/activity/editor/model/types";
+import { pinnedDraftActivityId } from "@/entities/activity/hooks/build-optimistic-activity";
+import { saveActivityOfflinePending } from "@/entities/activity/offline";
 import { evaluateActivitySave } from "@/features/activity/activity-drawer/pre-save-orchestrator/evaluate-activity-save";
 import type {
   EvaluateActivitySaveResult,
   UseConfigOrchestratorOptions,
   UseConfigOrchestratorResult,
 } from "@/features/activity/activity-drawer/pre-save-orchestrator/types";
+import { isOnline } from "@/shared/offline-queue";
 
 const MUTATION_DEBOUNCE_MS = 600;
 const SAVED_STATUS_RESET_MS = 2000;
@@ -57,9 +62,11 @@ export function useConfigOrchestrator({
   activity,
   kind,
   isOpen,
+  userId,
   onActivityCreated,
   onDeleted,
 }: UseConfigOrchestratorOptions): UseConfigOrchestratorResult {
+  const queryClient = useQueryClient();
   const { mutate: createActivity } = useCreateActivityMutation();
   const { mutate: patchActivity } = useUpdateActivityMutation();
   const { mutate: archiveActivity } = useArchiveActivityMutation();
@@ -109,6 +116,42 @@ export function useConfigOrchestrator({
     pendingMutationRef.current = null;
     setSaveStatus("saving");
 
+    // Offline — persist locally, keep optimistic cache, skip network
+    if (!isOnline()) {
+      if (!userId) {
+        markSaveError();
+        return;
+      }
+
+      switch (pending.kind) {
+        case "create":
+          saveActivityOfflinePending(userId, queryClient, {
+            kind: "create",
+            activityKind: kind,
+            values: pending.values,
+          });
+          onActivityCreated(pinnedDraftActivityId(kind));
+          markSaveSuccess();
+          return;
+        case "patch": {
+          const current = activityRef.current;
+
+          if (!current || current.id !== pending.activityId) {
+            markSaveError();
+            return;
+          }
+
+          saveActivityOfflinePending(userId, queryClient, {
+            kind: "patch",
+            activity: current,
+            values: pending.values,
+          });
+          markSaveSuccess();
+          return;
+        }
+      }
+    }
+
     const mutationOptions = {
       onSuccess: () => {
         markSaveSuccess();
@@ -155,6 +198,8 @@ export function useConfigOrchestrator({
     markSaveSuccess,
     onActivityCreated,
     patchActivity,
+    queryClient,
+    userId,
   ]);
 
   const scheduleMutation = useCallback(
@@ -233,6 +278,20 @@ export function useConfigOrchestrator({
     pendingMutationRef.current = null;
     setSaveStatus("saving");
 
+    if (!isOnline()) {
+      if (!userId) {
+        markSaveError();
+        return;
+      }
+
+      saveActivityOfflinePending(userId, queryClient, {
+        kind: "archive",
+        activity: current,
+      });
+      markSaveSuccess();
+      return;
+    }
+
     archiveActivity(
       { activity: current },
       {
@@ -244,7 +303,14 @@ export function useConfigOrchestrator({
         },
       },
     );
-  }, [archiveActivity, clearDebounceTimer, markSaveError, markSaveSuccess]);
+  }, [
+    archiveActivity,
+    clearDebounceTimer,
+    markSaveError,
+    markSaveSuccess,
+    queryClient,
+    userId,
+  ]);
 
   const restore = useCallback(() => {
     const current = activityRef.current;
@@ -257,6 +323,20 @@ export function useConfigOrchestrator({
     pendingMutationRef.current = null;
     setSaveStatus("saving");
 
+    if (!isOnline()) {
+      if (!userId) {
+        markSaveError();
+        return;
+      }
+
+      saveActivityOfflinePending(userId, queryClient, {
+        kind: "restore",
+        activity: current,
+      });
+      markSaveSuccess();
+      return;
+    }
+
     restoreActivity(
       { activity: current },
       {
@@ -268,7 +348,14 @@ export function useConfigOrchestrator({
         },
       },
     );
-  }, [clearDebounceTimer, markSaveError, markSaveSuccess, restoreActivity]);
+  }, [
+    clearDebounceTimer,
+    markSaveError,
+    markSaveSuccess,
+    queryClient,
+    restoreActivity,
+    userId,
+  ]);
 
   const remove = useCallback(() => {
     const current = activityRef.current;
@@ -280,6 +367,21 @@ export function useConfigOrchestrator({
     clearDebounceTimer();
     pendingMutationRef.current = null;
     setSaveStatus("saving");
+
+    if (!isOnline()) {
+      if (!userId) {
+        markSaveError();
+        return;
+      }
+
+      saveActivityOfflinePending(userId, queryClient, {
+        kind: "delete",
+        activity: current,
+      });
+      markSaveSuccess();
+      onDeleted?.();
+      return;
+    }
 
     deleteActivity(
       { activity: current },
@@ -299,6 +401,8 @@ export function useConfigOrchestrator({
     markSaveError,
     markSaveSuccess,
     onDeleted,
+    queryClient,
+    userId,
   ]);
 
   useEffect(() => {

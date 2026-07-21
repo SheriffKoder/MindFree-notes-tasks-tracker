@@ -22,9 +22,10 @@ import {
   clearActivityMutationPending,
   markActivityMutationPending,
 } from "@/entities/activity/hooks/activity-mutation-pending";
+import { buildOptimisticActivity } from "@/entities/activity/hooks/build-optimistic-activity";
 import { normalizeActivityDefinition } from "@/entities/activity/lib/definition";
 import type { ActivitiesResponse } from "@/entities/activity/model/read-models";
-import type { Activity, ActivityKind } from "@/entities/activity/model/types";
+import type { ActivityKind } from "@/entities/activity/model/types";
 
 export interface CreateActivityMutationInput {
   /** Page-provided kind (`task` | `reminder`). */
@@ -41,41 +42,6 @@ interface CacheSnapshot {
 interface CreateActivityMutationContext {
   previousSnapshots: CacheSnapshot[];
   optimisticId: string;
-}
-
-function buildOptimisticActivity(
-  kind: ActivityKind,
-  values: ActivityFormValues,
-): Activity {
-  const now = new Date().toISOString();
-
-  // Match the server's kind policy before the optimistic row reaches any
-  // consumer. This prevents a reminder from briefly rendering task colors,
-  // goals, or numeric controls while the request is in flight.
-  const normalized = normalizeActivityDefinition(kind, values);
-
-  return {
-    id: `optimistic-${kind}-${now}`,
-    kind,
-    title: values.title,
-    description: values.description ?? null,
-    color: normalized.color,
-    trackingMode: normalized.trackingMode,
-    scheduleType: values.scheduleType,
-    scheduleConfig: values.scheduleConfig,
-    goal: normalized.goal,
-    goalDuration: normalized.goalDuration,
-    goalPeriod: normalized.goalPeriod,
-    periodGoal: normalized.periodGoal,
-    periodGoalDuration: normalized.periodGoalDuration,
-    priority: normalized.priority,
-    icon: null,
-    startsAt: values.startsAt ?? null,
-    endsAt: values.endsAt ?? null,
-    archivedAt: null,
-    createdAt: now,
-    updatedAt: now,
-  };
 }
 
 /**

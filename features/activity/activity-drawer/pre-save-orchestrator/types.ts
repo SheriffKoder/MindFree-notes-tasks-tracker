@@ -39,6 +39,8 @@ export interface UseConfigOrchestratorOptions {
   kind: ActivityKind;
   /** Drawer open flag — resets save UI when a session starts. */
   isOpen: boolean;
+  /** Signed-in user — scopes offline writes in localStorage. */
+  userId: string | null;
   /** Switches create intent to edit mode after the first row exists. */
   onActivityCreated: (activityId: string) => void;
   /** Closes the drawer after a successful hard-delete. */

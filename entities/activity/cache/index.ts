@@ -7,7 +7,7 @@
  * - purgeActivityRecordsInCache (purge-activity-records-in-cache)
  * - recordMonthKey, upsertRecordInCache, removeRecordFromCache (record/*)
  * - synchronizeActivityCaches, ActivityChange (synchronize-activity-caches)
- * - findActivityByIdInCache (find-activity-in-cache)
+ * - findActivityByIdInCache, findActivityInEitherKind (find-activity-in-cache)
  * - findRecordInCache, findRecordByIdInCache, hasRecordMonthCache (find-record-in-cache)
  * - applyRealtimeActivityChange (apply-realtime-activity-change)
  * - applyRealtimeActivityRecordChange (apply-realtime-activity-record-change)
@@ -27,7 +27,7 @@ export {
   removeActivityFromCache,
   upsertActivityInCache,
 } from "@/entities/activity/cache/activity-cache-mutations";
-export { findActivityByIdInCache } from "@/entities/activity/cache/find-activity-in-cache";
+export { findActivityByIdInCache, findActivityInEitherKind } from "@/entities/activity/cache/find-activity-in-cache";
 export {
   findRecordByIdInCache,
   findRecordInCache,

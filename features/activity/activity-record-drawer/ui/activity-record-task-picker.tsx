@@ -12,6 +12,7 @@
 
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
@@ -30,6 +31,8 @@ import type {
   RecordTaskCandidates,
 } from "@/entities/activity";
 import { useUpsertActivityRecordMutation } from "@/entities/activity/client";
+import { saveActivityOfflinePending } from "@/entities/activity/offline";
+import { isOnline, useAuthUserId } from "@/shared/offline-queue";
 
 export interface ActivityRecordTaskPickerProps {
   /** Selected calendar day (`YYYY-MM-DD`). */
@@ -51,6 +54,8 @@ export function ActivityRecordTaskPicker({
   // The mutation optimistically inserts into `["activityRecords", month]`.
   // ActivityRecordList subscribes to that cache, so the selected definition
   // leaves this dropdown and appears as a card without local picker state.
+  const queryClient = useQueryClient();
+  const userId = useAuthUserId();
   const { mutate: upsertRecord, isPending } = useUpsertActivityRecordMutation();
   const hasCandidates =
     candidates.active.length > 0 || candidates.archived.length > 0;
@@ -70,18 +75,32 @@ export function ActivityRecordTaskPicker({
     (activity: Activity) => {
       // A record needs an initial row before its card can be edited. Zero totals
       // create that row; snapshot fields come from the definition (form-owned).
-      upsertRecord({
+      const input = {
         taskId: activity.id,
         date,
         count: 0,
         duration: 0,
-        description: null,
+        description: null as string | null,
         trackingMode: activity.trackingMode,
         goal: activity.goal,
         goalDuration: activity.goalDuration,
-      });
+      };
+
+      if (!isOnline()) {
+        if (!userId) {
+          return;
+        }
+
+        saveActivityOfflinePending(userId, queryClient, {
+          kind: "record-upsert",
+          ...input,
+        });
+        return;
+      }
+
+      upsertRecord(input);
     },
-    [date, upsertRecord],
+    [date, queryClient, upsertRecord, userId],
   );
 
   return (

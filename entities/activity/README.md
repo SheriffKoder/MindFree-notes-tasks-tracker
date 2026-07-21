@@ -13,6 +13,7 @@ page, Home Today, and Progress are consumers, not forks
 | Caches, calendar/Home joins, progress | [`docs/read-models.md`](./docs/read-models.md) |
 | Definition autosave + daily record writes | [`docs/writes-and-autosave.md`](./docs/writes-and-autosave.md) |
 | Multi-tab / multi-device live sync | [`docs/realtime.md`](./docs/realtime.md) |
+| Offline queue + flush on reconnect | [`docs/offline.md`](./docs/offline.md) |
 | File lookup by responsibility | [`docs/responsibilities.md`](./docs/responsibilities.md) |
 | Layer / folder names | [`docs/concepts/terminology.md`](../../docs/concepts/terminology.md) |
 
@@ -31,20 +32,20 @@ All WHY docs: [`docs/README.md`](./docs/README.md)
 model / schema / lib / transform / repository
         ↑
  queries/ + mutations/   →  server.ts  →  pages & API
- client/ + hooks/ + cache/ →  client.ts  →  views & drawer
+ client/ + hooks/ + cache/ + offline/ →  client.ts / offline/  →  views & drawer
  editor/                  →  dumb form fields only
 ```
 
 - Lower layers never import `queries/`, `hooks/`, or `client.ts`.
 - API routes stay thin: auth → one `server.ts` export → JSON.
 - Cross-slice consumers import from `index.ts` / `server.ts` / `client.ts` /
-  `editor/` — never from segment paths.
+  `editor/` / `offline/` — never from segment implementation paths.
 
 ## Folder map
 
 ```text
 entities/activity/
-├── docs/         # WHY (domain, scheduling, read models, writes, realtime)
+├── docs/         # WHY (domain, scheduling, read models, writes, realtime, offline)
 ├── model/        # Types + read-model payloads
 ├── schema/       # Zod contracts (form, definitions, record writes)
 ├── lib/          # Pure helpers (month, schedule, record, today, mapping)
@@ -55,6 +56,7 @@ entities/activity/
 ├── cache/        # Pure definition/record cache updaters + sync hub
 ├── client/       # TanStack keys, fetchers, SSR seed
 ├── hooks/        # Read selectors/queries + write mutations
+├── offline/      # Offline queue adapter → sync hub
 └── editor/       # Reusable config form (no save routing)
 ```
 
