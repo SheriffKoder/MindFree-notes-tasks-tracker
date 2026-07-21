@@ -21,6 +21,9 @@ export {
   useDeletePaymentMutation,
   usePaymentsMonthQuery,
   useUpdatePaymentMutation,
+  clearPaymentMutationPending,
+  isPaymentMutationPending,
+  markPaymentMutationPending,
   type CreatePaymentMutationInput,
   type DeletePaymentMutationInput,
   type UpdatePaymentMutationInput,
@@ -31,3 +34,7 @@ export type {
   CreatePaymentBody,
   UpdatePaymentBody,
 } from "@/entities/payment/schema";
+export {
+  synchronizePaymentCaches,
+  type PaymentChange,
+} from "@/entities/payment/cache";
