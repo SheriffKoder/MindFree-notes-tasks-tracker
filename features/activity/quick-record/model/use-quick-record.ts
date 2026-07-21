@@ -18,6 +18,7 @@
 
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
@@ -33,7 +34,9 @@ import {
   useDeleteActivityRecordMutation,
   useUpsertActivityRecordMutation,
 } from "@/entities/activity/client";
+import { saveActivityOfflinePending } from "@/entities/activity/offline";
 import { getTodayIsoDate } from "@/shared/calendar";
+import { isOnline, useAuthUserId } from "@/shared/offline-queue";
 
 const QUICK_RECORD_DEBOUNCE_MS = 500;
 
@@ -110,6 +113,8 @@ export function useQuickRecord({
   date,
 }: UseQuickRecordOptions): UseQuickRecordResult {
   const recordDate = date ?? getTodayIsoDate();
+  const queryClient = useQueryClient();
+  const userId = useAuthUserId();
   const { mutate: upsertRecord } = useUpsertActivityRecordMutation();
   const { mutate: deleteRecord } = useDeleteActivityRecordMutation();
 
@@ -193,6 +198,42 @@ export function useQuickRecord({
           trackingModeRef.current,
         );
 
+        // Offline — queue + optimistic hub apply; skip TanStack mutate.
+        if (!isOnline()) {
+          if (!userId) {
+            pendingRef.current = false;
+            return;
+          }
+
+          if (meaningful || descriptionToSave !== null || keepEmpty) {
+            saveActivityOfflinePending(userId, queryClient, {
+              kind: "record-upsert",
+              taskId: activity.id,
+              date: recordDate,
+              count: draft.count,
+              duration: draft.duration,
+              description: descriptionToSave,
+              trackingMode: trackingModeRef.current,
+              goal: draft.goal,
+              goalDuration: draft.goalDuration,
+            });
+            settle();
+            return;
+          }
+
+          if (existing) {
+            saveActivityOfflinePending(userId, queryClient, {
+              kind: "record-delete",
+              record: existing,
+            });
+            settle();
+            return;
+          }
+
+          pendingRef.current = false;
+          return;
+        }
+
         // A non-empty note alone is enough to keep/create the row so typing in
         // the description panel persists before a count/minute is set. Goal
         // edits explicitly keep an empty row because the goal itself is the
@@ -226,8 +267,10 @@ export function useQuickRecord({
       activity.id,
       clearDebounce,
       deleteRecord,
+      queryClient,
       recordDate,
       upsertRecord,
+      userId,
     ],
   );
 
