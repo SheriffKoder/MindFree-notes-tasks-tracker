@@ -7,7 +7,7 @@
  * Used for: Month navigator previous/next and preserving other URL params.
  *
  * Steps:
- * 1. Parse `?month=` from search params (default current month).
+ * 1. Parse `?month=` from search params (default current or demo month).
  * 2. Delegate prev/next navigation to shared useMonthNavigation.
  */
 
@@ -17,7 +17,11 @@ import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 import { parseMonthParam } from "@/entities/payment";
-import { useMonthNavigation } from "@/shared/month-navigator";
+import { useDemoMonthParseOptions } from "@/shared/demo-session";
+import {
+  useCanonicalDemoMonthUrl,
+  useMonthNavigation,
+} from "@/shared/month-navigator";
 
 export interface UsePaymentsUrlStateResult {
   month: string;
@@ -30,20 +34,18 @@ export interface UsePaymentsUrlStateResult {
 }
 
 /**
- * Resolves Payments page URL month state and navigation actions.
+ * Resolves Payments page URL state and navigation actions.
  */
 export function usePaymentsUrlState(): UsePaymentsUrlStateResult {
   const searchParams = useSearchParams();
+  const demoMonthOptions = useDemoMonthParseOptions();
+  useCanonicalDemoMonthUrl();
 
-  /////////////////////////////////
-  // 1. Month — normalize URL param to YYYY-MM
   const month = useMemo(
-    () => parseMonthParam(searchParams.get("month")),
-    [searchParams],
+    () => parseMonthParam(searchParams.get("month"), demoMonthOptions),
+    [demoMonthOptions, searchParams],
   );
 
-  /////////////////////////////////
-  // 2. Navigation — shared month prev/next helpers
   const { navigateToMonth, onPrevious, onNext } = useMonthNavigation(month);
 
   return {

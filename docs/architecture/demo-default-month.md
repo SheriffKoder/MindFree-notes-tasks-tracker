@@ -154,6 +154,7 @@ sequenceDiagram
 | Notes | `views/notes/ui/notes-hydration-seed.tsx` | `getAuthenticatedDemoSession()` |
 | Tasks | `views/tasks/ui/tasks-hydration-seed.tsx` | same |
 | Reminders | `views/reminders/ui/reminders-hydration-seed.tsx` | same |
+| Payments | `views/payments/ui/payments-hydration-seed.tsx` | same |
 | Home activity | `views/home/ui/home-hydration-seed.tsx` → `getHomeActivityInitialData` | `{ isDemoUser }` |
 | Progress | `app/(app)/progress/page.tsx` | `parseMonthParam(?month, { isDemoUser })` |
 
@@ -188,6 +189,7 @@ sequenceDiagram
 | ------- | ----------- | ------------- |
 | Notes | `views/notes/model/use-notes-url-state.ts` | yes |
 | Tasks / Reminders | `features/activity/activity-page/model/use-activity-page-url-state.ts` | yes |
+| Payments | `views/payments/model/use-payments-url-state.ts` | yes |
 | Home Today | `entities/activity/hooks/use-home-today-query.ts` | no (no `?month=` on `/`) |
 | Progress | Server-resolved month → `ProgressMonthNavigator` | not wired (optional) |
 
@@ -196,7 +198,8 @@ sequenceDiagram
 ## `parseMonthParam` decision
 
 Lives in **entity** code (`entities/note/lib/parse-month.ts`,
-`entities/activity/lib/month/parse-month.ts`) — not in `shared/month-navigator`.
+`entities/activity/lib/month/parse-month.ts`,
+`entities/payment/lib/parse-month.ts`) — not in `shared/month-navigator`.
 
 ```mermaid
 flowchart TD
