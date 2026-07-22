@@ -14,7 +14,6 @@ import { dehydrate } from "@tanstack/react-query";
 import { connection } from "next/server";
 
 import {
-  getAuthenticatedUserId,
   getHomeActivityInitialData,
   seedHomeActivityCaches,
 } from "@/entities/activity/server";
@@ -22,6 +21,7 @@ import {
   getHomeNotesResponse,
   seedHomeNotesCache,
 } from "@/entities/note/server";
+import { getAuthenticatedDemoSession } from "@/shared/lib/auth/get-demo-session";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**
@@ -35,11 +35,11 @@ export async function HomeHydrationSeed() {
   // Satisfy Next.js dynamic route rules before time-based month defaults run.
   await connection();
 
-  const userId = await getAuthenticatedUserId();
+  const { userId, isDemoUser } = await getAuthenticatedDemoSession();
 
   const [homeNotes, activityData] = await Promise.all([
     getHomeNotesResponse(userId),
-    getHomeActivityInitialData(userId),
+    getHomeActivityInitialData(userId, { isDemoUser }),
   ]);
 
   const queryClient = getQueryClient();
