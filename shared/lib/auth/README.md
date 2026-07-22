@@ -146,6 +146,7 @@ Try Demo is **off by default in production**. Enable only in local/staging:
 ENABLE_DEMO_LOGIN=true
 DEMO_LOGIN_EMAIL=demo@example.com
 DEMO_LOGIN_PASSWORD=password
+DEMO_DEFAULT_MONTH=2025-06
 ```
 
 - Credentials are **server-only** — the client form posts only `next`; `submitDemoLoginForm` reads env vars.
@@ -154,6 +155,9 @@ DEMO_LOGIN_PASSWORD=password
 - Profile is disabled for the signed-in user whose email matches `DEMO_LOGIN_EMAIL`
   (`isDemoUserEmail`): nav link hidden, `/profile` redirects home (page + `proxy.ts`),
   non-GET `/api/profile/*` returns 403. GET `/api/profile` stays allowed for theme.
+- **Demo default month:** when `DEMO_DEFAULT_MONTH` is set, month-scoped routes use that
+  month for the demo email instead of today. Full data flow:
+  [demo-default-month.md](../../../docs/architecture/demo-default-month.md).
 - Broader session/prefs model: [docs/architecture/user-session-and-preferences.md](../../../docs/architecture/user-session-and-preferences.md)
 - App lock (separate from Auth): [docs/architecture/app-lock.md](../../../docs/architecture/app-lock.md)
 
@@ -171,7 +175,8 @@ Use `getSafePath` / `getSafeAppPath` from `shared/lib/auth/get-safe-path.ts` for
 | ---- | ---- |
 | `proxy.ts` | Guest pages → `/login`; guest `/api/*` → JSON 401 |
 | `shared/lib/auth/require-authenticated-user.ts` | API route session check |
-| `shared/lib/auth/demo-login-config.ts` | Demo login feature flag + credentials |
+| `shared/lib/auth/demo-login-config.ts` | Demo login feature flag + credentials + default month |
+| `shared/lib/auth/get-demo-session.ts` | SSR `{ userId, isDemoUser }` for hydration seeds |
 | `shared/lib/auth/get-safe-path.ts` | Open-redirect-safe path normalization |
 | `entities/note/repository/*.ts` | Split note repository operations; one focused responsibility per file |
 | `entities/note/repository/index.ts` | Public repository barrel used by server-side consumers |

@@ -69,6 +69,7 @@ Realtime subscriptions filter by `user_id` and still respect RLS ([realtime](../
 - **App lock ≠ Auth password.** Lock uses `mf_user_security_settings.app_password_hash` (scrypt) and an HttpOnly unlock cookie. See [app-lock.md](../architecture/app-lock.md).
 - **Client read models never include the hash** — `ProfileSecurity` exposes only `appLockEnabled`.
 - **Demo Profile gate:** when the signed-in email matches `DEMO_LOGIN_EMAIL`, `proxy.ts` redirects `/profile` home and returns 403 on non-GET `/api/profile/*` (GET stays allowed for theme). Details: [shared/lib/auth/README.md](../../shared/lib/auth/README.md).
+- **Demo default month:** `DEMO_DEFAULT_MONTH` fixes month-scoped data for the demo account — [demo-default-month.md](../architecture/demo-default-month.md).
 
 ## Ops checklist
 
