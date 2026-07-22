@@ -33,7 +33,7 @@ DEMO_LOGIN_EMAIL=demo@example.com
 DEMO_LOGIN_PASSWORD=…
 
 # Fixed month when ?month= is missing for the demo email (YYYY-MM)
-DEMO_DEFAULT_MONTH=2025-06
+DEMO_DEFAULT_MONTH=2026-06
 ```
 
 | Variable | Scope | Notes |
@@ -179,7 +179,7 @@ sequenceDiagram
   Hook->>Parse: { isDemoUser, demoDefaultMonth }
   Note over Parse: Skips env; uses demoDefaultMonth from context
   Hook->>Router: useCanonicalDemoMonthUrl when ?month invalid
-  Router-->>Router: /notes → /notes?month=2025-06
+  Router-->>Router: /notes → /notes?month=2026-06
 ```
 
 **Mount points**

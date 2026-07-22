@@ -145,9 +145,20 @@ Try Demo is **off by default in production**. Enable only in local/staging:
 ```env
 ENABLE_DEMO_LOGIN=true
 DEMO_LOGIN_EMAIL=demo@example.com
-DEMO_LOGIN_PASSWORD=password
-DEMO_DEFAULT_MONTH=2025-06
+DEMO_LOGIN_PASSWORD=DemoPass123!
+DEMO_DEFAULT_MONTH=2026-06
 ```
+
+Seed data (notes, tasks, reminders, payments for May–Jul 2026):
+
+| Situation | What to run |
+| --------- | ----------- |
+| **Hosted Supabase, demo account already exists** | `supabase/seeds/01_demo_maya_2026.sql` in SQL Editor only |
+| **Local `supabase db reset` (Docker)** | `supabase/seed.sql` (runs 00 + 01) |
+| **Need to create demo auth user** | `00_demo_user.sql` then `01_demo_maya_2026.sql` |
+
+`01` resolves the user by `demo@example.com` (edit the constant if your
+`DEMO_LOGIN_EMAIL` differs). It only deletes/replaces that user's app rows.
 
 - Credentials are **server-only** — the client form posts only `next`; `submitDemoLoginForm` reads env vars.
 - Login page calls `isDemoLoginConfigured()` and hides the button when unset.
