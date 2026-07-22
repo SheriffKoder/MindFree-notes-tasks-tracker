@@ -18,6 +18,9 @@ export const ACTIVITIES_TABLE = `${TABLE_PREFIX}task`;
 /** Activity completion records: one row per `(task_id, date)`. */
 export const ACTIVITY_RECORDS_TABLE = `${TABLE_PREFIX}task_record`;
 
+/** Payments / expenses: one row per payment, scoped by payment date. */
+export const PAYMENTS_TABLE = `${TABLE_PREFIX}payments`;
+
 /** App identity per user (1:1 with auth.users). */
 export const PROFILES_TABLE = `${TABLE_PREFIX}profiles`;
 

@@ -23,7 +23,7 @@ import type { ActivityDrawerController } from "@/features/activity/activity-draw
 import { useActivityDrawerRealtimeSync } from "@/features/activity/activity-drawer/model/use-activity-drawer-realtime-sync";
 import { useConfigOrchestrator } from "@/features/activity/activity-drawer/model/use-config-orchestrator";
 import { ActivityDrawerFooter } from "@/features/activity/activity-drawer/ui/activity-drawer-footer";
-import { AppDrawer } from "@/shared/drawer";
+import { AppDrawer, DrawerTitle } from "@/shared/drawer";
 import { useAuthUserId } from "@/shared/offline-queue";
 
 export interface ActivityDrawerProps {
@@ -131,9 +131,16 @@ export function ActivityDrawer({
     setFooterMeta(meta);
   }, []);
 
+  /////////////////////////////////
+  // Title — New/Edit + task vs reminder
+  const noun = kind === "task" ? "task" : "reminder";
+  const title =
+    request?.mode === "edit" ? `Edit ${noun}` : `New ${noun}`;
+
   return (
     <AppDrawer
-      ariaLabel={kind === "task" ? "Task editor" : "Reminder editor"}
+      ariaLabel={title}
+      header={<DrawerTitle>{title}</DrawerTitle>}
       open={isOpen}
       onOpenChange={handleOpenChange}
     >

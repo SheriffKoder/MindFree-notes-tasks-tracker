@@ -11,6 +11,7 @@ export type AppNavigationIcon =
   | "notes"
   | "tasks"
   | "reminders"
+  | "payments"
   | "progress";
 
 /**
@@ -54,6 +55,12 @@ export const APP_NAVIGATION_ITEMS: AppNavigationItem[] = [
     href: "/reminders",
     label: "Reminders",
     icon: "reminders",
+  },
+  {
+    id: "payments",
+    href: "/payments",
+    label: "Payments",
+    icon: "payments",
   },
   {
     id: "progress",
