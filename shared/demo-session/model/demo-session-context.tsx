@@ -13,6 +13,8 @@ import { createContext } from "react";
 export interface DemoSessionContextValue {
   /** True when the signed-in user matches `DEMO_LOGIN_EMAIL`. */
   isDemoUser: boolean;
+  /** Validated `DEMO_DEFAULT_MONTH` when demo user; otherwise null. */
+  demoDefaultMonth: string | null;
 }
 
 /**
@@ -20,4 +22,5 @@ export interface DemoSessionContextValue {
  */
 export const DemoSessionContext = createContext<DemoSessionContextValue>({
   isDemoUser: false,
+  demoDefaultMonth: null,
 });

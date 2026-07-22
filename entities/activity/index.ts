@@ -50,7 +50,7 @@ export {
   getMonthRange,
   parseMonthParam,
 } from "@/entities/activity/lib/month";
-export type { MonthRange } from "@/entities/activity/lib/month";
+export type { MonthRange, ParseMonthParamOptions } from "@/entities/activity/lib/month";
 
 export {
   getActivityStatus,

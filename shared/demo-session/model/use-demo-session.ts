@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 
 import { DemoSessionContext } from "@/shared/demo-session/model/demo-session-context";
 
@@ -14,4 +14,30 @@ import { DemoSessionContext } from "@/shared/demo-session/model/demo-session-con
  */
 export function useDemoSession(): boolean {
   return useContext(DemoSessionContext).isDemoUser;
+}
+
+/**
+ * Demo flags for entity {@link parseMonthParam} on client URL hooks.
+ */
+export interface DemoMonthParseOptions {
+  isDemoUser?: boolean;
+  demoDefaultMonth?: string | null;
+}
+
+/**
+ * Returns demo-month parse options when the signed-in user is the demo account.
+ */
+export function useDemoMonthParseOptions(): DemoMonthParseOptions {
+  const { isDemoUser, demoDefaultMonth } = useContext(DemoSessionContext);
+
+  return useMemo(() => {
+    if (!isDemoUser) {
+      return {};
+    }
+
+    return {
+      isDemoUser: true,
+      demoDefaultMonth,
+    };
+  }, [demoDefaultMonth, isDemoUser]);
 }

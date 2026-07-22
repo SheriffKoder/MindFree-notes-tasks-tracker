@@ -3,7 +3,22 @@
  * Month param parsing and calendar range helpers.
  */
 
+import { getDemoDefaultMonth } from "@/shared/lib/auth/demo-login-config";
+
 const MONTH_PARAM_PATTERN = /^\d{4}-\d{2}$/;
+
+/**
+ * Options for {@link parseMonthParam} fallback resolution.
+ */
+export interface ParseMonthParamOptions {
+  /** When true, prefer the demo default month over local today. */
+  isDemoUser?: boolean;
+  /**
+   * Client-provided demo month from layout context. Server callers may omit —
+   * env is read via {@link getDemoDefaultMonth}.
+   */
+  demoDefaultMonth?: string | null;
+}
 
 /**
  * Returns the current month as `YYYY-MM` in local time.
@@ -19,21 +34,40 @@ export function getCurrentMonth(): string {
 }
 
 /**
+ * Resolves the default month when `?month=` is missing or invalid.
+ */
+function resolveDefaultMonthKey(options: ParseMonthParamOptions = {}): string {
+  if (options.isDemoUser) {
+    const demoMonth = options.demoDefaultMonth ?? getDemoDefaultMonth();
+
+    if (demoMonth) {
+      return demoMonth;
+    }
+  }
+
+  return getCurrentMonth();
+}
+
+/**
  * Validates and normalizes a `month` search param.
  *
  * @param value - raw `month` param from the URL or API
- * @returns valid `YYYY-MM` month or the current month when invalid
+ * @param options - optional demo-session flags for fallback resolution
+ * @returns valid `YYYY-MM` month or the resolved default when invalid
  */
-export function parseMonthParam(value: string | null | undefined): string {
+export function parseMonthParam(
+  value: string | null | undefined,
+  options: ParseMonthParamOptions = {},
+): string {
   if (!value || !MONTH_PARAM_PATTERN.test(value)) {
-    return getCurrentMonth();
+    return resolveDefaultMonthKey(options);
   }
 
   const [, monthPart] = value.split("-");
   const monthNumber = Number(monthPart);
 
   if (monthNumber < 1 || monthNumber > 12) {
-    return getCurrentMonth();
+    return resolveDefaultMonthKey(options);
   }
 
   return value;

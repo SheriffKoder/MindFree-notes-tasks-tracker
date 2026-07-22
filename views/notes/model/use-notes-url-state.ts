@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 import { parseMonthParam } from "@/entities/note";
+import { useDemoMonthParseOptions } from "@/shared/demo-session";
 import { useMonthNavigation } from "@/shared/month-navigator";
 import { parseViewParam, useViewNavigation } from "@/shared/view-switcher";
 import {
@@ -38,16 +39,20 @@ export interface UseNotesUrlStateResult {
  */
 export function useNotesUrlState(): UseNotesUrlStateResult {
   const searchParams = useSearchParams();
+  const demoMonthOptions = useDemoMonthParseOptions();
 
   const { month, view } = useMemo(() => {
-    const resolvedMonth = parseMonthParam(searchParams.get("month"));
+    const resolvedMonth = parseMonthParam(
+      searchParams.get("month"),
+      demoMonthOptions,
+    );
     const resolvedView = parseViewParam(
       searchParams.get("view") ?? undefined,
       NOTES_VIEW_CONFIG,
     );
 
     return { month: resolvedMonth, view: resolvedView };
-  }, [searchParams]);
+  }, [demoMonthOptions, searchParams]);
 
   const { navigateToMonth, onPrevious, onNext } = useMonthNavigation(month);
   const { onViewChange, onCycleView } = useViewNavigation(view, NOTES_VIEW_CONFIG);

@@ -15,6 +15,8 @@ import {
 export interface DemoSessionProviderProps {
   /** Resolved on the server from the signed-in user's email. */
   isDemoUser: boolean;
+  /** Resolved on the server from `DEMO_DEFAULT_MONTH` when demo user. */
+  demoDefaultMonth: string | null;
   children: ReactNode;
 }
 
@@ -23,9 +25,10 @@ export interface DemoSessionProviderProps {
  */
 export function DemoSessionProvider({
   isDemoUser,
+  demoDefaultMonth,
   children,
 }: DemoSessionProviderProps) {
-  const value: DemoSessionContextValue = { isDemoUser };
+  const value: DemoSessionContextValue = { isDemoUser, demoDefaultMonth };
 
   return (
     <DemoSessionContext.Provider value={value}>
