@@ -11,7 +11,7 @@ export {
   getMonthRange,
   parseMonthParam,
 } from "@/entities/note/lib/parse-month";
-export type { MonthRange } from "@/entities/note/lib/parse-month";
+export type { MonthRange, ParseMonthParamOptions } from "@/entities/note/lib/parse-month";
 export type { Note } from "@/entities/note/model/types";
 export type {
   CalendarDay,

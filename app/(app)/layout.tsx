@@ -13,8 +13,9 @@ import {
 import { ProfileThemeApplier } from "@/features/profile/apply-theme";
 import { ProfilePreferencesHydrationSeed } from "@/features/profile/apply-theme/server";
 import { getSecurityRow } from "@/entities/profile/server";
-import { isDemoUserEmail } from "@/shared/lib/auth/demo-login-config";
+import { getDemoDefaultMonth, isDemoUserEmail } from "@/shared/lib/auth/demo-login-config";
 import { createClient } from "@/shared/lib/supabase/server";
+import { DemoSessionProvider } from "@/shared/demo-session";
 import { AppQueryProvider } from "@/shared/react-query";
 import { AppShell } from "@/views/app-shell";
 
@@ -51,20 +52,28 @@ async function ProtectedAppLayoutContent({
     isAppLockUnlocked(user.id),
   ]);
 
-  const showProfileNav = !isDemoUserEmail(user.email);
+  // Resolve the demo user flag and default month from the signed-in user's email.
+  const isDemoUser = isDemoUserEmail(user.email);
+  const showProfileNav = !isDemoUser;
+  const demoDefaultMonth = isDemoUser ? getDemoDefaultMonth() : null;
 
   return (
     <AppQueryProvider>
-      <Suspense fallback={null}>
-        <ProfilePreferencesHydrationSeed />
-      </Suspense>
-      <ProfileThemeApplier />
-      <AppLockGate
-        initialAppLockEnabled={security?.appLockEnabled ?? false}
-        initialUnlocked={unlocked}
+      <DemoSessionProvider
+        isDemoUser={isDemoUser}
+        demoDefaultMonth={demoDefaultMonth}
       >
-        <AppShell showProfileNav={showProfileNav}>{children}</AppShell>
-      </AppLockGate>
+        <Suspense fallback={null}>
+          <ProfilePreferencesHydrationSeed />
+        </Suspense>
+        <ProfileThemeApplier />
+        <AppLockGate
+          initialAppLockEnabled={security?.appLockEnabled ?? false}
+          initialUnlocked={unlocked}
+        >
+          <AppShell showProfileNav={showProfileNav}>{children}</AppShell>
+        </AppLockGate>
+      </DemoSessionProvider>
     </AppQueryProvider>
   );
 }

@@ -144,6 +144,8 @@ If the signed-in email matches `DEMO_LOGIN_EMAIL`:
 - Profile nav hidden; `/profile` redirects home (page + `proxy.ts`)
 - Non-GET `/api/profile/*` → 403
 - GET `/api/profile` stays allowed so theme can still hydrate
+- Month-scoped pages default to `DEMO_DEFAULT_MONTH` when `?month=` is missing —
+  see [demo-default-month.md](./demo-default-month.md)
 
 ---
 

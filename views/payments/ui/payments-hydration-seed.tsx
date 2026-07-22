@@ -16,10 +16,10 @@ import { dehydrate } from "@tanstack/react-query";
 import { connection } from "next/server";
 
 import {
-  getAuthenticatedUserId,
   getPaymentsPageInitialData,
   seedPaymentsPageCache,
 } from "@/entities/payment/server";
+import { getAuthenticatedDemoSession } from "@/shared/lib/auth/get-demo-session";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
 
 /**
@@ -30,8 +30,10 @@ export async function PaymentsHydrationSeed() {
   await connection();
 
   // 2. SSR payload — auth + month list for cache seeding
-  const userId = await getAuthenticatedUserId();
-  const initialData = await getPaymentsPageInitialData(userId, null);
+  const { userId, isDemoUser } = await getAuthenticatedDemoSession();
+  const initialData = await getPaymentsPageInitialData(userId, null, {
+    isDemoUser,
+  });
   const queryClient = getQueryClient();
   seedPaymentsPageCache(queryClient, initialData);
 

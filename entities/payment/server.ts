@@ -34,3 +34,4 @@ export {
   getMonthRange,
   parseMonthParam,
 } from "@/entities/payment/lib/parse-month";
+export type { ParseMonthParamOptions } from "@/entities/payment/lib/parse-month";

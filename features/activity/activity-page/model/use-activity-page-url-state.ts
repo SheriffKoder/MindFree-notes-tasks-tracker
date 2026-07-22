@@ -13,7 +13,11 @@ import { useMemo } from "react";
 
 import { parseMonthParam } from "@/entities/activity";
 import type { ActivityViewId } from "@/features/activity/activity-page/lib/activity-views";
-import { useMonthNavigation } from "@/shared/month-navigator";
+import { useDemoMonthParseOptions } from "@/shared/demo-session";
+import {
+  useCanonicalDemoMonthUrl,
+  useMonthNavigation,
+} from "@/shared/month-navigator";
 import {
   parseViewParam,
   useViewNavigation,
@@ -37,16 +41,18 @@ export function useActivityPageUrlState(
   viewConfig: ViewConfig<ActivityViewId>,
 ): UseActivityPageUrlStateResult {
   const searchParams = useSearchParams();
+  const demoMonthOptions = useDemoMonthParseOptions();
+  useCanonicalDemoMonthUrl();
 
   const { month, view } = useMemo(() => {
     return {
-      month: parseMonthParam(searchParams.get("month")),
+      month: parseMonthParam(searchParams.get("month"), demoMonthOptions),
       view: parseViewParam(
         searchParams.get("view") ?? undefined,
         viewConfig,
       ),
     };
-  }, [searchParams, viewConfig]);
+  }, [demoMonthOptions, searchParams, viewConfig]);
 
   const { navigateToMonth, onPrevious, onNext } = useMonthNavigation(month);
   const { onViewChange, onCycleView } = useViewNavigation(view, viewConfig);

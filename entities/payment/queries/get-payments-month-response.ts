@@ -12,7 +12,10 @@
  * 3. Sum amounts and return the read-model payload.
  */
 
-import { parseMonthParam } from "@/entities/payment/lib/parse-month";
+import {
+  parseMonthParam,
+  type ParseMonthParamOptions,
+} from "@/entities/payment/lib/parse-month";
 import { sumAmounts } from "@/entities/payment/lib/sum-amounts";
 import type { PaymentsMonthResponse } from "@/entities/payment/model/read-models";
 import { getPaymentsForMonth } from "@/entities/payment/repository";
@@ -22,14 +25,16 @@ import { getPaymentsForMonth } from "@/entities/payment/repository";
  *
  * @param userId - owner user id
  * @param monthParam - raw `month` search param (defaults to current month)
+ * @param parseOptions - optional demo-session flags for fallback resolution
  * @returns month key, payments, and totalAmount
  */
 export async function getPaymentsMonthResponse(
   userId: string,
   monthParam: string | null | undefined,
+  parseOptions: ParseMonthParamOptions = {},
 ): Promise<PaymentsMonthResponse> {
-  // 1. Month — default invalid params to current month
-  const month = parseMonthParam(monthParam);
+  // 1. Month — default invalid params to current or demo month
+  const month = parseMonthParam(monthParam, parseOptions);
 
   // 2. List — owner payments in range, newest edits first
   const payments = await getPaymentsForMonth(userId, month);

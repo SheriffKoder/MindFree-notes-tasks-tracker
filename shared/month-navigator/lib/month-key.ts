@@ -6,6 +6,22 @@
 const MONTH_KEY_PATTERN = /^\d{4}-\d{2}$/;
 
 /**
+ * Returns whether `value` is a valid `YYYY-MM` month key.
+ *
+ * @param value - raw month param from the URL
+ */
+export function isValidMonthKey(value: string | null | undefined): boolean {
+  if (!value || !MONTH_KEY_PATTERN.test(value)) {
+    return false;
+  }
+
+  const [, monthPart] = value.split("-");
+  const monthNumber = Number(monthPart);
+
+  return monthNumber >= 1 && monthNumber <= 12;
+}
+
+/**
  * Shifts a month key by one month forward or backward.
  *
  * @param month - `YYYY-MM` month key

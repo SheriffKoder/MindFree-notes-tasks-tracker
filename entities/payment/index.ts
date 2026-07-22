@@ -15,6 +15,9 @@ export {
   getMonthRange,
   parseMonthParam,
 } from "@/entities/payment/lib/parse-month";
-export type { MonthRange } from "@/entities/payment/lib/parse-month";
+export type {
+  MonthRange,
+  ParseMonthParamOptions,
+} from "@/entities/payment/lib/parse-month";
 export type { Payment } from "@/entities/payment/model/types";
 export type { PaymentsMonthResponse } from "@/entities/payment/model/read-models";

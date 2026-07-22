@@ -13,12 +13,13 @@ import { useMemo } from "react";
 
 import { useActivitiesQuery } from "@/entities/activity/hooks/use-activities-query";
 import { useActivityRecordsQuery } from "@/entities/activity/hooks/use-activity-records-query";
-import { getCurrentMonth } from "@/entities/activity/lib/month/parse-month";
+import { parseMonthParam } from "@/entities/activity/lib/month/parse-month";
 import { buildRecordLookup } from "@/entities/activity/lib/record/build-record-lookup";
 import { buildTodayActivities } from "@/entities/activity/lib/today/build-today-activities";
 import type { TodayActivity } from "@/entities/activity/model/read-models";
 import type { ActivityKind } from "@/entities/activity/model/types";
 import { getTodayIsoDate } from "@/shared/calendar";
+import { useDemoMonthParseOptions } from "@/shared/demo-session";
 
 /** Derived Home Today list plus a combined loading/error state. */
 export interface UseHomeTodayQueryResult {
@@ -38,7 +39,8 @@ export interface UseHomeTodayQueryResult {
  * @returns today's derived list plus combined pending/error flags
  */
 export function useHomeTodayQuery(kind: ActivityKind): UseHomeTodayQueryResult {
-  const month = getCurrentMonth();
+  const demoMonthOptions = useDemoMonthParseOptions();
+  const month = parseMonthParam(null, demoMonthOptions);
   const activitiesQuery = useActivitiesQuery(kind);
   const recordsQuery = useActivityRecordsQuery(month);
 

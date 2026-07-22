@@ -13,6 +13,7 @@
 
 import { parseMonthParam } from "@/entities/activity";
 import type { SearchParamsRecord } from "@/features/auth/model/auth-notice";
+import { getAuthenticatedDemoSession } from "@/shared/lib/auth/get-demo-session";
 import { ProgressView } from "@/views/progress";
 
 interface ProgressRouteProps {
@@ -29,9 +30,11 @@ export default async function ProgressRoute({
   searchParams,
 }: ProgressRouteProps) {
   const resolved = await searchParams;
+  const { isDemoUser } = await getAuthenticatedDemoSession();
   const monthParam = resolved.month;
   const month = parseMonthParam(
     Array.isArray(monthParam) ? monthParam[0] : monthParam,
+    { isDemoUser },
   );
 
   return <ProgressView month={month} />;

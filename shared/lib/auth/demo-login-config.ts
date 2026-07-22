@@ -3,6 +3,8 @@
  * Server-only demo login feature flag and credentials.
  */
 
+const DEMO_DEFAULT_MONTH_PATTERN = /^\d{4}-\d{2}$/;
+
 /**
  * Whether the Try Demo control is enabled for this deployment.
  *
@@ -58,4 +60,29 @@ export function isDemoUserEmail(email: string | null | undefined): boolean {
   }
 
   return email.trim().toLowerCase() === demoEmail.trim().toLowerCase();
+}
+
+/**
+ * Resolves the fixed default month for the demo account (`DEMO_DEFAULT_MONTH`).
+ *
+ * Used when month-scoped pages have no valid `?month=` param. Does not require
+ * `ENABLE_DEMO_LOGIN` — same rule as {@link isDemoUserEmail}.
+ *
+ * @returns validated `YYYY-MM` month key, or `null` when unset or invalid
+ */
+export function getDemoDefaultMonth(): string | null {
+  const raw = process.env.DEMO_DEFAULT_MONTH?.trim();
+
+  if (!raw || !DEMO_DEFAULT_MONTH_PATTERN.test(raw)) {
+    return null;
+  }
+
+  const [, monthPart] = raw.split("-");
+  const monthNumber = Number(monthPart);
+
+  if (monthNumber < 1 || monthNumber > 12) {
+    return null;
+  }
+
+  return raw;
 }
