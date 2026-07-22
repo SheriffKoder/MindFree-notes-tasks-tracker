@@ -8,6 +8,12 @@ export {
   type UseMonthNavigationOptions,
   type UseMonthNavigationResult,
 } from "@/shared/month-navigator/model/use-month-navigation";
+export {
+  getCurrentMonth,
+  parseMonthParam,
+  resolveDefaultMonthKey,
+  type ResolveDefaultMonthOptions,
+} from "@/shared/month-navigator/lib/default-month";
 export { formatMonthLabel, shiftMonth } from "@/shared/month-navigator/lib/month-key";
 export {
   MonthNavigator,
