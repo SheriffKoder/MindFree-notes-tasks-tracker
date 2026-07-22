@@ -10,6 +10,9 @@ import { mapNoteRow } from "@/entities/note/transform";
 import { NOTES_TABLE } from "@/shared/config/supabase-tables";
 import { createClient } from "@/shared/lib/supabase/server";
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Applies a partial update to one note row owned by the current user (RLS).
  *
@@ -94,7 +97,7 @@ export async function findCalendarNoteByDate(
     .eq("user_id", userId)
     .eq("date", date);
 
-  if (excludeNoteId) {
+  if (excludeNoteId && UUID_PATTERN.test(excludeNoteId)) {
     query = query.neq("id", excludeNoteId);
   }
 

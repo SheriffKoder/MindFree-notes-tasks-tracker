@@ -17,6 +17,8 @@ export interface DemoSessionProviderProps {
   isDemoUser: boolean;
   /** Resolved on the server from `DEMO_DEFAULT_MONTH` when demo user. */
   demoDefaultMonth: string | null;
+  /** Resolved on the server from `DEMO_DEFAULT_TODAY` (or month fallback) when demo user. */
+  demoDefaultToday: string | null;
   children: ReactNode;
 }
 
@@ -26,9 +28,14 @@ export interface DemoSessionProviderProps {
 export function DemoSessionProvider({
   isDemoUser,
   demoDefaultMonth,
+  demoDefaultToday,
   children,
 }: DemoSessionProviderProps) {
-  const value: DemoSessionContextValue = { isDemoUser, demoDefaultMonth };
+  const value: DemoSessionContextValue = {
+    isDemoUser,
+    demoDefaultMonth,
+    demoDefaultToday,
+  };
 
   return (
     <DemoSessionContext.Provider value={value}>

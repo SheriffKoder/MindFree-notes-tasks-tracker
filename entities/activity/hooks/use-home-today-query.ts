@@ -18,13 +18,17 @@ import { buildRecordLookup } from "@/entities/activity/lib/record/build-record-l
 import { buildTodayActivities } from "@/entities/activity/lib/today/build-today-activities";
 import type { TodayActivity } from "@/entities/activity/model/read-models";
 import type { ActivityKind } from "@/entities/activity/model/types";
-import { getTodayIsoDate } from "@/shared/calendar";
-import { useDemoMonthParseOptions } from "@/shared/demo-session";
+import {
+  useDemoMonthParseOptions,
+  useTodayIsoDate,
+} from "@/shared/demo-session";
 
 /** Derived Home Today list plus a combined loading/error state. */
 export interface UseHomeTodayQueryResult {
   /** Today's derived activities (empty until both caches resolve). */
   today: TodayActivity[];
+  /** ISO date used as "today" (demo-aware). */
+  todayIso: string;
   /** True while either underlying query is still loading. */
   isPending: boolean;
   /** True when either underlying query errored. */
@@ -40,6 +44,7 @@ export interface UseHomeTodayQueryResult {
  */
 export function useHomeTodayQuery(kind: ActivityKind): UseHomeTodayQueryResult {
   const demoMonthOptions = useDemoMonthParseOptions();
+  const todayIso = useTodayIsoDate();
   const month = parseMonthParam(null, demoMonthOptions);
   const activitiesQuery = useActivitiesQuery(kind);
   const recordsQuery = useActivityRecordsQuery(month);
@@ -54,11 +59,12 @@ export function useHomeTodayQuery(kind: ActivityKind): UseHomeTodayQueryResult {
 
     const recordLookup = buildRecordLookup(records);
 
-    return buildTodayActivities(activities, recordLookup, getTodayIsoDate());
-  }, [activities, records]);
+    return buildTodayActivities(activities, recordLookup, todayIso);
+  }, [activities, records, todayIso]);
 
   return {
     today,
+    todayIso,
     isPending: activitiesQuery.isPending || recordsQuery.isPending,
     isError: activitiesQuery.isError || recordsQuery.isError,
   };

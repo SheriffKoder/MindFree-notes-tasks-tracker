@@ -15,6 +15,8 @@ export interface DemoSessionContextValue {
   isDemoUser: boolean;
   /** Validated `DEMO_DEFAULT_MONTH` when demo user; otherwise null. */
   demoDefaultMonth: string | null;
+  /** Validated demo "today" (`DEMO_DEFAULT_TODAY` or month fallback) when demo user. */
+  demoDefaultToday: string | null;
 }
 
 /**
@@ -23,4 +25,5 @@ export interface DemoSessionContextValue {
 export const DemoSessionContext = createContext<DemoSessionContextValue>({
   isDemoUser: false,
   demoDefaultMonth: null,
+  demoDefaultToday: null,
 });

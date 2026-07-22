@@ -4,6 +4,7 @@
  */
 
 const DEMO_DEFAULT_MONTH_PATTERN = /^\d{4}-\d{2}$/;
+const DEMO_DEFAULT_TODAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Whether the Try Demo control is enabled for this deployment.
@@ -85,4 +86,47 @@ export function getDemoDefaultMonth(): string | null {
   }
 
   return raw;
+}
+
+/**
+ * Resolves the fixed "today" date for the demo account (`DEMO_DEFAULT_TODAY`).
+ *
+ * Home Today joins records by this day and quick-record writes against it, so it
+ * must fall inside {@link getDemoDefaultMonth}. When unset, falls back to the
+ * 15th of the demo month (clamped to the month's last day).
+ *
+ * @returns validated `YYYY-MM-DD`, or `null` when neither today nor month is set
+ */
+export function getDemoDefaultToday(): string | null {
+  const raw = process.env.DEMO_DEFAULT_TODAY?.trim();
+
+  if (raw && DEMO_DEFAULT_TODAY_PATTERN.test(raw)) {
+    const [yearPart, monthPart, dayPart] = raw.split("-");
+    const year = Number(yearPart);
+    const monthNumber = Number(monthPart);
+    const day = Number(dayPart);
+    const probe = new Date(year, monthNumber - 1, day);
+
+    if (
+      probe.getFullYear() === year &&
+      probe.getMonth() === monthNumber - 1 &&
+      probe.getDate() === day
+    ) {
+      return raw;
+    }
+  }
+
+  const month = getDemoDefaultMonth();
+
+  if (!month) {
+    return null;
+  }
+
+  const [yearPart, monthPart] = month.split("-");
+  const year = Number(yearPart);
+  const monthNumber = Number(monthPart);
+  const daysInMonth = new Date(year, monthNumber, 0).getDate();
+  const day = Math.min(15, daysInMonth);
+
+  return `${month}-${String(day).padStart(2, "0")}`;
 }

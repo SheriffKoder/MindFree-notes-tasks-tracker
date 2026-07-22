@@ -13,6 +13,7 @@ import { HomeAsideShell } from "@/views/home/model/home-aside-drawer-context";
 import { HomeActivityOffline } from "@/views/home/ui/home-activity-offline";
 import { HomeActivityRealtime } from "@/views/home/ui/home-activity-realtime";
 import { HomeAsideContent } from "@/views/home/ui/home-aside-content";
+import { HomeDemoViewingDay } from "@/views/home/ui/home-demo-viewing-day";
 import { HomeHeaderToolbar } from "@/views/home/ui/home-header-toolbar";
 import { HomeNotesSection } from "@/views/home/ui/home-notes-section";
 import { HomePaymentOffline } from "@/views/home/ui/home-payment-offline";
@@ -50,8 +51,11 @@ export function HomeView({ notice = null }: HomeViewProps) {
         <HomePaymentOffline />
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
-            <h2 className="text-h2 flex items-center gap-2">
-              <BookMarked aria-hidden className="h-6 w-6" /> MindFree
+            <h2 className="text-h2 flex min-w-0 flex-wrap gap-2">
+              <span className="inline-flex items-center gap-2">
+                <BookMarked aria-hidden className="h-6 w-6" /> MindFree
+              </span>
+              <HomeDemoViewingDay />
             </h2>
           </div>
 

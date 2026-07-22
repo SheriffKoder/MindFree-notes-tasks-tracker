@@ -28,6 +28,7 @@ import type {
   NoteFormValues,
 } from "@/entities/note/editor/model/types";
 import type { Note } from "@/entities/note";
+import { isOptimisticNoteId } from "@/entities/note/lib/is-optimistic-note-id";
 import type { NoteEditorRequest } from "@/views/notes/model/editor/note-editor-request";
 import type {
   EvaluateNoteSaveInput,
@@ -35,6 +36,18 @@ import type {
   NoteSaveAction,
   NoteSavePayload,
 } from "@/features/notes/note-drawer/pre-save-orchestrator/types";
+
+/**
+ * Returns a note only when it already has a server-assigned id.
+ * Optimistic cache placeholders must take the create path, not patch/delete.
+ */
+function toPersistedNote(note: Note | null | undefined): Note | null {
+  if (!note?.id || isOptimisticNoteId(note.id)) {
+    return null;
+  }
+
+  return note;
+}
 
 /**
  * @returns active ISO date for calendar create/navigation context.
@@ -233,7 +246,7 @@ function findConflict(
 ): { date: string; existingNoteId: string } | null {
   const existing = findNoteOnDate(date, excludeId);
 
-  if (!existing) {
+  if (!existing || isOptimisticNoteId(existing.id)) {
     return null;
   }
 
@@ -243,11 +256,12 @@ function findConflict(
 function decideAction(
   input: EvaluateNoteSaveInput,
   payload: NoteSavePayload,
+  persistedNote: Note | null,
 ): NoteSaveAction {
-  const { note, meta, request } = input;
+  const { meta, request, note } = input;
   const date = payload.date;
 
-  if (!note?.id) {
+  if (!persistedNote) {
     if (!hasMeaningfulContent(payload, date) || !meta.isValid) {
       return "noop";
     }
@@ -256,11 +270,22 @@ function decideAction(
       return "create-calendar";
     }
 
-    if (isGeneralCreateRequest(request)) {
+    const optimisticQuick =
+      Boolean(note?.id && isOptimisticNoteId(note.id) && note.isQuick) ||
+      isQuickCreateRequest(request);
+    const optimisticGeneral =
+      Boolean(
+        note?.id &&
+          isOptimisticNoteId(note.id) &&
+          !note.isQuick &&
+          note.date === null,
+      ) || isGeneralCreateRequest(request);
+
+    if (optimisticGeneral) {
       return "create-general";
     }
 
-    if (isQuickCreateRequest(request)) {
+    if (optimisticQuick) {
       if (input.values.title.trim()) {
         return "create-general";
       }
@@ -271,7 +296,7 @@ function decideAction(
     return "noop";
   }
 
-  if (shouldDeleteCalendarNoteOnEmptyContent(note, payload, meta)) {
+  if (shouldDeleteCalendarNoteOnEmptyContent(persistedNote, payload, meta)) {
     return "delete";
   }
 
@@ -315,6 +340,10 @@ export function evaluateNoteSave(
     date,
   );
   const effectiveDateNavEnabled = date !== null;
+  const persistedNote = toPersistedNote(input.note);
+  // Exclude self from day-conflict checks — including optimistic drafts still
+  // sitting in the cache after create onMutate (string id match on client).
+  const conflictExcludeId = persistedNote?.id ?? input.note?.id;
 
   /////////////////////////////////
   // 3. Validation gate — invalid form blocks autosave without surfacing conflict
@@ -325,7 +354,7 @@ export function evaluateNoteSave(
   /////////////////////////////////
   // 4. Conflict gate — one note per calendar day unless user confirmed replace
   const conflict = date
-    ? findConflict(input.findNoteOnDate, date, input.note?.id)
+    ? findConflict(input.findNoteOnDate, date, conflictExcludeId)
     : null;
 
   const isSavingEnabled = !conflict || input.replaceConfirmed;
@@ -336,7 +365,7 @@ export function evaluateNoteSave(
 
   /////////////////////////////////
   // 5. Decide mutation — noop, create, patch, or delete from normalized payload
-  const action = decideAction(input, payload);
+  const action = decideAction(input, payload, persistedNote);
 
   return {
     payload,

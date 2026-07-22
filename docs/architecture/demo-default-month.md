@@ -2,10 +2,11 @@
 
 How the shared demo account lands on a **fixed calendar month** (`DEMO_DEFAULT_MONTH`)
 instead of the real “today” month when month-scoped routes have no valid `?month=`
-param.
+param — and on a fixed **demo today** (`DEMO_DEFAULT_TODAY`) so Home Today reads and
+writes stay inside that month.
 
 Regular users are unchanged — missing/invalid `?month=` still resolves to local
-today via each entity’s `parseMonthParam`.
+today via each entity’s `parseMonthParam`, and Home uses the real local day.
 
 Related:
 
@@ -22,6 +23,10 @@ Nav links are monthless (`/notes`, `/tasks`, `/progress`, …). Every month-scop
 surface falls back when `?month=` is absent. Demo seed data lives in a past month,
 so the demo account often opened an **empty current month**.
 
+Home Today has a second trap: it loads the demo **month** records bucket but used
+to join and record against the **real** local calendar day. Edits landed in the
+wrong month cache, so Home never showed them while `/tasks?month=2026-06` did.
+
 ---
 
 ## Configuration
@@ -34,13 +39,16 @@ DEMO_LOGIN_PASSWORD=…
 
 # Fixed month when ?month= is missing for the demo email (YYYY-MM)
 DEMO_DEFAULT_MONTH=2026-06
+# Fixed "today" for Home Today + quick-record (YYYY-MM-DD; optional)
+DEMO_DEFAULT_TODAY=2026-06-15
 ```
 
 | Variable | Scope | Notes |
 | -------- | ----- | ----- |
 | `DEMO_LOGIN_EMAIL` | Server | Identity check via `isDemoUserEmail()` |
 | `DEMO_DEFAULT_MONTH` | Server | Validated in `getDemoDefaultMonth()`; must match seeded data |
-| `ENABLE_DEMO_LOGIN` | Server | Gates Try Demo UI only — **not** required for default month |
+| `DEMO_DEFAULT_TODAY` | Server | Validated in `getDemoDefaultToday()`; when unset, mid-month of `DEMO_DEFAULT_MONTH` |
+| `ENABLE_DEMO_LOGIN` | Server | Gates Try Demo UI only — **not** required for default month/today |
 
 Nav hrefs stay monthless by design. Defaults apply at **resolution time**, not in
 `shared/config/app-navigation.ts`.
@@ -51,9 +59,9 @@ Nav hrefs stay monthless by design. Defaults apply at **resolution time**, not i
 
 | Layer | Responsibility |
 | ----- | -------------- |
-| `shared/lib/auth/demo-login-config.ts` | `isDemoUserEmail`, `getDemoDefaultMonth` |
+| `shared/lib/auth/demo-login-config.ts` | `isDemoUserEmail`, `getDemoDefaultMonth`, `getDemoDefaultToday` |
 | `shared/lib/auth/get-demo-session.ts` | Server `{ userId, isDemoUser }` for SSR |
-| `shared/demo-session/` | Client `DemoSessionProvider` + `useDemoMonthParseOptions()` |
+| `shared/demo-session/` | Client `DemoSessionProvider` + `useDemoMonthParseOptions()` + `useTodayIsoDate()` |
 | `entities/*/lib/parse-month.ts` | **Logic:** `parseMonthParam(value, { isDemoUser, demoDefaultMonth? })` |
 | `shared/month-navigator/` | **UI only:** prev/next URL mutation, `useCanonicalDemoMonthUrl` |
 | Views / features URL hooks | Read `?month=`, call entity `parseMonthParam`, optional URL canonicalize |
@@ -174,8 +182,8 @@ sequenceDiagram
   participant Parse as entity parseMonthParam
   participant Router as router.replace
 
-  Layout->>Env: isDemoUser ? getDemoDefaultMonth() : null
-  Layout->>Provider: isDemoUser, demoDefaultMonth
+  Layout->>Env: isDemoUser ? getDemoDefaultMonth() / getDemoDefaultToday() : null
+  Layout->>Provider: isDemoUser, demoDefaultMonth, demoDefaultToday
   Provider->>Hook: context
   Hook->>Parse: { isDemoUser, demoDefaultMonth }
   Note over Parse: Skips env; uses demoDefaultMonth from context
@@ -190,7 +198,7 @@ sequenceDiagram
 | Notes | `views/notes/model/use-notes-url-state.ts` | yes |
 | Tasks / Reminders | `features/activity/activity-page/model/use-activity-page-url-state.ts` | yes |
 | Payments | `views/payments/model/use-payments-url-state.ts` | yes |
-| Home Today | `entities/activity/hooks/use-home-today-query.ts` | no (no `?month=` on `/`) |
+| Home Today | `useHomeTodayQuery` + `useTodayIsoDate` / `useQuickRecord` | no (no `?month=` on `/`) |
 | Progress | Server-resolved month → `ProgressMonthNavigator` | not wired (optional) |
 
 ---
@@ -242,10 +250,10 @@ Explicit `?month=YYYY-MM` always wins for both demo and regular users.
 
 | File | Role |
 | ---- | ---- |
-| `shared/lib/auth/demo-login-config.ts` | `isDemoUserEmail`, `getDemoDefaultMonth` |
+| `shared/lib/auth/demo-login-config.ts` | `isDemoUserEmail`, `getDemoDefaultMonth`, `getDemoDefaultToday` |
 | `shared/lib/auth/get-demo-session.ts` | SSR `{ userId, isDemoUser }` |
-| `shared/demo-session/` | Client context + `useDemoMonthParseOptions` |
-| `app/(app)/layout.tsx` | Resolves demo flag + month; mounts provider |
+| `shared/demo-session/` | Client context + `useDemoMonthParseOptions` + `useTodayIsoDate` |
+| `app/(app)/layout.tsx` | Resolves demo flag, month, and today; mounts provider |
 | `entities/*/lib/parse-month.ts` | Demo-aware default month logic |
 | `shared/month-navigator/model/use-canonical-demo-month-url.ts` | Demo URL rewrite |
 | `shared/month-navigator/model/use-month-navigation.ts` | Prev/next only — **no defaults** |
@@ -259,7 +267,7 @@ Explicit `?month=YYYY-MM` always wins for both demo and regular users.
 | Nav → Notes (no query) | Demo month data; URL may canonicalize to `?month=` | Current month |
 | Nav → Tasks / Reminders | Same | Current month |
 | Nav → Progress | Demo month cards | Current month |
-| Home → Today's tasks | Records from demo month bucket | Current month |
+| Home → Today's tasks | Demo today (`DEMO_DEFAULT_TODAY` / mid-month) + demo month records; Home title shows **viewing day …** | Real today + current month |
 | Month switcher | Explicit month works | Same |
 | Invalid `?month=foo` | Falls back to demo month | Falls back to today |
 

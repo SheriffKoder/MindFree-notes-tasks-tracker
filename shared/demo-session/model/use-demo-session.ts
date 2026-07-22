@@ -7,6 +7,7 @@
 
 import { useContext, useMemo } from "react";
 
+import { getTodayIsoDate } from "@/shared/calendar";
 import { DemoSessionContext } from "@/shared/demo-session/model/demo-session-context";
 
 /**
@@ -40,4 +41,23 @@ export function useDemoMonthParseOptions(): DemoMonthParseOptions {
       demoDefaultMonth,
     };
   }, [demoDefaultMonth, isDemoUser]);
+}
+
+/**
+ * Returns the ISO date Home Today / quick-record treat as "today".
+ *
+ * Demo users get `DEMO_DEFAULT_TODAY` (or the demo-month mid-month fallback) so
+ * reads and writes stay inside the seeded month bucket. Regular users get the
+ * real local calendar day.
+ */
+export function useTodayIsoDate(): string {
+  const { isDemoUser, demoDefaultToday } = useContext(DemoSessionContext);
+
+  return useMemo(() => {
+    if (isDemoUser && demoDefaultToday) {
+      return demoDefaultToday;
+    }
+
+    return getTodayIsoDate();
+  }, [demoDefaultToday, isDemoUser]);
 }

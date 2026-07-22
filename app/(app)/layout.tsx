@@ -13,7 +13,11 @@ import {
 import { ProfileThemeApplier } from "@/features/profile/apply-theme";
 import { ProfilePreferencesHydrationSeed } from "@/features/profile/apply-theme/server";
 import { getSecurityRow } from "@/entities/profile/server";
-import { getDemoDefaultMonth, isDemoUserEmail } from "@/shared/lib/auth/demo-login-config";
+import {
+  getDemoDefaultMonth,
+  getDemoDefaultToday,
+  isDemoUserEmail,
+} from "@/shared/lib/auth/demo-login-config";
 import { createClient } from "@/shared/lib/supabase/server";
 import { DemoSessionProvider } from "@/shared/demo-session";
 import { AppQueryProvider } from "@/shared/react-query";
@@ -52,16 +56,18 @@ async function ProtectedAppLayoutContent({
     isAppLockUnlocked(user.id),
   ]);
 
-  // Resolve the demo user flag and default month from the signed-in user's email.
+  // Resolve the demo user flag, default month, and demo "today" from the session.
   const isDemoUser = isDemoUserEmail(user.email);
   const showProfileNav = !isDemoUser;
   const demoDefaultMonth = isDemoUser ? getDemoDefaultMonth() : null;
+  const demoDefaultToday = isDemoUser ? getDemoDefaultToday() : null;
 
   return (
     <AppQueryProvider>
       <DemoSessionProvider
         isDemoUser={isDemoUser}
         demoDefaultMonth={demoDefaultMonth}
+        demoDefaultToday={demoDefaultToday}
       >
         <Suspense fallback={null}>
           <ProfilePreferencesHydrationSeed />
