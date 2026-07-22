@@ -267,7 +267,7 @@ Explicit `?month=YYYY-MM` always wins for both demo and regular users.
 | Nav → Notes (no query) | Demo month data; URL may canonicalize to `?month=` | Current month |
 | Nav → Tasks / Reminders | Same | Current month |
 | Nav → Progress | Demo month cards | Current month |
-| Home → Today's tasks | Demo today (`DEMO_DEFAULT_TODAY` / mid-month) + demo month records | Real today + current month |
+| Home → Today's tasks | Demo today (`DEMO_DEFAULT_TODAY` / mid-month) + demo month records; Home title shows **viewing day …** | Real today + current month |
 | Month switcher | Explicit month works | Same |
 | Invalid `?month=foo` | Falls back to demo month | Falls back to today |
 
