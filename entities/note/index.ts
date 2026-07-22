@@ -12,6 +12,7 @@ export {
   parseMonthParam,
 } from "@/entities/note/lib/parse-month";
 export type { MonthRange, ParseMonthParamOptions } from "@/entities/note/lib/parse-month";
+export { isOptimisticNoteId } from "@/entities/note/lib/is-optimistic-note-id";
 export type { Note } from "@/entities/note/model/types";
 export type {
   CalendarDay,

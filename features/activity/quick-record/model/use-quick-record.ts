@@ -35,7 +35,7 @@ import {
   useUpsertActivityRecordMutation,
 } from "@/entities/activity/client";
 import { saveActivityOfflinePending } from "@/entities/activity/offline";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { useTodayIsoDate } from "@/shared/demo-session";
 import { isOnline, useAuthUserId } from "@/shared/offline-queue";
 
 const QUICK_RECORD_DEBOUNCE_MS = 500;
@@ -112,7 +112,8 @@ export function useQuickRecord({
   record,
   date,
 }: UseQuickRecordOptions): UseQuickRecordResult {
-  const recordDate = date ?? getTodayIsoDate();
+  const demoAwareToday = useTodayIsoDate();
+  const recordDate = date ?? demoAwareToday;
   const queryClient = useQueryClient();
   const userId = useAuthUserId();
   const { mutate: upsertRecord } = useUpsertActivityRecordMutation();

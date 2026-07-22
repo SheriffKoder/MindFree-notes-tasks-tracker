@@ -147,6 +147,7 @@ ENABLE_DEMO_LOGIN=true
 DEMO_LOGIN_EMAIL=demo@example.com
 DEMO_LOGIN_PASSWORD=DemoPass123!
 DEMO_DEFAULT_MONTH=2026-06
+DEMO_DEFAULT_TODAY=2026-06-15
 ```
 
 Seed data (notes, tasks, reminders, payments for May–Jul 2026):
@@ -167,7 +168,8 @@ Seed data (notes, tasks, reminders, payments for May–Jul 2026):
   (`isDemoUserEmail`): nav link hidden, `/profile` redirects home (page + `proxy.ts`),
   non-GET `/api/profile/*` returns 403. GET `/api/profile` stays allowed for theme.
 - **Demo default month:** when `DEMO_DEFAULT_MONTH` is set, month-scoped routes use that
-  month for the demo email instead of today. Full data flow:
+  month for the demo email instead of today. **Demo today:** `DEMO_DEFAULT_TODAY` (or the
+  mid-month fallback) keeps Home Today read/write on a day inside that month. Full data flow:
   [demo-default-month.md](../../../docs/architecture/demo-default-month.md).
 - Broader session/prefs model: [docs/architecture/user-session-and-preferences.md](../../../docs/architecture/user-session-and-preferences.md)
 - App lock (separate from Auth): [docs/architecture/app-lock.md](../../../docs/architecture/app-lock.md)
@@ -186,7 +188,7 @@ Use `getSafePath` / `getSafeAppPath` from `shared/lib/auth/get-safe-path.ts` for
 | ---- | ---- |
 | `proxy.ts` | Guest pages → `/login`; guest `/api/*` → JSON 401 |
 | `shared/lib/auth/require-authenticated-user.ts` | API route session check |
-| `shared/lib/auth/demo-login-config.ts` | Demo login feature flag + credentials + default month |
+| `shared/lib/auth/demo-login-config.ts` | Demo login feature flag + credentials + default month/today |
 | `shared/lib/auth/get-demo-session.ts` | SSR `{ userId, isDemoUser }` for hydration seeds |
 | `shared/lib/auth/get-safe-path.ts` | Open-redirect-safe path normalization |
 | `entities/note/repository/*.ts` | Split note repository operations; one focused responsibility per file |

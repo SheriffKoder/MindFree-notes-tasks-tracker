@@ -7,7 +7,11 @@ export {
   DemoSessionContext,
   type DemoSessionContextValue,
 } from "@/shared/demo-session/model/demo-session-context";
-export { useDemoSession, useDemoMonthParseOptions } from "@/shared/demo-session/model/use-demo-session";
+export {
+  useDemoSession,
+  useDemoMonthParseOptions,
+  useTodayIsoDate,
+} from "@/shared/demo-session/model/use-demo-session";
 export type { DemoMonthParseOptions } from "@/shared/demo-session/model/use-demo-session";
 export {
   DemoSessionProvider,
