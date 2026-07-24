@@ -8,6 +8,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import { ThemeBootScriptTag } from "@/features/profile/apply-theme/ui/theme-boot-script-tag";
+import { AuthSessionSync } from "@/features/auth/session-expiry";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -45,6 +46,7 @@ export default function RootLayout({
           disableTransitionOnChange
           storageKey="theme"
         >
+          <AuthSessionSync />
           {children}
         </ThemeProvider>
       </body>
