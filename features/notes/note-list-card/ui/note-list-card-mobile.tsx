@@ -33,7 +33,9 @@ export function NoteListCardMobile({
       {...getNoteCardInteractionProps(onClick)}
     >
       <div>
-        <p className="line-clamp-2 text-sm font-medium">{note.content || "(empty note)"}</p>
+        <p className="line-clamp-2 whitespace-pre-wrap text-sm font-medium">
+          {note.content.trim() || "(empty note)"}
+        </p>
       </div>
       <div className="flex items-end justify-between gap-3">
         <p className={reservedClass}>

@@ -54,11 +54,11 @@ export function NoteListCardDesktop({
         <p
           className={
             homeLayout || note.isQuick
-              ? "line-clamp-5 text-sm font-medium"
-              : "line-clamp-5 pr-10 text-sm font-medium"
+              ? "line-clamp-5 whitespace-pre-wrap text-sm font-medium"
+              : "line-clamp-5 whitespace-pre-wrap pr-10 text-sm font-medium"
           }
         >
-          {note.content || "(empty note)"}
+          {note.content.trim() || "(empty note)"}
         </p>
         {!homeLayout ? (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--color-surface)] to-transparent px-3 pb-2 pt-6 text-right">
