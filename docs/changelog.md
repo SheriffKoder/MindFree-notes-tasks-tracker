@@ -6,6 +6,21 @@ Build-history plans may still live under `app/development/changelogs/`; this fil
 
 ---
 
+## 2026-07-27 — Home Add note vs quick slot
+
+Home header **Add note** no longer opens `create-quick`. It opens `create-general`, same idea as the Notes page add button.
+
+**Why:** There is only one quick note per user. Opening create-quick from Add while the slot was already filled caused an optimistic overwrite of the strip card, then a unique-constraint failure and rollback — the old quick note “came back.” Adding a title or date seemed to “unlock” save only because those paths switched to general/calendar create.
+
+**Now:**
+
+- Empty quick placeholder → `create-quick` (or edit the existing quick if the slot is already filled)
+- Header Add note → `create-general`
+- Create-quick + title/date graduation keeps those fields instead of wiping them
+- Non-quick empty title shows a short hint in the editor
+
+---
+
 ## 2026-07-27 — Notes drawer: remove day swipe
 
 Removed horizontal swipe day navigation from the notes drawer (`useDrawerDateNavigation` / `NoteDrawer`). Prev/next footer buttons remain the only way to move between calendar days.
