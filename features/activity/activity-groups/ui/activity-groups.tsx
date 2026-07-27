@@ -11,7 +11,7 @@ import { memo, useCallback, useMemo, useState } from "react";
 import type { Activity } from "@/entities/activity";
 import { ActivityListCard } from "@/features/activity/activity-list-card";
 import { groupActivities } from "@/features/activity/activity-groups/lib/group-activities";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { useTodayIsoDate } from "@/shared/demo-session";
 import { ListView } from "@/shared/list-view";
 
 export interface ActivityGroupsProps {
@@ -137,7 +137,8 @@ export const ActivityGroups = memo(function ActivityGroups({
   activeEmptyLabel = "No active tasks",
   onActivityClick,
 }: ActivityGroupsProps) {
-  const todayIso = todayIsoProp ?? getTodayIsoDate();
+  const liveTodayIso = useTodayIsoDate();
+  const todayIso = todayIsoProp ?? liveTodayIso;
 
   const { active, inactive } = useMemo(
     () => groupActivities(activities, todayIso),

@@ -13,7 +13,7 @@ import { useCallback } from "react";
 
 import { CalendarDropdown } from "@/components/calendar";
 import { isDateFormattedTitle } from "@/entities/note/editor/lib/format-calendar-note-title";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { getTodayIsoDate } from "@/shared/lib/today";
 
 export interface NoteDatePickerTriggerProps {
   /** Current title — ignores pick when it already matches the formatted date label. */

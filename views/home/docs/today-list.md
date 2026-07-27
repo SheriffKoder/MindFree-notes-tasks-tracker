@@ -31,6 +31,8 @@ Both lists
             └─ optional record description
 ```
 
+`useHomeTodayQuery` resolves the day via `useTodayIsoDate()` (`shared/demo-session`): demo stays on the fixed seeded date; regular users get a live local day that refreshes when the tab becomes visible/focused after midnight (`useLocalTodayIsoDate` / live-today store in `shared/lib/today`).
+
 Priority sections are always open (no collapse). Section labels use the same
 muted header style as "Today's Tasks" and are inset to align with that title
 text (past the summary chevron). Unset priority shows as **Other**.

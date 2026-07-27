@@ -17,7 +17,7 @@ import {
 } from "@/entities/activity/server";
 import type { ProgressTask } from "@/entities/activity";
 import { ActivityProgressCard } from "@/features/activity/activity-progress-card";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { getTodayIsoDate } from "@/shared/lib/today";
 import { ListView } from "@/shared/list-view";
 import { ProgressEmptyState } from "@/views/progress/ui/progress-empty-state";
 

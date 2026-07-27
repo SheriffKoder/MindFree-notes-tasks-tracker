@@ -7,11 +7,13 @@
  * Used for: "Starts {date}" / "Expired {date}" cues; silent for active/archived.
  */
 
+"use client";
+
 import { getActivityStatus } from "@/entities/activity";
 import type { Activity } from "@/entities/activity";
 import type { ActivityFormValues } from "@/entities/activity/editor/model/types";
 import { cn } from "@/lib/utils";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { useTodayIsoDate } from "@/shared/demo-session";
 
 export interface ActivityFormStatusBannerProps {
   values: Pick<
@@ -75,7 +77,7 @@ export function ActivityFormStatusBanner({
   values,
   archivedAt,
 }: ActivityFormStatusBannerProps) {
-  const todayIso = getTodayIsoDate();
+  const todayIso = useTodayIsoDate();
   const status = getActivityStatus(toStatusActivity(values, archivedAt), todayIso);
 
   if (status !== "upcoming" && status !== "expired") {

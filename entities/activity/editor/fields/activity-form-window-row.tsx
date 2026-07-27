@@ -23,7 +23,7 @@ import {
   FIELD_MENU_TRIGGER_CLASS,
 } from "@/entities/activity/editor/lib/form-classes";
 import { cn } from "@/lib/utils";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { getTodayIsoDate } from "@/shared/lib/today";
 
 export interface ActivityFormWindowRowProps {
   startsAt: string | null | undefined;

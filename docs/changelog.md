@@ -6,6 +6,22 @@ Build-history plans may still live under `app/development/changelogs/`; this fil
 
 ---
 
+## 2026-07-27 — Live “today” on tab focus
+
+Long-lived SPA tabs were freezing Home / Tasks “today” at the day of first mount. After midnight the list stayed on yesterday until a full remount.
+
+**Clean cut:**
+
+| API | Owns |
+| --- | ---- |
+| `getTodayIsoDate()` | Pure one-shot / server / form defaults |
+| `useLocalTodayIsoDate()` | Wall-clock day via a shared store; refreshes on `visibilitychange` + `focus` |
+| `useTodayIsoDate()` | App “today” — demo fixed date, else live local day |
+
+One browser listener set (`shared/lib/today/live-today-store.ts`); React subscribers use `useSyncExternalStore`. Home Today and quick-record already go through `useTodayIsoDate`, so they pick up the roll without per-feature midnight logic.
+
+---
+
 ## 2026-07-27 — Home Add note vs quick slot
 
 Home header **Add note** no longer opens `create-quick`. It opens `create-general`, same idea as the Notes page add button.

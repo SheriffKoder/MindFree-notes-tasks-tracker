@@ -34,7 +34,7 @@ import type {
   UsePaymentFormResult,
 } from "@/entities/payment/editor/model/types";
 import type { Payment } from "@/entities/payment/model/types";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { getTodayIsoDate } from "@/shared/lib/today";
 
 /////////////////////////////////////////////////////////////
 // Pure helpers — seed, compare, validate (no React).

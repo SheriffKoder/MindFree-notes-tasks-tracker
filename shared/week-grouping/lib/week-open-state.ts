@@ -3,7 +3,7 @@
  * Helpers for resolving week section open state.
  */
 
-import { getTodayIsoDate } from "@/shared/calendar/lib/today";
+import { getTodayIsoDate } from "@/shared/lib/today";
 
 /**
  * Returns whether an ISO date falls within an inclusive ISO date range.

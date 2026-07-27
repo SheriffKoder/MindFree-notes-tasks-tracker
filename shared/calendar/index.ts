@@ -1,6 +1,8 @@
 /**
  * @file shared/calendar/index.ts
- * Public exports for the shared calendar module.
+ * Public exports for the shared calendar module (month grid UI).
+ *
+ * Wall-clock "today" lives in `@/shared/lib/today` — not here.
  */
 
 export {
@@ -9,7 +11,6 @@ export {
   formatMonthAriaLabel,
   WEEKDAY_LABELS,
 } from "@/shared/calendar/lib/month-grid";
-export { getTodayIsoDate } from "@/shared/calendar/lib/today";
 export type {
   CalendarCellRenderContext,
   CalendarGridCell,

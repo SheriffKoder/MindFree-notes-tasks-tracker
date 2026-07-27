@@ -7,7 +7,7 @@
 
 import { useContext, useMemo } from "react";
 
-import { getTodayIsoDate } from "@/shared/calendar";
+import { useLocalTodayIsoDate } from "@/shared/lib/today";
 import { DemoSessionContext } from "@/shared/demo-session/model/demo-session-context";
 
 /**
@@ -47,17 +47,17 @@ export function useDemoMonthParseOptions(): DemoMonthParseOptions {
  * Returns the ISO date Home Today / quick-record treat as "today".
  *
  * Demo users get `DEMO_DEFAULT_TODAY` (or the demo-month mid-month fallback) so
- * reads and writes stay inside the seeded month bucket. Regular users get the
- * real local calendar day.
+ * reads and writes stay inside the seeded month bucket. Regular users get a
+ * live local calendar day that refreshes when the tab becomes visible/focused
+ * after midnight (`useLocalTodayIsoDate`).
  */
 export function useTodayIsoDate(): string {
   const { isDemoUser, demoDefaultToday } = useContext(DemoSessionContext);
+  const localToday = useLocalTodayIsoDate();
 
-  return useMemo(() => {
-    if (isDemoUser && demoDefaultToday) {
-      return demoDefaultToday;
-    }
+  if (isDemoUser && demoDefaultToday) {
+    return demoDefaultToday;
+  }
 
-    return getTodayIsoDate();
-  }, [demoDefaultToday, isDemoUser]);
+  return localToday;
 }

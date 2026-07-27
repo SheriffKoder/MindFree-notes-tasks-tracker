@@ -18,7 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { getTodayIsoDate } from "@/shared/lib/today";
 
 export interface CalendarDropdownProps {
   /** Currently selected `YYYY-MM-DD`; defaults to today when opening. */

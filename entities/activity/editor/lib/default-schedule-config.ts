@@ -9,7 +9,7 @@
 
 import { getScheduleDateParts } from "@/entities/activity/lib/schedule/date-parts";
 import type { ScheduleConfig, ScheduleType } from "@/entities/activity/model/types";
-import { getTodayIsoDate } from "@/shared/calendar";
+import { getTodayIsoDate } from "@/shared/lib/today";
 
 /**
  * Returns a schema-valid config seed for the given schedule type, based on today.

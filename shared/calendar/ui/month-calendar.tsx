@@ -14,7 +14,7 @@ import {
   formatMonthAriaLabel,
   WEEKDAY_LABELS,
 } from "@/shared/calendar/lib/month-grid";
-import { getTodayIsoDate } from "@/shared/calendar/lib/today";
+import { useLocalTodayIsoDate } from "@/shared/lib/today";
 import type { InMonthDay, MonthCalendarProps } from "@/shared/calendar/model/types";
 
 const frameClassName =
@@ -51,8 +51,9 @@ export function MonthCalendar<TDay extends InMonthDay>({
     () => buildMonthGrid(month, calendarDays),
     [month, calendarDays],
   );
-  // One local-time resolution per grid render — not per cell.
-  const todayIso = todayIsoProp ?? getTodayIsoDate();
+  // Live local day when prop omitted — rolls on tab visibility/focus after midnight.
+  const liveTodayIso = useLocalTodayIsoDate();
+  const todayIso = todayIsoProp ?? liveTodayIso;
   const monthLabel = formatMonthAriaLabel(month);
 
   return (
