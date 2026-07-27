@@ -38,7 +38,7 @@ NoteDrawer (wiring only)
 
 **Footer wiring:**
 
-- `effectiveDateNavEnabled` — day arrows/swipe on only when pipeline resolved a calendar date.
+- `effectiveDateNavEnabled` — day arrows on only when pipeline resolved a calendar date.
 - `conflict` + `resolveReplace` / `resolveDismiss` — conflict banner; autosave stays blocked until user confirms replace or edits again.
 
 ---

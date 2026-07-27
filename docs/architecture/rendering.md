@@ -62,7 +62,7 @@ renders the month; there is no TanStack hydrate. Details:
 
 ## What not to remount
 
-Avoid patterns that remount the whole Notes experience on every keystroke or day swipe:
+Avoid patterns that remount the whole Notes experience on every keystroke or day change:
 
 - `router.refresh()` after each autosave
 - Putting drawer field state only in server props

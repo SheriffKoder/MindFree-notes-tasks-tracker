@@ -6,6 +6,14 @@ Build-history plans may still live under `app/development/changelogs/`; this fil
 
 ---
 
+## 2026-07-27 — Notes drawer: remove day swipe
+
+Removed horizontal swipe day navigation from the notes drawer (`useDrawerDateNavigation` / `NoteDrawer`). Prev/next footer buttons remain the only way to move between calendar days.
+
+Swipe needs more design work around **drag interactions** (threshold vs scroll, conflict with drawer resize/pan, accidental day changes while editing). Until that is settled, buttons-only keeps day nav predictable.
+
+---
+
 ## 2026-07-24 — Cross-tab auth session sync
 
 Added to the **root layout** (`app/layout.tsx`) an `AuthSessionSync` client island (`features/auth/session-expiry`) that keeps the browser URL aligned with the Supabase session after long-idle tabs and cross-tab sign-in / sign-out.

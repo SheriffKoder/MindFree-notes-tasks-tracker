@@ -99,12 +99,11 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     onQuickNoteCreated: handleQuickNoteCreated,
   });
 
-  const { goToPreviousDay, goToNextDay, swipeHandlers } =
-    useDrawerDateNavigation({
-      activeDate,
-      isDateNavEnabled: effectiveDateNavEnabled,
-      setActiveDate,
-    });
+  const { goToPreviousDay, goToNextDay } = useDrawerDateNavigation({
+    activeDate,
+    isDateNavEnabled: effectiveDateNavEnabled,
+    setActiveDate,
+  });
 
   useDrawerMonthPrefetch(activeDate, effectiveDateNavEnabled);
 
@@ -203,10 +202,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
       resizable
       onOpenChange={handleOpenChange}
     >
-      <div
-        className="flex min-h-full flex-col"
-        {...(swipeHandlers ?? {})}
-      >
+      <div className="flex min-h-full flex-col">
         <NoteForm
           calendarDate={prefillCalendarDate}
           commitKey={commitKey}

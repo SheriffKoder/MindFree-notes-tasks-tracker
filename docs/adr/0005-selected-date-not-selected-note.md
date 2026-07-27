@@ -42,7 +42,7 @@ Rejected:
 
 Positive:
 
-- Prefetch ±1 months at page and drawer boundaries makes day swipe feel local
+- Prefetch ±1 months at page and drawer boundaries makes day navigation feel local
 - Conflict / replace logic can key off target date occupancy in cache
 
 Trade-offs:

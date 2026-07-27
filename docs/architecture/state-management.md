@@ -40,7 +40,7 @@ For calendar editing, the drawer’s source of truth is **`activeDate` / selecte
 
 1. Empty days must open an editor without inventing a fake id.
 2. Lazy create: no row until meaningful content exists.
-3. Day swipe / prev-next navigate **dates**; the note for that day is resolved from cache (`monthNotes` / calendar day cell).
+3. Prev/next day navigate **dates**; the note for that day is resolved from cache (`monthNotes` / calendar day cell).
 4. The page calendar can show July while the drawer browses March — drawer date nav must **not** rewrite page `?month=`.
 
 General / quick / edit-by-id opens still use a note id (or create request) when there is no date-nav mode. That is a different editor request shape — not a replacement for calendar date-as-truth.

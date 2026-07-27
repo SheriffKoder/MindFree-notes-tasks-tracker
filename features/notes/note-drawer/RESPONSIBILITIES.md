@@ -31,7 +31,7 @@ Form fields and validation live in `entities/note/editor/`.
 ## Date navigation
 
 `model/use-drawer-active-date.ts` — drawer `activeDate` state, date-nav eligibility from open request  
-`model/use-drawer-date-navigation.ts` — prev/next day handlers, horizontal swipe  
+`model/use-drawer-date-navigation.ts` — prev/next day handlers  
 `model/use-drawer-month-prefetch.ts` — prefetch ±1 month when `activeDate` hits month edge  
 `lib/shift-iso-date.ts` — add/subtract days on `YYYY-MM-DD`  
 `lib/month-of-iso-date.ts` — `YYYY-MM` from ISO date
@@ -69,7 +69,7 @@ Entity cache application: `entities/note/cache/apply-realtime-note-change.ts`
 | Change drawer layout / what gets composed | `ui/note-drawer.tsx` |
 | Change footer arrows or conflict banner | `ui/note-drawer-footer.tsx` |
 | Fix which note loads in the drawer | `model/use-resolved-drawer-note.ts` |
-| Fix prev/next day or swipe | `model/use-drawer-date-navigation.ts` |
+| Fix prev/next day | `model/use-drawer-date-navigation.ts` |
 | Fix when date nav is enabled | `model/use-drawer-active-date.ts` |
 | Fix month prefetch on day nav | `model/use-drawer-month-prefetch.ts` |
 | Change save routing (create vs patch vs delete) | `pre-save-orchestrator/evaluate-note-save.ts` |

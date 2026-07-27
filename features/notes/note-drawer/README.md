@@ -59,7 +59,7 @@ features/notes/note-drawer/
 | Composing `AppDrawer` + `NoteForm` + thin footer | `ui/note-drawer.tsx` |
 | Resolving which `Note` to pass to the form (cache only, no GET on open) | `model/use-resolved-drawer-note.ts` |
 | Drawer `activeDate` — source of truth for calendar day browsing | `model/use-drawer-active-date.ts` |
-| Prev/next day buttons and horizontal swipe | `model/use-drawer-date-navigation.ts` |
+| Prev/next day buttons | `model/use-drawer-date-navigation.ts` |
 | Prefetching ±1 month when `activeDate` hits a month boundary | `model/use-drawer-month-prefetch.ts` |
 | Footer layout — arrows left, last-edited right | `ui/note-drawer-footer.tsx` |
 | Pure date helpers and the feature convenience re-export of entity cache lookup helpers | `lib/*` |
@@ -109,7 +109,7 @@ Drawer `activeDate` navigation does **not** update page URL `month` or page cale
 
 ## Date navigation eligibility
 
-| Open path | Date nav (arrows + swipe) |
+| Open path | Date nav (arrows) |
 | --------- | ------------------------- |
 | `openCreateForDate(date)` | enabled |
 | `openEdit(id)` on calendar note | enabled |

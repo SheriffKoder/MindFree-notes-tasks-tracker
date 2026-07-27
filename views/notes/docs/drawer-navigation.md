@@ -13,9 +13,9 @@ How the note drawer relates to the Notes page calendar — and why they stay ind
 | Navigator | Owns | Updates |
 | --------- | ---- | ------- |
 | **Page** `MonthNavigator` | Visible month for calendar / month-notes | URL `?month=` |
-| **Drawer** date controls | Day being edited (swipe / prev / next) | Drawer `activeDate` only |
+| **Drawer** date controls | Day being edited (prev / next) | Drawer `activeDate` only |
 
-Swiping days in the drawer must **not** change the page calendar, URL month, or month switcher. A user can look at July on the page while editing a March day in the drawer.
+Moving days in the drawer must **not** change the page calendar, URL month, or month switcher. A user can look at July on the page while editing a March day in the drawer.
 
 ---
 
@@ -28,7 +28,7 @@ In calendar / date-nav mode:
 3. Missing row → empty editor (lazy create on first meaningful content).
 4. No per-open `GET /notes/:id` when the month cache already has (or will prefetch) that day.
 
-General list / quick / explicit edit opens use a **note-id or create request** without day swiping — different editor mode, same drawer shell.
+General list / quick / explicit edit opens use a **note-id or create request** without day navigation — different editor mode, same drawer shell.
 
 ---
 

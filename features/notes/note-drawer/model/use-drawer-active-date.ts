@@ -14,7 +14,7 @@ import type { NoteEditorRequest } from "@/views/notes/model/editor/note-editor-r
 export interface UseDrawerActiveDateResult {
   /** Active ISO date while browsing calendar notes in the drawer. */
   activeDate: string | null;
-  /** Whether prev/next controls and swipe are enabled. */
+  /** Whether prev/next day controls are enabled. */
   isDateNavEnabled: boolean;
   /** Updates `activeDate` from drawer day navigation only. */
   setActiveDate: (date: string) => void;
