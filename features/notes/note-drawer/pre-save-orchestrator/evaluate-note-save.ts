@@ -233,6 +233,14 @@ function applyQuickSlotRules(
   }
 
   if (isQuickCreateRequest(request)) {
+    // Title/date during create-quick graduates to a normal note — keep fields.
+    if (shouldGraduateQuickNote(input.values, date)) {
+      return {
+        ...payload,
+        isQuick: false,
+      };
+    }
+
     return applyQuickNoteInvariants(payload);
   }
 

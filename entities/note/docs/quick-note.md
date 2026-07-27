@@ -24,7 +24,8 @@ Constraints:
 ## Create
 
 - Empty slot → placeholder; first meaningful **content** → `create-quick` (lazy).
-- If the user sets a **title** while still in create-quick context, the pipeline creates a **general** note instead (graduates out of the slot intent).
+- Home header **Add note** opens `create-general` instead — it must not fight the one-quick unique slot.
+- If the user sets a **title** or **date** while still in create-quick context, the pipeline creates a **general** / **calendar** note instead (graduates out of the slot intent) and keeps those fields.
 
 ---
 

@@ -18,7 +18,13 @@ Home "Starred Notes"
        └─ [starred cards]   starred && !isQuick — recent first
 ```
 
-Tap opens the **same** `NoteDrawer` used on `/notes` (edit / create-quick). Autosave, offline, realtime, and conflict rules are not reimplemented on Home.
+Tap opens the **same** `NoteDrawer` used on `/notes`:
+
+- Empty quick placeholder → lazy `create-quick`
+- Header FileText **Add note** → lazy `create-general` (does not overwrite the one-quick slot)
+- Existing card → edit
+
+Autosave, offline, realtime, and conflict rules are not reimplemented on Home.
 
 ---
 

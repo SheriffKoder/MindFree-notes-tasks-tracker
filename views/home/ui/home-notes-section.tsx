@@ -4,7 +4,7 @@
  *
  * Purpose: Wire home read model UI to the existing Notes editor.
  * Used in: views/home/index.tsx
- * Used for: Header quick-adds + card clicks open NoteDrawer (edit / quick-create).
+ * Used for: Header general-create + quick placeholder / card clicks open NoteDrawer.
  *
  * Steps:
  * 1. Mount notes realtime + offline sync for Home writes.
@@ -19,7 +19,11 @@ import { FileText } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
-import { useNotesRealtimeSync, type Note } from "@/entities/note/client";
+import {
+  useHomeNotesQuery,
+  useNotesRealtimeSync,
+  type Note,
+} from "@/entities/note/client";
 import { createNotesOfflineSyncAdapter } from "@/entities/note/offline";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
@@ -123,7 +127,8 @@ export function HomeNotesSection() {
   /////////////////////////////////
   // 2. Drawer — strip clicks + header add-note share one controller
   const drawer = useNotesDrawer();
-  const { openCreateQuick, openEdit } = drawer;
+  const { openCreateGeneral, openCreateQuick, openEdit } = drawer;
+  const { data: homeNotes } = useHomeNotesQuery();
 
   const handleNoteClick = useCallback(
     (note: Note) => {
@@ -132,13 +137,25 @@ export function HomeNotesSection() {
     [openEdit],
   );
 
+  /** Header add — new general note (does not fight the one-quick slot). */
   const handleAddNote = useCallback(() => {
-    openCreateQuick();
-  }, [openCreateQuick]);
+    openCreateGeneral();
+  }, [openCreateGeneral]);
 
+  /**
+   * Empty quick placeholder → create-quick.
+   * If the slot is already filled (stale UI), edit the existing quick note.
+   */
   const handleQuickPlaceholderClick = useCallback(() => {
+    const existingQuickId = homeNotes?.quickNote?.id;
+
+    if (existingQuickId) {
+      openEdit(existingQuickId);
+      return;
+    }
+
     openCreateQuick();
-  }, [openCreateQuick]);
+  }, [homeNotes?.quickNote?.id, openCreateQuick, openEdit]);
 
   /////////////////////////////////
   // 3. Strip area (toggle state) + drawer (stable sibling)

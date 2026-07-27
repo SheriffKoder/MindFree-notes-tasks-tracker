@@ -51,7 +51,7 @@ export function NoteFormTitleRow({
           aria-invalid={Boolean(errors.title)}
           className={PLAIN_TITLE_CLASS}
           name="title"
-          placeholder="Title"
+          placeholder={isQuickNote ? "Quick note (title graduates it)" : "Add a title…"}
           type="text"
           value={values.title}
           onChange={(event) => onTitleChange(event.target.value)}
@@ -72,6 +72,10 @@ export function NoteFormTitleRow({
       {errors.title ? (
         <p className="text-caption [color:var(--color-error)]" role="alert">
           {errors.title}
+        </p>
+      ) : !isQuickNote && !values.title.trim() ? (
+        <p className="text-caption [color:var(--color-fg-hint)]">
+          A title helps find this note later. Date turns it into a calendar note.
         </p>
       ) : null}
     </div>
