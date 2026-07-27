@@ -14,7 +14,7 @@
 
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FileText } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -23,12 +23,83 @@ import { useNotesRealtimeSync, type Note } from "@/entities/note/client";
 import { createNotesOfflineSyncAdapter } from "@/entities/note/offline";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
+import { cn } from "@/lib/utils";
 import { useAuthUserId, useOfflineSync } from "@/shared/offline-queue";
 import { HOME_SECTION_HEADER_CLASS } from "@/views/home/lib/section-header-class";
 import { HomeNotesStrip } from "@/views/home/ui/home-notes-strip";
 import { HomePaymentQuickAdd } from "@/views/home/ui/home-payment-quick-add";
 import { HomeQuickAddIcon } from "@/views/home/ui/home-quick-add-icon";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
+
+interface HomeNotesStripAreaProps {
+  onNoteClick: (note: Note) => void;
+  onQuickPlaceholderClick: () => void;
+  onAddNote: () => void;
+}
+
+/**
+ * Header + strip only — owns two-row toggle so drawer stays out of that render path.
+ */
+function HomeNotesStripArea({
+  onNoteClick,
+  onQuickPlaceholderClick,
+  onAddNote,
+}: HomeNotesStripAreaProps) {
+  const [isTwoRows, setIsTwoRows] = useState(false);
+
+  const toggleRowLayout = useCallback(() => {
+    setIsTwoRows((current) => !current);
+  }, []);
+
+  return (
+    <>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <button
+          aria-controls="home-starred-notes-strip"
+          aria-expanded={isTwoRows}
+          aria-label={
+            isTwoRows
+              ? "Show starred notes in one row"
+              : "Show starred notes in two rows"
+          }
+          className={cn(
+            HOME_SECTION_HEADER_CLASS,
+            "rounded-sm text-left transition-colors hover:[color:var(--color-fg)]",
+          )}
+          type="button"
+          onClick={toggleRowLayout}
+        >
+          Starred Notes
+        </button>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <HomePaymentQuickAdd />
+          <Button
+            aria-label="Add note"
+            className="shrink-0"
+            size="icon"
+            title="Add note"
+            type="button"
+            variant="ghost"
+            onClick={onAddNote}
+          >
+            <HomeQuickAddIcon>
+              <FileText
+                aria-hidden
+                className="h-4 w-4 [color:var(--color-fg-muted)]"
+              />
+            </HomeQuickAddIcon>
+          </Button>
+        </div>
+      </div>
+
+      <HomeNotesStrip
+        isTwoRows={isTwoRows}
+        onNoteClick={onNoteClick}
+        onQuickPlaceholderClick={onQuickPlaceholderClick}
+      />
+    </>
+  );
+}
 
 /**
  * Starred Notes section — header quick-adds, horizontal strip, and editor drawer.
@@ -70,33 +141,11 @@ export function HomeNotesSection() {
   }, [openCreateQuick]);
 
   /////////////////////////////////
-  // 3. Header → strip → drawer
+  // 3. Strip area (toggle state) + drawer (stable sibling)
   return (
     <>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className={HOME_SECTION_HEADER_CLASS}>Starred Notes</h2>
-        <div className="flex shrink-0 items-center gap-0.5">
-          <HomePaymentQuickAdd />
-          <Button
-            aria-label="Add note"
-            className="shrink-0"
-            size="icon"
-            title="Add note"
-            type="button"
-            variant="ghost"
-            onClick={handleAddNote}
-          >
-            <HomeQuickAddIcon>
-              <FileText
-                aria-hidden
-                className="h-4 w-4 [color:var(--color-fg-muted)]"
-              />
-            </HomeQuickAddIcon>
-          </Button>
-        </div>
-      </div>
-
-      <HomeNotesStrip
+      <HomeNotesStripArea
+        onAddNote={handleAddNote}
         onNoteClick={handleNoteClick}
         onQuickPlaceholderClick={handleQuickPlaceholderClick}
       />
