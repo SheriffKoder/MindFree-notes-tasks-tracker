@@ -20,7 +20,7 @@ export function WorldTimeMap() {
         src="/images/globe.webp"
         alt=""
         draggable={false}
-        className="block h-auto w-full select-none rounded-xl opacity-20"
+        className="block h-auto w-full select-none rounded-xl dark:opacity-20"
       />
 
       <ul className="absolute inset-0 m-0 list-none p-0" aria-label="City locations">
