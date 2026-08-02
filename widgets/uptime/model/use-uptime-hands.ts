@@ -62,7 +62,7 @@ export function useUptimeHands({
 }: UseUptimeHandsOptions): void {
   useEffect(
     function subscribeToUptimeHands() {
-      let intervalId: ReturnType<typeof setInterval> | undefined;
+      let intervalId: number | undefined;
 
       function updateHands() {
         applyHandTransforms(
