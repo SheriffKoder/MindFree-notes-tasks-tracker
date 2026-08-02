@@ -15,7 +15,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { FileText } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -68,12 +68,13 @@ function HomeNotesStripArea({
           }
           className={cn(
             HOME_SECTION_HEADER_CLASS,
-            "rounded-sm text-left transition-colors hover:[color:var(--color-fg)]",
+            "rounded-sm text-left transition-colors hover:[color:var(--color-fg)] flex items-center gap-1",
           )}
           type="button"
           onClick={toggleRowLayout}
         >
           Starred Notes
+          {isTwoRows ? <ChevronUp aria-hidden className="h-4 w-4" /> : <ChevronDown aria-hidden className="h-4 w-4" />}
         </button>
         <div className="flex shrink-0 items-center gap-0.5">
           <HomePaymentQuickAdd />

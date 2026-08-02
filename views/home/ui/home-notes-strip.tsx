@@ -171,9 +171,12 @@ export const HomeNotesStrip = memo(function HomeNotesStrip({
 
   return (
     <DragHorizontalScroll
-      className="-mx-1 px-1 pb-1"
+      className="-mx-1 px-1 pb-1 relative"
       id="home-starred-notes-strip"
     >
+
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[var(--color-bg)] to-[100%] to-transparent z-10"></div>
+      
       {isTwoRows ? (
         <div className="flex w-max flex-col gap-3">
           <HomeStripRow>{rows.row1}</HomeStripRow>

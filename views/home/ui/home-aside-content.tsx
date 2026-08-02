@@ -1,22 +1,31 @@
 /**
  * @file views/home/ui/home-aside-content.tsx
- * Placeholder body for the Home right aside column.
+ * Body for the Home right aside column — dashboard widgets.
  *
- * Purpose: Slot for future dashboard widgets beside the main feed.
+ * Purpose: Compose side-panel widgets beside the main feed.
  * Used in: views/home/index.tsx via HomeRightAside
  */
 
+import { UptimeClock } from "@/widgets/uptime";
+import { WorldTime } from "@/widgets/world-time";
+import { HomeAsideCalendar } from "@/views/home/ui/home-aside-calendar";
+
 /**
- * Renders the Home side-panel body — summaries, filters, or quick actions later.
+ * Renders the Home side-panel body — clock + calendar, world times, and more.
  */
 export function HomeAsideContent() {
   return (
     <div className="flex flex-col gap-4 p-4">
-      <h3 className="text-h3">Side panel</h3>
-      <p className="text-body-muted">
-        Placeholder for home dashboard widgets — summaries, filters, or quick
-        actions.
-      </p>
+      <div className="flex items-start gap-2 border border-[var(--color-border)] rounded-xl p-2 bg-[color-mix(in_srgb,var(--color-surface)_88%,transparent)]">
+        <div className="w-[38%] shrink-0 self-center">
+          <UptimeClock showSeconds={false} />
+        </div>
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <HomeAsideCalendar />
+        </div>
+      </div>
+
+      <WorldTime />
     </div>
   );
 }

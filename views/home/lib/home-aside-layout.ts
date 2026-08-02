@@ -9,4 +9,4 @@ export const HOME_ASIDE_LAYOUT_CLASS =
 
 /** Rounded bordered surface for the desktop aside column. */
 export const HOME_ASIDE_SURFACE_CLASS =
-  "flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-surface)_88%,transparent)]";
+  "flex h-full min-h-0 flex-col overflow-hidden";
