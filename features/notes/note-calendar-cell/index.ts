@@ -11,3 +11,8 @@ export {
   NoteCalendarCell,
   type NoteCalendarCellProps,
 } from "@/features/notes/note-calendar-cell/ui/note-calendar-cell";
+export {
+  NoteCalendarHoverContent,
+  noteCalendarDayHasHoverContent,
+  type NoteCalendarHoverContentProps,
+} from "@/features/notes/note-calendar-cell/ui/note-calendar-hover-content";

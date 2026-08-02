@@ -30,6 +30,12 @@ export interface CalendarCellRenderContext {
   isToday: boolean;
 }
 
+/** Viewport point forwarded with calendar day hover callbacks. */
+export interface CalendarDayHoverPoint {
+  x: number;
+  y: number;
+}
+
 /**
  * Props for the reusable month calendar grid.
  */
@@ -51,4 +57,13 @@ export interface MonthCalendarProps<TDay extends InMonthDay> {
   todayIso?: string;
   /** Optional wrapper class name. */
   className?: string;
+  /**
+   * Desktop hover start on an in-month day (fine pointer only).
+   * Pane decides whether the day has content before writing the hover store.
+   */
+  onDayHoverStart?: (date: string, point: CalendarDayHoverPoint) => void;
+  /** Desktop pointer move while over an in-month day (throttled via rAF). */
+  onDayHoverMove?: (date: string, point: CalendarDayHoverPoint) => void;
+  /** Desktop pointer leave from an in-month day. */
+  onDayHoverEnd?: (date: string) => void;
 }

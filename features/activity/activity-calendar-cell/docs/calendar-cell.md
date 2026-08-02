@@ -81,6 +81,23 @@ history-preserving per ADR 0012 — the cell never decides visibility.
 
 ---
 
+## Desktop hover peek
+
+On fine-pointer desktops, hovering a day with activities opens a
+cursor-following tip (`CalendarCursorTooltip` from `@/shared/calendar`).
+
+| Piece | Role |
+| ----- | ---- |
+| `ActivityCalendarHoverContent` | Full day list (no `+N more` truncation) |
+| `activityCalendarDayHasHoverContent` | Tip only when `day.activities.length > 0` |
+| `ActivityCalendarPane` | Writes the shared hover store; mounts the tip |
+
+Click still selects the day / opens the editor — the tip does not steal
+activation. Shared wiring and portability notes:
+[shared/calendar/README.md](../../../../shared/calendar/README.md).
+
+---
+
 ## Why it's split this way
 
 - **Cell vs pill** — the cell owns layout/overflow/day-badge and wires entity
@@ -90,6 +107,8 @@ history-preserving per ADR 0012 — the cell never decides visibility.
   so theming is data, not scattered class edits.
 - **No invented progress math** — dimensions come from `deriveTodayProgress`;
   the feature only formats them (`format-pill-progress.ts`).
+- **Cell vs hover content** — the cell stays compact; the tip reuses the same
+  pills without the overflow cap.
 
 ---
 
@@ -97,6 +116,7 @@ history-preserving per ADR 0012 — the cell never decides visibility.
 
 | Doc | Why |
 | --- | --- |
+| [shared/calendar/README.md](../../../../shared/calendar/README.md) | Hover tip behavior + how to wire in another app |
 | [read-models.md](../../../../entities/activity/docs/read-models.md) | Calendar join + day progress dimensions |
 | [scheduling.md](../../../../entities/activity/docs/scheduling.md) | What "due" (empty slot) means |
 | [0012-calendar-records-always-visible.md](../../../../docs/adr/0012-calendar-records-always-visible.md) | History-always-visible |

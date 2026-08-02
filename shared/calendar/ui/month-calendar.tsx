@@ -14,8 +14,9 @@ import {
   formatMonthAriaLabel,
   WEEKDAY_LABELS,
 } from "@/shared/calendar/lib/month-grid";
-import { useLocalTodayIsoDate } from "@/shared/lib/today";
 import type { InMonthDay, MonthCalendarProps } from "@/shared/calendar/model/types";
+import { useMonthCalendarDayHover } from "@/shared/calendar/model/use-month-calendar-day-hover";
+import { useLocalTodayIsoDate } from "@/shared/lib/today";
 
 const frameClassName =
   "flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]";
@@ -46,6 +47,9 @@ export function MonthCalendar<TDay extends InMonthDay>({
   renderCell,
   todayIso: todayIsoProp,
   className,
+  onDayHoverStart,
+  onDayHoverMove,
+  onDayHoverEnd,
 }: MonthCalendarProps<TDay>) {
   const cells = useMemo(
     () => buildMonthGrid(month, calendarDays),
@@ -55,6 +59,11 @@ export function MonthCalendar<TDay extends InMonthDay>({
   const liveTodayIso = useLocalTodayIsoDate();
   const todayIso = todayIsoProp ?? liveTodayIso;
   const monthLabel = formatMonthAriaLabel(month);
+  const dayHover = useMonthCalendarDayHover({
+    onDayHoverStart,
+    onDayHoverMove,
+    onDayHoverEnd,
+  });
 
   return (
     <div className={cn(frameClassName, className)}>
@@ -109,10 +118,26 @@ export function MonthCalendar<TDay extends InMonthDay>({
               key={day.date}
               type="button"
               role="gridcell"
+              data-calendar-date={day.date}
               aria-selected={isSelected}
               aria-label={dayLabel}
               className={inMonthCellClassName}
               onClick={() => onDaySelect(day.date)}
+              onPointerEnter={
+                dayHover.hasHoverHandlers
+                  ? (event) => dayHover.onPointerEnter(day.date, event)
+                  : undefined
+              }
+              onPointerMove={
+                onDayHoverMove
+                  ? (event) => dayHover.onPointerMove(day.date, event)
+                  : undefined
+              }
+              onPointerLeave={
+                dayHover.hasHoverHandlers
+                  ? () => dayHover.onPointerLeave(day.date)
+                  : undefined
+              }
             >
               {renderCell(day, { isToday })}
             </button>

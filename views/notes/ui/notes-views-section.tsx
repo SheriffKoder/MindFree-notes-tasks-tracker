@@ -5,7 +5,7 @@
 
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 
 import {
   useCalendarNotesQuery,
@@ -13,9 +13,22 @@ import {
   type Note,
   type CalendarDay,
 } from "@/entities/note/client";
-import { NoteCalendarCell } from "@/features/notes/note-calendar-cell";
+import {
+  NoteCalendarCell,
+  NoteCalendarHoverContent,
+  noteCalendarDayHasHoverContent,
+} from "@/features/notes/note-calendar-cell";
 import { NoteListCard } from "@/features/notes/note-list-card";
-import { MonthCalendar, type CalendarCellRenderContext } from "@/shared/calendar";
+import {
+  CalendarCursorTooltip,
+  MonthCalendar,
+  clearCalendarHover,
+  moveCalendarHoverPointer,
+  scheduleClearCalendarHover,
+  setCalendarHoverFollowing,
+  type CalendarCellRenderContext,
+  type CalendarDayHoverPoint,
+} from "@/shared/calendar";
 import { ListView } from "@/shared/list-view";
 import { QueryStatePanel } from "@/shared/react-query";
 import { usePrefetchAdjacentCalendarMonths } from "@/views/notes/model/use-prefetch-adjacent-calendar-months";
@@ -68,10 +81,24 @@ export const NotesViewsSection = memo(function NotesViewsSection({
   // View query state for error handling
   const viewQueryState = resolveViewQueryState(view, calendarQuery, generalQuery);
 
+  const calendarDays = calendarNotes?.calendarDays;
+
+  // Clear tip when leaving calendar view, changing month, or unmounting.
+  useEffect(() => {
+    if (view !== "calendar") {
+      clearCalendarHover();
+    }
+
+    return () => {
+      clearCalendarHover();
+    };
+  }, [view, month]);
+
   // Handler for calendar day selects
   const handleCalendarDaySelect = useCallback(
     (date: string) => {
-      const day = calendarNotes?.calendarDays.find(
+      clearCalendarHover();
+      const day = calendarDays?.find(
         (calendarDay) => calendarDay.date === date,
       );
 
@@ -79,8 +106,33 @@ export const NotesViewsSection = memo(function NotesViewsSection({
         onCalendarDaySelect(day);
       }
     },
-    [calendarNotes?.calendarDays, onCalendarDaySelect],
+    [calendarDays, onCalendarDaySelect],
   );
+
+  const handleDayHoverStart = useCallback(
+    (date: string, point: CalendarDayHoverPoint) => {
+      const day = calendarDays?.find((entry) => entry.date === date);
+
+      if (day && noteCalendarDayHasHoverContent(day)) {
+        setCalendarHoverFollowing(date, point.x, point.y);
+        return;
+      }
+
+      clearCalendarHover();
+    },
+    [calendarDays],
+  );
+
+  const handleDayHoverMove = useCallback(
+    (_date: string, point: CalendarDayHoverPoint) => {
+      moveCalendarHoverPointer(point.x, point.y);
+    },
+    [],
+  );
+
+  const handleDayHoverEnd = useCallback(() => {
+    scheduleClearCalendarHover();
+  }, []);
 
   // Stable renderCell ref lets memoized NoteCalendarCell skip re-renders when day data is unchanged.
   const renderCalendarCell = useCallback(
@@ -92,6 +144,11 @@ export const NotesViewsSection = memo(function NotesViewsSection({
       />
     ),
     [highlightedDate],
+  );
+
+  const renderHoverContent = useCallback(
+    (day: CalendarDay) => <NoteCalendarHoverContent day={day} />,
+    [],
   );
 
   // Stable config object for CardGridMobile → WeekOrganizer (avoids regroup on parent re-render).
@@ -169,7 +226,16 @@ export const NotesViewsSection = memo(function NotesViewsSection({
             calendarDays={calendarNotes.calendarDays}
             selectedDate={highlightedDate}
             onDaySelect={handleCalendarDaySelect}
+            onDayHoverStart={handleDayHoverStart}
+            onDayHoverMove={handleDayHoverMove}
+            onDayHoverEnd={handleDayHoverEnd}
             renderCell={renderCalendarCell}
+          />
+          <CalendarCursorTooltip
+            days={calendarNotes.calendarDays}
+            getDate={(day) => day.date}
+            hasContent={noteCalendarDayHasHoverContent}
+            renderContent={renderHoverContent}
           />
         </div>
 

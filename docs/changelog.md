@@ -6,6 +6,24 @@ Build-history plans may still live under `app/development/changelogs/`; this fil
 
 ---
 
+## 2026-08-02 — Calendar cursor hover tip (desktop)
+
+Notes, Tasks, and Reminders month calendars gain a desktop-only peek on cell
+hover: a cursor-following panel that joins `store.date` to the pane’s already
+loaded `calendarDays` (no fetch inside the tip).
+
+**Interaction:** follow while scrubbing cells → freeze when the pointer enters
+the tip → on tip leave, resolve via `elementFromPoint` (retarget or close).
+Wheel over the calendar scrolls the tip. Click / month change clears it.
+
+**Shared surface:** `@/shared/calendar` (`calendar-hover-store`,
+`CalendarCursorTooltip`, `MonthCalendar` hover callbacks). Feature bodies stay
+outside the package (`NoteCalendarHoverContent`, `ActivityCalendarHoverContent`).
+
+Portable wiring guide: [shared/calendar/README.md](../shared/calendar/README.md).
+
+---
+
 ## 2026-07-27 — Live “today” on tab focus
 
 Long-lived SPA tabs were freezing Home / Tasks “today” at the day of first mount. After midnight the list stayed on yesterday until a full remount.

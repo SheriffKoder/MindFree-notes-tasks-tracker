@@ -12,6 +12,11 @@ export {
   type ActivityCalendarCellProps,
 } from "@/features/activity/activity-calendar-cell/ui/activity-calendar-cell";
 export {
+  ActivityCalendarHoverContent,
+  activityCalendarDayHasHoverContent,
+  type ActivityCalendarHoverContentProps,
+} from "@/features/activity/activity-calendar-cell/ui/activity-calendar-hover-content";
+export {
   ActivityTaskPill,
   type ActivityTaskPillProps,
 } from "@/features/activity/activity-calendar-cell/ui/activity-task-pill";
