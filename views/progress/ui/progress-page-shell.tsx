@@ -49,7 +49,7 @@ export function ProgressPageShell({
             aria-hidden
             className="pointer-events-none absolute inset-x-0 top-[-10] z-10 h-8 w-full bg-gradient-to-b from-[var(--color-bg)] to-transparent"
           />
-          <div className="flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
+          <div className="custom-scrollbar flex h-full min-h-0 flex-col overflow-x-auto overflow-y-auto pt-4 md:pt-5">
             {children}
           </div>
         </div>

@@ -31,7 +31,7 @@ import { computeTooltipPosition } from "@/shared/calendar/lib/tooltip-position";
 import { useCalendarHover } from "@/shared/calendar/model/use-calendar-hover";
 
 const PANEL_CLASS =
-  "pointer-events-auto fixed z-[70] max-h-[min(24rem,50vh)] overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 shadow-lg";
+  "custom-scrollbar pointer-events-auto fixed z-[70] max-h-[min(24rem,50vh)] overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 shadow-lg";
 
 const DEFAULT_WIDTH = "min(20rem, calc(100vw - 1rem))";
 

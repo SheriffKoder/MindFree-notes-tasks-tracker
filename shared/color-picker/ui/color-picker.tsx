@@ -30,8 +30,10 @@ export interface ColorPickerProps {
   onChange: (color: string | null) => void;
   /** Swatch list. Defaults to `DEFAULT_COLOR_PRESETS`. */
   presets?: readonly string[];
-  /** When true (default), show a "None" clear option. */
+  /** When true (default), show a clear option. */
   allowNull?: boolean;
+  /** Label for the clear option / empty trigger. Defaults to `"None"`. */
+  nullLabel?: string;
   disabled?: boolean;
   /** Extra classes on the trigger button. */
   triggerClassName?: string;
@@ -50,6 +52,7 @@ export function ColorPicker({
   onChange,
   presets = DEFAULT_COLOR_PRESETS,
   allowNull = true,
+  nullLabel = "None",
   disabled = false,
   triggerClassName,
   contentClassName,
@@ -115,7 +118,7 @@ export function ColorPicker({
               style={{ backgroundColor: selected }}
             />
           ) : (
-            <span className="text-caption">None</span>
+            <span className="text-caption">{nullLabel}</span>
           )}
           <ChevronDown aria-hidden className="h-3.5 w-3.5 shrink-0 opacity-60" />
         </Button>
@@ -183,7 +186,7 @@ export function ColorPicker({
             <span className="flex h-3.5 w-3.5 items-center justify-center">
               {selected === null ? <Check className="h-3.5 w-3.5" /> : null}
             </span>
-            None
+            {nullLabel}
           </DropdownMenuItem>
         ) : null}
         {presets.map((preset) => {

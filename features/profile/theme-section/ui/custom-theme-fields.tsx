@@ -87,10 +87,14 @@ export function CustomThemeFields({
           <ColorPicker
             aria-label="Background color"
             disabled={disabled}
+            nullLabel="Default"
             value={preferences.backgroundColor}
             onChange={onBackgroundColorChange}
           />
         </div>
+        <p className="text-caption [color:var(--color-fg-muted)]">
+          Choose Default to use the active light/dark background.
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -139,10 +143,14 @@ export function CustomThemeFields({
           <ColorPicker
             aria-label="Drawer background color"
             disabled={disabled}
+            nullLabel="Default"
             value={preferences.drawerBackgroundColor}
             onChange={onDrawerBackgroundColorChange}
           />
         </div>
+        <p className="text-caption [color:var(--color-fg-muted)]">
+          Choose Default to use the active light/dark drawer color.
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">

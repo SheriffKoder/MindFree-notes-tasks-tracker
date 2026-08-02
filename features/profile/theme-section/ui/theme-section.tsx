@@ -51,6 +51,7 @@ function ThemeSectionForm({
   const { errorMessage, updatePreferences } = useUpdateThemePreferences();
 
   function handleThemeModeChange(themeMode: ThemeMode) {
+    // Mode only — custom surface fields stay persisted as source of truth.
     updatePreferences({ themeMode });
   }
 

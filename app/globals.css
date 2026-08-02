@@ -14,18 +14,29 @@
  * --------------------------------------------------------------------------- */
 
 :root {
+  /*
+   * Mode base tokens — never overwritten by `.theme-custom`.
+   * Custom overrides fall back here so "Default" stays theme-based
+   * (self-referential `var(--color-bg, var(--color-bg))` would be invalid).
+   */
+  --base-bg: #f7f6f3;
+  --base-drawer: #fbfaf8;
+  --base-fg: #37352f;
+  --base-accent: #4f7df3;
+  --base-accent-fg: #ffffff;
+
   /* Surfaces */
-  --color-bg: #f7f6f3;
+  --color-bg: var(--base-bg);
   --color-surface: #ffffff;
   --color-surface-secondary: #f1f1ee;
   --color-card-surface: #ffffff;
   --color-card-overlay: rgba(0, 0, 0, 0.02);
   --color-card-hover: #f4f4f2;
-  --color-drawer: #fbfaf8;
+  --color-drawer: var(--base-drawer);
   --color-popup: #ffffff;
 
   /* Text */
-  --color-fg: #37352f;
+  --color-fg: var(--base-fg);
   --color-fg-muted: #787774;
   --color-fg-hint: #9b9a97;
   --color-fg-disabled: #b7b6b2;
@@ -35,8 +46,8 @@
   --color-divider: #ecebe8;
 
   /* Accent */
-  --color-accent: #4f7df3;
-  --color-accent-fg: #ffffff;
+  --color-accent: var(--base-accent);
+  --color-accent-fg: var(--base-accent-fg);
   --color-accent-light: #e8f0ff;
   --color-accent-dark: #3968e0;
   --color-interactive-accent-surface: color-mix(
@@ -123,16 +134,22 @@
 }
 
 .dark {
-  --color-bg: #101010;
+  --base-bg: #101010;
+  --base-drawer: #101010;
+  --base-fg: #f2f2f0;
+  --base-accent: #6c8eff;
+  --base-accent-fg: #e3e3e3;
+
+  --color-bg: var(--base-bg);
   --color-surface: #151515;
   --color-surface-secondary: #262626;
   --color-card-surface: #2a2a2a;
   --color-card-overlay: rgba(255, 255, 255, 0.02);
   --color-card-hover: #303030;
-  --color-drawer: #101010;
+  --color-drawer: var(--base-drawer);
   --color-popup: #2d2d2d;
 
-  --color-fg: #f2f2f0;
+  --color-fg: var(--base-fg);
   --color-fg-muted: #a9a9a6;
   --color-fg-hint: #7b7b78;
   --color-fg-disabled: #5e5e5b;
@@ -140,8 +157,8 @@
   --color-border: rgba(58, 58, 58, 0.404);
   --color-divider: #343434;
 
-  --color-accent: #6c8eff;
-  --color-accent-fg: #e3e3e3;
+  --color-accent: var(--base-accent);
+  --color-accent-fg: var(--base-accent-fg);
   --color-accent-light: #8da9ff;
   --color-accent-dark: #4a73f0;
   --color-interactive-accent-surface: color-mix(
@@ -183,13 +200,17 @@
 
 }
 
-/* Profile custom theme — JS sets these when user picks Custom in settings. */
+/*
+ * Profile custom overrides — JS sets `--custom-*` only when a value is chosen.
+ * Unset customs fall back to `--base-*` (active light/dark), not to `--color-*`
+ * (that self-reference is invalid at computed-value time).
+ */
 .theme-custom {
-  --color-bg: var(--custom-bg, var(--color-bg));
-  --color-drawer: var(--custom-drawer-bg, var(--color-drawer));
-  --color-accent: var(--custom-accent, var(--color-accent));
-  --color-accent-fg: var(--custom-accent-fg, var(--color-accent-fg));
-  --color-fg: var(--custom-fg, var(--color-fg));
+  --color-bg: var(--custom-bg, var(--base-bg));
+  --color-drawer: var(--custom-drawer-bg, var(--base-drawer));
+  --color-accent: var(--custom-accent, var(--base-accent));
+  --color-accent-fg: var(--custom-accent-fg, var(--base-accent-fg));
+  --color-fg: var(--custom-fg, var(--base-fg));
 }
 
 @layer base {
@@ -357,4 +378,33 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  /* Firefox: thumb, track */
+  scrollbar-color: #c2c2c2 #00000000;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-width: thin;
+  /* Firefox: thumb, track */
+  scrollbar-color: #525252 #00ff8000;
+}
+
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Light: subtle track — a near-black track (#000000f6) plus WebKit’s hover
+   thumb transparency made the thumb read as black. */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: rgba(255, 0, 0, 0.0);
+  border-radius: 9999px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #000000f6;
+  border-radius: 9999px;
 }

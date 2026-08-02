@@ -1,6 +1,10 @@
 /**
  * @file features/profile/apply-theme/lib/theme-storage.ts
  * Persist a client-side snapshot of theme preferences for pre-paint boot.
+ *
+ * Surface fields (background, drawer, image) are always stored so they remain
+ * the source of truth when switching away from custom and back. The boot
+ * script only paints those vars while `themeMode === "custom"`.
  */
 
 import type { ProfilePreferences } from "@/entities/profile/model/read-models";

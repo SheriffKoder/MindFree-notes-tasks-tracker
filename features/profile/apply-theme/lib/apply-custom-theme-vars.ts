@@ -92,7 +92,12 @@ function applyBodyBackgroundImage(url: string | null): void {
  * Syncs `.theme-custom`, CSS vars, and body background from preferences.
  *
  * - Accent applies in every mode when set.
- * - Surface/image customs apply only in `custom` mode.
+ * - Surface/image customs paint only while `theme_mode === 'custom'`.
+ * - Leaving custom does not clear stored surface values; they stay as the
+ *   source of truth for the next time custom is enabled. Light/dark modes
+ *   paint from theme tokens instead.
+ * - Null background/drawer colors mean "Default" — leave `--custom-*` unset
+ *   so CSS falls back to the active light/dark `--base-*` tokens.
  */
 export function applyCustomThemeVars(preferences: ProfilePreferences): void {
   const root = document.documentElement;

@@ -12,7 +12,7 @@ export const PLAIN_TITLE_CLASS =
   "min-w-0 flex-1 border-0 bg-transparent p-0 text-lg font-medium leading-tight [color:var(--color-fg)] placeholder:[color:var(--color-fg-hint)] focus:outline-none focus:ring-0";
 
 export const PLAIN_CONTENT_CLASS =
-  "min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-0 text-base leading-normal [color:var(--color-fg)] placeholder:[color:var(--color-fg-hint)] focus:outline-none focus:ring-0";
+  "custom-scrollbar min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-0 text-base leading-normal [color:var(--color-fg)] placeholder:[color:var(--color-fg-hint)] focus:outline-none focus:ring-0";
 
 /** Content textarea when the last-saved label overlays the bottom-right corner. */
 export const PLAIN_CONTENT_OVERLAY_CLASS = `${PLAIN_CONTENT_CLASS} pb-7`;
