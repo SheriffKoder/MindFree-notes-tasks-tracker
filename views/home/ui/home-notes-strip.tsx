@@ -170,23 +170,26 @@ export const HomeNotesStrip = memo(function HomeNotesStrip({
   }
 
   return (
-    <DragHorizontalScroll
-      className="-mx-1 px-1 pb-1 relative"
-      id="home-starred-notes-strip"
-    >
-
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[var(--color-bg)] to-[100%] to-transparent z-10"></div>
-      
-      {isTwoRows ? (
-        <div className="flex w-max flex-col gap-3">
+    <div className="relative -mx-1">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[var(--color-bg)] to-transparent"
+      />
+      <DragHorizontalScroll
+        className="px-1 pb-1"
+        id="home-starred-notes-strip"
+      >
+        {isTwoRows ? (
+          <div className="flex w-max flex-col gap-3">
+            <HomeStripRow>{rows.row1}</HomeStripRow>
+            {rows.row2.length > 0 ? (
+              <HomeStripRow>{rows.row2}</HomeStripRow>
+            ) : null}
+          </div>
+        ) : (
           <HomeStripRow>{rows.row1}</HomeStripRow>
-          {rows.row2.length > 0 ? (
-            <HomeStripRow>{rows.row2}</HomeStripRow>
-          ) : null}
-        </div>
-      ) : (
-        <HomeStripRow>{rows.row1}</HomeStripRow>
-      )}
-    </DragHorizontalScroll>
+        )}
+      </DragHorizontalScroll>
+    </div>
   );
 });

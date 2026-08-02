@@ -51,9 +51,12 @@ export function HomeView({ notice = null }: HomeViewProps) {
         <HomePaymentOffline />
         <section className="flex shrink-0 items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
-            <h2 className="text-h2 flex min-w-0 flex-wrap gap-2">
+            <h2 className="text-h2 flex min-w-0 flex-wrap gap-2 relative">
               <span className="inline-flex items-center gap-2">
-                <BookMarked aria-hidden className="h-6 w-6" /> MindFree
+                <div className="w-10">
+                  <img src="/images/icons/app-logo.png" alt="MindFree" className="h-16 w-9 absolute top-0 translate-y-[-40%]" />
+                </div>
+                <img src="/images/icons/app-name.png" alt="MindFree" className="aspect-[4.5/1] w-[max(7vw,100px)] dark:invert" />
               </span>
               <HomeDemoViewingDay />
             </h2>
