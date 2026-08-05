@@ -32,6 +32,7 @@ import {
   useAuthUserId,
   useOfflineSync,
 } from "@/shared/offline-queue";
+import { PageHeader } from "@/shared/page-header";
 import { usePaymentsDrawer } from "@/views/payments/model/use-payments-drawer";
 import { usePaymentsUrlState } from "@/views/payments/model/use-payments-url-state";
 import { PaymentsAddButton } from "@/views/payments/ui/payments-add-button";
@@ -85,12 +86,10 @@ export function PaymentsClient() {
       <OfflineBanner />
 
       {/* Page header */}
-      <section className="flex shrink-0 flex-col gap-2">
-        <h2 className="text-h2">Payments</h2>
-        <p className="page-header__subtitle">
-          Track monthly payments by week. Click a row to edit.
-        </p>
-      </section>
+      <PageHeader
+        title="Payments"
+        subtitle="Track monthly payments by week. Click a row to edit."
+      />
 
       {/* Month switcher + add */}
       <section

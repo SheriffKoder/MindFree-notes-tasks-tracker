@@ -9,6 +9,7 @@ import { AccountSection } from "@/features/profile/account-section";
 import { AppLockSection } from "@/features/profile/app-lock-section";
 import { ExportSection } from "@/features/profile/export-section";
 import { ThemeSection } from "@/features/profile/theme-section";
+import { PageHeader } from "@/shared/page-header";
 
 /**
  * Renders the Profile page with account, theme, app lock, and export sections.
@@ -16,12 +17,10 @@ import { ThemeSection } from "@/features/profile/theme-section";
 export function ProfileClient() {
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
-      <section className="flex shrink-0 flex-col gap-2">
-        <h2 className="text-h2">Profile</h2>
-        <p className="page-header__subtitle">
-          Manage account details, appearance, app lock, and data export.
-        </p>
-      </section>
+      <PageHeader
+        title="Profile"
+        subtitle="Manage account details, appearance, app lock, and data export."
+      />
 
       <div className="relative min-h-0 flex-1">
         <div

@@ -38,6 +38,7 @@ import {
   useAuthUserId,
   useOfflineSync,
 } from "@/shared/offline-queue";
+import { PageHeader } from "@/shared/page-header";
 import { ViewSwitcherMobile } from "@/shared/view-switcher";
 
 export interface ActivityPageClientProps {
@@ -122,10 +123,7 @@ export function ActivityPageClient({
     <ActivityFilterProvider>
       <OfflineBanner />
       <div className="mx-auto flex h-full w-full flex-col gap-4">
-        <section className="flex shrink-0 flex-col gap-2">
-          <h2 className="text-h2">{copy.title}</h2>
-          <p className="page-header__subtitle">{copy.subtitle}</p>
-        </section>
+        <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
         <section
           aria-label={copy.controlsAriaLabel}

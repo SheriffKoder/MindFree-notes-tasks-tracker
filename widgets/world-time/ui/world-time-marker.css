@@ -1,0 +1,40 @@
+/**
+ * Soft breathing halo for World Time map markers.
+ * Only the absolute halo animates — the solid core stays fixed.
+ */
+
+@keyframes world-time-marker-halo {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.0;
+    transform: scale(1.55);
+  }
+}
+
+.world-time-marker-halo {
+  animation: world-time-marker-halo 2.8s ease-in-out infinite;
+}
+
+/* Stagger so cities do not pulse in lockstep. */
+.world-time-marker .world-time-marker-halo {
+  animation-delay: 0.35s;
+}
+/* .world-time-marker:nth-child(3) .world-time-marker-halo {
+  animation-delay: 0.7s;
+}
+.world-time-marker:nth-child(4) .world-time-marker-halo {
+  animation-delay: 1.05s;
+}
+.world-time-marker:nth-child(5) .world-time-marker-halo {
+  animation-delay: 1.4s;
+}
+.world-time-marker:nth-child(6) .world-time-marker-halo {
+  animation-delay: 1.75s;
+}
+.world-time-marker:nth-child(7) .world-time-marker-halo {
+  animation-delay: 2.1s;
+} */

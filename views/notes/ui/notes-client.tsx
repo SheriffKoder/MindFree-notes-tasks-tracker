@@ -19,13 +19,14 @@ import {
   useAuthUserId,
   useOfflineSync,
 } from "@/shared/offline-queue";
+import { PageHeader } from "@/shared/page-header";
 import { ViewSwitcher } from "@/shared/view-switcher";
 import { NOTES_VIEW_CONFIG } from "@/views/notes/lib/notes-views";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
-import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
 import { NotesAddButton } from "@/views/notes/ui/notes-add-button";
+import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
 
 /**
  * Renders the Notes page shell with month/view controls and hydrated query islands.
@@ -91,13 +92,15 @@ export function NotesClient() {
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
       <OfflineBanner />
-      <section className="flex shrink-0 flex-col gap-2">
-        <h2 className="text-h2">Notes</h2>
-        <p className="page-header__subtitle">
-          Browse calendar notes by month. Click a day or list card to open the
-          note editor.
-        </p>
-      </section>
+      <PageHeader
+        title="Notes"
+        subtitle={
+          <>
+            Browse calendar notes by month. Click a day or list card to open the
+            note editor.
+          </>
+        }
+      />
 
       <section
         aria-label="Notes controls"

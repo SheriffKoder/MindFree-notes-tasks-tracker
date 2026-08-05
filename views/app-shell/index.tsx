@@ -35,7 +35,7 @@ export function AppShell({ children, showProfileNav = true }: AppShellProps) {
         <AppDesktopNav showProfileNav={showProfileNav} />
       </div>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-6 md:py-6">
+      <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-6 md:pb-6 md:pt-4">
         {children}
       </main>
 

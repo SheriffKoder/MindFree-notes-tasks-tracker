@@ -1,0 +1,35 @@
+/**
+ * Mount entrance for the Home brand mark:
+ * 1. Logo drops from above into place.
+ * 2. After 1s, app-name-2 slides right from behind app-name-1.
+ */
+
+@keyframes home-brand-logo-drop {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-40% - 2.5rem));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-40%);
+  }
+}
+
+@keyframes home-brand-name-2-reveal {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.home-brand-mark-logo {
+  animation: home-brand-logo-drop 0.65s ease-out forwards;
+}
+
+.home-brand-mark-name-2 {
+  /* Starts tucked under name-1; slides out after the logo settles. */
+  transform: translateX(-100%);
+  animation: home-brand-name-2-reveal 0.7s ease-out 1s forwards;
+}

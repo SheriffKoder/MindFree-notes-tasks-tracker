@@ -41,6 +41,7 @@ export function WorldTimeCityTimesGrid({ now }: WorldTimeCityTimesGridProps) {
               <td
                 key={city.timeZone}
                 className="border-none border-[var(--color-border)] px-0.5 py-1.5"
+                title={city.label} aria-label={city.label}
               >
                 <div className="flex min-w-0 flex-col items-center gap-0.5">
                   <span className="text-caption font-medium [color:var(--color-fg-muted)]">

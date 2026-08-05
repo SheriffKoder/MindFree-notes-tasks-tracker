@@ -16,16 +16,21 @@ import { HomeAsideCalendar } from "@/views/home/ui/home-aside-calendar";
 export function HomeAsideContent() {
   return (
     <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col items-start justify-start gap-2">
+      <h3 className="xl:hidden text-[length:var(--text-xs)] font-medium leading-tight [color:var(--color-fg-muted)] rounded-sm text-left transition-colors hover:[color:var(--color-fg)] flex items-center gap-1">Clock</h3>
       <div className="flex items-start gap-2 border border-[var(--color-border)] rounded-xl p-2 bg-[color-mix(in_srgb,var(--color-surface)_88%,transparent)]">
-        <div className="w-[38%] shrink-0 self-center">
+        <div className="w-[40%] shrink-0 self-center pl-2">
           <UptimeClock showSeconds={false} />
         </div>
         <div className="min-w-0 flex-1 overflow-hidden">
           <HomeAsideCalendar />
         </div>
       </div>
-
+      </div>
+      <div className="flex flex-col items-start justify-start gap-2">
+      <h3 className="xl:hidden text-[length:var(--text-xs)] font-medium leading-tight [color:var(--color-fg-muted)] rounded-sm text-left transition-colors hover:[color:var(--color-fg)] flex items-center gap-1">World Time</h3>
       <WorldTime />
+      </div>
     </div>
   );
 }

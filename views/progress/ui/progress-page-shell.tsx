@@ -11,6 +11,7 @@
 import type { ReactNode } from "react";
 
 import { OfflineBanner } from "@/shared/offline-queue";
+import { PageHeader } from "@/shared/page-header";
 
 export interface ProgressPageShellProps {
   /** Month navigator island or its loading placeholder. */
@@ -30,12 +31,10 @@ export function ProgressPageShell({
     <>
       <OfflineBanner />
       <div className="mx-auto flex h-full w-full flex-col gap-4">
-        <section className="flex shrink-0 flex-col gap-2">
-          <h2 className="text-h2">Progress</h2>
-          <p className="page-header__subtitle">
-            Monthly task progress, weekly breakdowns, and all-time totals.
-          </p>
-        </section>
+        <PageHeader
+          title="Progress"
+          subtitle="Monthly task progress, weekly breakdowns, and all-time totals."
+        />
 
         <section
           aria-label="Progress month controls"
