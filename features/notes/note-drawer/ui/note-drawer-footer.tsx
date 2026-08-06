@@ -33,7 +33,7 @@ export interface NoteDrawerFooterProps {
 }
 
 /**
- * Compact footer row anchored below the scrollable editor content.
+ * Compact footer row anchored to the bottom of the drawer shell.
  */
 export function NoteDrawerFooter({
   activeDate,
@@ -56,38 +56,47 @@ export function NoteDrawerFooter({
       : null;
 
   return (
-    <footer className="flex shrink-0 flex-col gap-1.5 py-1">
-      {conflict ? (
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-border)] px-2 py-1.5 [background-color:color-mix(in_srgb,var(--color-surface)_88%,transparent)]"
-          role="status"
-        >
-          <p className="min-w-0 text-caption [color:var(--color-fg-muted)]">
-            A note exists on {formatDayAriaLabel(conflict.date)}. Replace?
-          </p>
+    <footer className="absolute bottom-0 right-0 md:right-3 w-full md:w-[50%] z-10 flex min-h-[2rem] flex-col justify-center gap-1.5 px-3 shadow-[0_-1px_0_0_rgba(255,255,255,0.02)] pointer-events-none">
+      <div
+        className={
+          conflict
+            ? "flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-border)] px-2 py-1.5 [background-color:color-mix(in_srgb,var(--color-surface)_88%,transparent)]"
+            : ""
+        }
+        role={conflict ? "status" : undefined}
+        aria-hidden={conflict ? undefined : "true"}
+      >
+        {conflict ? (
+          <>
+            <p className="min-w-0 text-caption [color:var(--color-fg-muted)]">
+              A note exists on {formatDayAriaLabel(conflict.date)}. Replace?
+            </p>
 
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              className="h-7 border-transparent px-2.5 text-caption [background-color:var(--color-accent)] [color:var(--color-accent-fg)] hover:brightness-95"
-              size="sm"
-              type="button"
-              onClick={onResolveReplace}
-            >
-              Yes
-            </Button>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                className="h-7 border-transparent px-2.5 text-caption [background-color:var(--color-accent)] [color:var(--color-accent-fg)] hover:brightness-95 pointer-events-auto"
+                size="sm"
+                type="button"
+                onClick={onResolveReplace}
+              >
+                Yes
+              </Button>
 
-            <Button
-              className="h-7 border-[var(--color-border)] px-2.5 text-caption [background-color:var(--color-card-overlay)] [color:var(--color-fg-muted)] hover:[background-color:var(--color-card-hover)] hover:[color:var(--color-fg)]"
-              size="sm"
-              type="button"
-              variant="outline"
-              onClick={onResolveDismiss}
-            >
-              No
-            </Button>
-          </div>
-        </div>
-      ) : null}
+              <Button
+                className="h-7 border-[var(--color-border)] px-2.5 text-caption [background-color:var(--color-card-overlay)] [color:var(--color-fg-muted)] hover:[background-color:var(--color-card-hover)] hover:[color:var(--color-fg)] pointer-events-auto"
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={onResolveDismiss}
+              >
+                No
+              </Button>
+            </div>
+          </>
+        ) : (
+          <span className="block h-0 w-0" />
+        )}
+      </div>
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center">
@@ -99,7 +108,7 @@ export function NoteDrawerFooter({
                     ? `Go to ${previousDateLabel}`
                     : "Go to previous day"
                 }
-                className="h-7 w-7"
+                className="h-7 w-7 pointer-events-auto"
                 size="icon"
                 title={previousDateLabel ?? undefined}
                 type="button"
@@ -113,7 +122,7 @@ export function NoteDrawerFooter({
                 aria-label={
                   nextDateLabel ? `Go to ${nextDateLabel}` : "Go to next day"
                 }
-                className="h-7 w-7"
+                className="h-7 w-7 pointer-events-auto"
                 size="icon"
                 title={nextDateLabel ?? undefined}
                 type="button"

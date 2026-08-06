@@ -22,11 +22,13 @@ export function ActivityDrawerFooter({
   saveStatus = "idle",
 }: ActivityDrawerFooterProps) {
   return (
-    <footer className="flex shrink-0 items-center justify-end gap-2 py-1">
-      <ActivityFormLastSaved
-        formattedLastEditedAt={formattedLastEditedAt}
-        saveStatus={saveStatus}
-      />
+    <footer className="absolute bottom-0 right-0 md:right-3 w-full md:w-[50%] z-10 flex min-h-[2rem] items-center justify-end gap-2 px-3 pointer-events-none">
+      <div className="flex min-w-0 justify-end">
+        <ActivityFormLastSaved
+          formattedLastEditedAt={formattedLastEditedAt}
+          saveStatus={saveStatus}
+        />
+      </div>
     </footer>
   );
 }

@@ -41,8 +41,8 @@ export function NoteListCardDesktop({
       style={NOTE_LIST_CARD_CSS_VARS}
       className={
         compactOnMobile
-          ? "group flex h-40 cursor-pointer flex-col md:h-56"
-          : "group flex h-56 cursor-pointer flex-col"
+          ? "group flex h-40 cursor-pointer flex-col md:h-56 select-none"
+          : "group flex h-56 cursor-pointer flex-col select-none"
       }
       {...getNoteCardInteractionProps(onClick)}
     >

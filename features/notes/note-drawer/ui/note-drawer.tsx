@@ -202,7 +202,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
       resizable
       onOpenChange={handleOpenChange}
     >
-      <div className="flex min-h-full flex-col">
+      <div className="relative flex min-h-full flex-col">
         <NoteForm
           calendarDate={prefillCalendarDate}
           commitKey={commitKey}

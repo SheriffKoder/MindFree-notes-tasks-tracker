@@ -51,6 +51,7 @@ import type {
 } from "@/features/notes/note-drawer/pre-save-orchestrator/types";
 
 const MUTATION_DEBOUNCE_MS = 600;
+const SAVE_STATUS_IDLE_MS = 2000;
 const SAVED_STATUS_RESET_MS = 2000;
 
 type PendingMutation =
@@ -105,10 +106,13 @@ export function usePreSaveOrchestrator({
     EvaluateNoteSaveResult["conflict"]
   >(null);
 
+  const saveStatusRef = useRef<NoteSaveStatus>("idle");
+  const actualSaveStatusRef = useRef<NoteSaveStatus>("idle");
   const lastPickedDateRef = useRef<string | null>(null);
   const replaceConfirmedRef = useRef(false);
   const pendingMutationRef = useRef<PendingMutation | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastEvaluationRef = useRef<EvaluateNoteSaveResult | null>(null);
   const lastFormValuesRef = useRef<NoteFormValues | null>(null);
@@ -124,23 +128,66 @@ export function usePreSaveOrchestrator({
     }
   }, []);
 
+  const clearIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+  }, []);
+
+  const clearSavedResetTimer = useCallback(() => {
+    if (savedResetTimerRef.current) {
+      clearTimeout(savedResetTimerRef.current);
+      savedResetTimerRef.current = null;
+    }
+  }, []);
+
+  const setGatedStatus = useCallback((nextStatus: NoteSaveStatus) => {
+    saveStatusRef.current = nextStatus;
+    setSaveStatus(nextStatus);
+  }, []);
+
+  const startSavedResetTimer = useCallback(() => {
+    clearSavedResetTimer();
+    savedResetTimerRef.current = setTimeout(() => {
+      if (saveStatusRef.current === "saved") {
+        setGatedStatus("idle");
+      }
+    }, SAVED_STATUS_RESET_MS);
+  }, [clearSavedResetTimer, setGatedStatus]);
+
+  const startIdleTimer = useCallback(() => {
+    clearIdleTimer();
+    idleTimerRef.current = setTimeout(() => {
+      clearIdleTimer();
+
+      if (actualSaveStatusRef.current === "saved") {
+        setGatedStatus("saved");
+        startSavedResetTimer();
+      }
+    }, SAVE_STATUS_IDLE_MS);
+  }, [clearIdleTimer, setGatedStatus, startSavedResetTimer]);
+
   const markSaveSuccess = useCallback(() => {
-    setSaveStatus("saved");
+    actualSaveStatusRef.current = "saved";
     setCommitKey((previous) => previous + 1);
     replaceConfirmedRef.current = false;
 
-    if (savedResetTimerRef.current) {
-      clearTimeout(savedResetTimerRef.current);
+    if (saveStatusRef.current === "saving") {
+      startIdleTimer();
+      return;
     }
 
-    savedResetTimerRef.current = setTimeout(() => {
-      setSaveStatus("idle");
-    }, SAVED_STATUS_RESET_MS);
-  }, []);
+    setGatedStatus("saved");
+    startSavedResetTimer();
+  }, [setGatedStatus, startIdleTimer, startSavedResetTimer]);
 
   const markSaveError = useCallback(() => {
-    setSaveStatus("error");
-  }, []);
+    actualSaveStatusRef.current = "error";
+    clearIdleTimer();
+    clearSavedResetTimer();
+    setGatedStatus("error");
+  }, [clearIdleTimer, clearSavedResetTimer, setGatedStatus]);
 
   const findNoteOnDate = useCallback(
     (date: string, excludeNoteId?: string): Note | null =>
@@ -156,7 +203,10 @@ export function usePreSaveOrchestrator({
     }
 
     pendingMutationRef.current = null;
-    setSaveStatus("saving");
+    actualSaveStatusRef.current = "saving";
+    setGatedStatus("saving");
+    clearIdleTimer();
+    clearSavedResetTimer();
 
     /////////////////////////////////
     // Offline — persist locally, keep optimistic cache, skip network
@@ -424,12 +474,17 @@ export function usePreSaveOrchestrator({
           clearDebounceTimer();
         }
 
+        if (actualSaveStatusRef.current === "saved") {
+          startIdleTimer();
+        }
+
         return;
       }
 
       /////////////////////////////////
       // 3. Schedule debounced mutation for the chosen action
       scheduleFromEvaluation(result);
+      startIdleTimer();
     },
     [clearDebounceTimer, evaluate, scheduleFromEvaluation],
   );
@@ -542,6 +597,10 @@ export function usePreSaveOrchestrator({
     /////////////////////////////////
     // Drawer open — reset save UI, picker refs, and date-nav mode for this context
     setSaveStatus("idle");
+    saveStatusRef.current = "idle";
+    actualSaveStatusRef.current = "idle";
+    clearIdleTimer();
+    clearSavedResetTimer();
     lastPickedDateRef.current = null;
     replaceConfirmedRef.current = false;
     setConflict(null);
@@ -550,17 +609,15 @@ export function usePreSaveOrchestrator({
     const openingDate =
       note?.date ?? resolveOpeningCalendarDate(activeDate, request);
     setEffectiveDateNavEnabled(openingDate !== null);
-  }, [activeDate, isOpen, note?.date, note?.id, request]);
+  }, [activeDate, clearIdleTimer, clearSavedResetTimer, isOpen, note?.date, note?.id, request]);
 
   useEffect(() => {
     return () => {
       clearDebounceTimer();
-
-      if (savedResetTimerRef.current) {
-        clearTimeout(savedResetTimerRef.current);
-      }
+      clearIdleTimer();
+      clearSavedResetTimer();
     };
-  }, [clearDebounceTimer]);
+  }, [clearDebounceTimer, clearIdleTimer, clearSavedResetTimer]);
 
   return {
     saveStatus,

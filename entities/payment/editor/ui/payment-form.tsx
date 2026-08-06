@@ -70,7 +70,7 @@ export function PaymentForm({
   // 3. Fields — title/description, then amount / date / group
   return (
     <form
-      className={cn("flex min-h-0 flex-1 flex-col gap-4", className)}
+      className={cn("flex min-h-0 flex-1 flex-col gap-4 pb-8", className)}
       noValidate
       onSubmit={(event) => event.preventDefault()}
     >

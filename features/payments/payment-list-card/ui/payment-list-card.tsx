@@ -37,7 +37,7 @@ export const PaymentListCard = memo(function PaymentListCard({
     <article
       aria-label={`${title}, ${formatPaymentAmount(payment.amount)}`}
       className={cn(
-        "flex items-center justify-between gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 transition-colors duration-200",
+        "flex items-center justify-between gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 transition-colors duration-200 select-none",
         onClick &&
           "cursor-pointer hover:border-[color-mix(in_srgb,var(--color-accent)_30%,var(--color-border))]",
       )}

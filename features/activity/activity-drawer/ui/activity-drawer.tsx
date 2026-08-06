@@ -144,7 +144,7 @@ export function ActivityDrawer({
       open={isOpen}
       onOpenChange={handleOpenChange}
     >
-      <div className="flex min-h-full flex-col">
+      <div className="relative flex min-h-full flex-col">
         <ActivityForm
           activity={activity}
           commitKey={commitKey}

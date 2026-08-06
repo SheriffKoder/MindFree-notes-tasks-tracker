@@ -28,15 +28,3 @@ export const FIELD_MENU_CONTENT_CLASS = "z-[70]";
 /**
  * Transient save feedback label for the footer last-saved slot.
  */
-export function getSaveStatusLabel(status: ActivitySaveStatus): string | null {
-  switch (status) {
-    case "saving":
-      return "Saving…";
-    case "saved":
-      return "Saved";
-    case "error":
-      return "Could not save";
-    default:
-      return null;
-  }
-}

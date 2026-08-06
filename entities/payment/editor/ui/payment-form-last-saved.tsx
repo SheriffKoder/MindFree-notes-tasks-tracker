@@ -7,8 +7,10 @@
  * Used for: Transient saving/saved/error labels and idle last-edited text.
  */
 
-import { cn } from "@/lib/utils";
-import { getSaveStatusLabel } from "@/entities/payment/editor/lib/form-classes";
+import {
+  SaveStatusLabel,
+  getSaveStatusLabel,
+} from "@/entities/editor/ui/save-status-label";
 import type { PaymentSaveStatus } from "@/entities/payment/editor/model/types";
 
 export interface PaymentFormLastSavedProps {
@@ -26,21 +28,10 @@ export function PaymentFormLastSaved({
   const saveStatusLabel = getSaveStatusLabel(saveStatus);
   const label = saveStatusLabel ?? formattedLastEditedAt ?? "New payment";
 
-  /////////////////////////////////
-  // Status label — transient save feedback overrides last-edited text
   return (
-    <p
-      className={cn(
-        "shrink-0 text-right text-[11px] leading-none opacity-60",
-        saveStatus === "error"
-          ? "[color:var(--color-error)] opacity-100"
-          : saveStatus === "saved"
-            ? "[color:var(--color-success)] opacity-100"
-            : "text-body-muted",
-      )}
-      role={saveStatusLabel ? "status" : undefined}
-    >
-      {label}
-    </p>
+    <SaveStatusLabel
+      label={label}
+      saveStatus={saveStatus}
+    />
   );
 }

@@ -94,7 +94,7 @@ export function ActivityForm({
   return (
     <form
       className={cn(
-        "flex min-h-0 w-full flex-1 flex-col gap-6 md:max-w-lg",
+        "flex min-h-0 w-full flex-1 flex-col gap-6 md:max-w-lg pb-8",
         className,
       )}
       noValidate

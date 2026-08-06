@@ -35,15 +35,3 @@ export const AMOUNT_INPUT_CLASS =
 /**
  * Transient save feedback label for the footer last-saved slot.
  */
-export function getSaveStatusLabel(status: PaymentSaveStatus): string | null {
-  switch (status) {
-    case "saving":
-      return "Saving…";
-    case "saved":
-      return "Saved";
-    case "error":
-      return "Could not save";
-    default:
-      return null;
-  }
-}

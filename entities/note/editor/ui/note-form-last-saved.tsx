@@ -4,7 +4,10 @@
  */
 
 import { cn } from "@/lib/utils";
-import { getSaveStatusLabel } from "@/entities/note/editor/lib/note-form-classes";
+import {
+  SaveStatusLabel,
+  getSaveStatusLabel,
+} from "@/entities/editor/ui/save-status-label";
 import type { NoteSaveStatus } from "@/entities/note/editor/model/types";
 
 export interface NoteFormLastSavedProps {
@@ -22,25 +25,24 @@ export function NoteFormLastSaved({
   saveStatus = "idle",
   variant = "overlay",
 }: NoteFormLastSavedProps) {
-  const saveStatusLabel = getSaveStatusLabel(saveStatus);
-  const label = saveStatusLabel ?? formattedLastEditedAt ?? "New note";
+  let label: string;
+
+  if (saveStatus === "saving") {
+    const suffix = formattedLastEditedAt
+      ? ` · ${formattedLastEditedAt}`
+      : " · Edited just now";
+    label = `Saving${suffix}`;
+  } else if (saveStatus === "saved") {
+    label = formattedLastEditedAt ?? "Edited just now";
+  } else {
+    label = formattedLastEditedAt ?? "New note";
+  }
 
   return (
-    <p
-      className={cn(
-        "text-[11px] leading-none",
-        variant === "overlay"
-          ? "pointer-events-none absolute bottom-0 right-0"
-          : "shrink-0 text-right opacity-60",
-        saveStatus === "error"
-          ? "[color:var(--note-form-save-error)] opacity-100"
-          : saveStatus === "saved"
-            ? "[color:var(--note-form-save-success)] opacity-100"
-            : "text-body-muted",
-      )}
-      role={saveStatusLabel ? "status" : undefined}
-    >
-      {label}
-    </p>
+    <SaveStatusLabel
+      label={label}
+      saveStatus={saveStatus}
+      variant={variant}
+    />
   );
 }

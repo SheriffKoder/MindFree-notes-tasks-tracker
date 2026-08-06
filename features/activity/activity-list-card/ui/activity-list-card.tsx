@@ -50,7 +50,7 @@ export const ActivityListCard = memo(function ActivityListCard({
     <article
       style={ACTIVITY_LIST_CARD_CSS_VARS}
       className={cn(
-        "flex min-h-28 flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--activity-card-bg-default)] p-4 transition-colors duration-200",
+        "flex min-h-28 flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--activity-card-bg-default)] p-4 transition-colors duration-200 select-none",
         onClick &&
           "cursor-pointer hover:border-[color-mix(in_srgb,var(--color-accent)_30%,var(--color-border))] hover:bg-[var(--activity-card-hover-light)] dark:hover:bg-[var(--activity-card-hover-dark)]",
       )}

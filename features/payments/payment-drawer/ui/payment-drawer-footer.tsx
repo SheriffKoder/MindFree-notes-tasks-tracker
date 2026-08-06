@@ -25,11 +25,13 @@ export function PaymentDrawerFooter({
   /////////////////////////////////
   // Footer — last-saved / save-status label
   return (
-    <footer className="flex shrink-0 items-center justify-end gap-2 py-1">
-      <PaymentFormLastSaved
-        formattedLastEditedAt={formattedLastEditedAt}
-        saveStatus={saveStatus}
-      />
+    <footer className="absolute bottom-0 right-0 md:right-3 w-full md:w-[50%] z-10 flex items-center justify-end gap-2 px-3 min-h-[2rem] pointer-events-none">
+      <div className="flex min-w-0 justify-end items-center pointer-events-auto">
+        <PaymentFormLastSaved
+          formattedLastEditedAt={formattedLastEditedAt}
+          saveStatus={saveStatus}
+        />
+      </div>
     </footer>
   );
 }
