@@ -29,6 +29,10 @@ import {
   useDeleteNoteMutation,
   useUpdateNoteMutation,
 } from "@/entities/note/client";
+import {
+  STALE_WRITE_ERROR_CODE,
+  type PatchNoteError,
+} from "@/entities/note/client/patch-note";
 import type {
   NoteFormChangeMeta,
   NoteFormValues,
@@ -100,6 +104,7 @@ export function usePreSaveOrchestrator({
 
   const [saveStatus, setSaveStatus] = useState<NoteSaveStatus>("idle");
   const [commitKey, setCommitKey] = useState(0);
+  const [formSyncKey, setFormSyncKey] = useState(0);
   const [effectiveDateNavEnabled, setEffectiveDateNavEnabled] = useState(false);
   const [isSavingEnabled, setIsSavingEnabled] = useState(true);
   const [conflict, setConflict] = useState<
@@ -120,6 +125,10 @@ export function usePreSaveOrchestrator({
     isDirty: false,
     isValid: true,
   });
+  /** Last server-confirmed version the open form content is based on. */
+  const confirmedLastEditedAtRef = useRef<string | null>(null);
+  /** Prevents overlapping PATCHes from racing the concurrency token. */
+  const patchInFlightRef = useRef(false);
 
   const clearDebounceTimer = useCallback(() => {
     if (debounceTimerRef.current) {
@@ -189,6 +198,27 @@ export function usePreSaveOrchestrator({
     setGatedStatus("error");
   }, [clearIdleTimer, clearSavedResetTimer, setGatedStatus]);
 
+  const acceptRemoteFormSync = useCallback((serverLastEditedAt: string) => {
+    confirmedLastEditedAtRef.current = serverLastEditedAt;
+  }, []);
+
+  const handlePatchError = useCallback(
+    (error: unknown) => {
+      const patchError = error as PatchNoteError;
+
+      if (
+        patchError.code === STALE_WRITE_ERROR_CODE &&
+        patchError.note
+      ) {
+        confirmedLastEditedAtRef.current = patchError.note.lastEditedAt;
+        setFormSyncKey((previous) => previous + 1);
+      }
+
+      markSaveError();
+    },
+    [markSaveError],
+  );
+
   const findNoteOnDate = useCallback(
     (date: string, excludeNoteId?: string): Note | null =>
       findNoteOnDateInCache(queryClient, date, excludeNoteId),
@@ -199,6 +229,12 @@ export function usePreSaveOrchestrator({
     const pending = pendingMutationRef.current;
 
     if (!pending) {
+      return;
+    }
+
+    /////////////////////////////////
+    // Serialize PATCHes — overlapping sends race expectedLastEditedAt.
+    if (pending.kind === "patch" && patchInFlightRef.current) {
       return;
     }
 
@@ -225,6 +261,8 @@ export function usePreSaveOrchestrator({
             date: pending.date,
             isQuick: pending.isQuick,
             replaceExistingOnDate: pending.replaceExistingOnDate,
+            expectedLastEditedAt:
+              confirmedLastEditedAtRef.current ?? pending.note.lastEditedAt,
           });
           break;
         case "create-calendar":
@@ -282,10 +320,24 @@ export function usePreSaveOrchestrator({
       },
     };
 
+    const flushQueuedPatch = () => {
+      if (pendingMutationRef.current?.kind === "patch") {
+        runPendingMutation();
+      }
+    };
+
     /////////////////////////////////
     // Dispatch debounced mutation kind chosen by evaluateNoteSave
     switch (pending.kind) {
-      case "patch":
+      case "patch": {
+        const expectedLastEditedAt = confirmedLastEditedAtRef.current;
+
+        if (!expectedLastEditedAt) {
+          markSaveError();
+          return;
+        }
+
+        patchInFlightRef.current = true;
         patchNote(
           {
             note: pending.note,
@@ -293,10 +345,23 @@ export function usePreSaveOrchestrator({
             date: pending.date,
             isQuick: pending.isQuick,
             replaceExistingOnDate: pending.replaceExistingOnDate,
+            expectedLastEditedAt,
           },
-          mutationOptions,
+          {
+            onSuccess: (serverNote) => {
+              confirmedLastEditedAtRef.current = serverNote.lastEditedAt;
+              patchInFlightRef.current = false;
+              markSaveSuccess();
+              flushQueuedPatch();
+            },
+            onError: (error) => {
+              patchInFlightRef.current = false;
+              handlePatchError(error);
+            },
+          },
         );
         return;
+      }
       case "create-calendar":
         createCalendarNote(
           {
@@ -312,6 +377,7 @@ export function usePreSaveOrchestrator({
           { values: pending.values },
           {
             onSuccess: (serverNote) => {
+              confirmedLastEditedAtRef.current = serverNote.lastEditedAt;
               markSaveSuccess();
               onGeneralNoteCreated(serverNote.id);
             },
@@ -326,6 +392,7 @@ export function usePreSaveOrchestrator({
           { values: pending.values },
           {
             onSuccess: (serverNote) => {
+              confirmedLastEditedAtRef.current = serverNote.lastEditedAt;
               markSaveSuccess();
               onQuickNoteCreated(serverNote.id);
             },
@@ -343,6 +410,7 @@ export function usePreSaveOrchestrator({
     createGeneralNote,
     createQuickNote,
     deleteNote,
+    handlePatchError,
     markSaveError,
     markSaveSuccess,
     onGeneralNoteCreated,
@@ -373,6 +441,10 @@ export function usePreSaveOrchestrator({
       switch (result.action) {
         case "patch":
           if (!note) {
+            return;
+          }
+
+          if (!confirmedLastEditedAtRef.current) {
             return;
           }
 
@@ -590,6 +662,18 @@ export function usePreSaveOrchestrator({
   ]);
 
   useEffect(() => {
+    if (!isOpen || !note?.id) {
+      confirmedLastEditedAtRef.current = null;
+      patchInFlightRef.current = false;
+      return;
+    }
+
+    /////////////////////////////////
+    // Seed concurrency token from the note at context open — not on optimistic cache bumps.
+    confirmedLastEditedAtRef.current = note.lastEditedAt;
+  }, [isOpen, note?.id]);
+
+  useEffect(() => {
     if (!isOpen) {
       return;
     }
@@ -605,6 +689,7 @@ export function usePreSaveOrchestrator({
     replaceConfirmedRef.current = false;
     setConflict(null);
     setIsSavingEnabled(true);
+    setFormSyncKey(0);
 
     const openingDate =
       note?.date ?? resolveOpeningCalendarDate(activeDate, request);
@@ -623,6 +708,7 @@ export function usePreSaveOrchestrator({
     saveStatus,
     handleChange,
     commitKey,
+    formSyncKey,
     effectiveDateNavEnabled,
     isSavingEnabled,
     conflict,
@@ -630,6 +716,7 @@ export function usePreSaveOrchestrator({
     resolveDismiss,
     applyPickedDate,
     reevaluateFromCache,
+    acceptRemoteFormSync,
     promoteToQuick,
   };
 }

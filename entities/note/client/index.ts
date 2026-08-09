@@ -38,6 +38,8 @@ export {
 } from "@/entities/note/client/post-note";
 export {
   fetchPatchNote,
+  STALE_WRITE_ERROR_CODE,
+  type PatchNoteError,
   type PatchNoteResponse,
 } from "@/entities/note/client/patch-note";
 export { fetchDeleteNote } from "@/entities/note/client/delete-note";

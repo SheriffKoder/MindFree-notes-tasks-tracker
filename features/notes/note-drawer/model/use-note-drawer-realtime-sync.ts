@@ -35,6 +35,8 @@ export interface UseNoteDrawerRealtimeSyncOptions {
   resetKey: string;
   onChange: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
   reevaluateFromCache: () => void;
+  /** Called when a remote revision is safely pulled into the open form. */
+  onRemoteFormSync?: (serverLastEditedAt: string) => void;
 }
 
 export interface UseNoteDrawerRealtimeSyncResult {
@@ -56,11 +58,14 @@ export function useNoteDrawerRealtimeSync({
   resetKey,
   onChange,
   reevaluateFromCache,
+  onRemoteFormSync,
 }: UseNoteDrawerRealtimeSyncOptions): UseNoteDrawerRealtimeSyncResult {
   const [remoteSyncKey, setRemoteSyncKey] = useState(0);
   const [isFormDirty, setIsFormDirty] = useState(false);
   const openedAtRef = useRef(0);
   const lastLocalEditAtRef = useRef<number | null>(null);
+  const onRemoteFormSyncRef = useRef(onRemoteFormSync);
+  onRemoteFormSyncRef.current = onRemoteFormSync;
 
   const handleChangeWithDirty = useCallback(
     function handleChangeWithDirty(
@@ -115,6 +120,7 @@ export function useNoteDrawerRealtimeSync({
         reevaluateFromCache();
 
         if (changedNote && shouldSyncRemoteIntoForm(changedNote.id)) {
+          onRemoteFormSyncRef.current?.(changedNote.lastEditedAt);
           setRemoteSyncKey(function incrementRemoteSyncKey(previous) {
             return previous + 1;
           });

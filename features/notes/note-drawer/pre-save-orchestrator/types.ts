@@ -76,6 +76,11 @@ export interface UsePreSaveOrchestratorResult {
   saveStatus: NoteSaveStatus;
   handleChange: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
   commitKey: number;
+  /**
+   * Bumped when a stale-write 409 forces the form to reload from cache.
+   * Combine with the drawer realtime `remoteSyncKey`.
+   */
+  formSyncKey: number;
   effectiveDateNavEnabled: boolean;
   isSavingEnabled: boolean;
   conflict: { date: string; existingNoteId: string } | null;
@@ -85,6 +90,8 @@ export interface UsePreSaveOrchestratorResult {
   applyPickedDate: (isoDate: string) => string;
   /** Re-run pipeline after remote cache sync — conflict/nav only, no schedule. */
   reevaluateFromCache: () => void;
+  /** Record the server version after a safe remote form pull. */
+  acceptRemoteFormSync: (serverLastEditedAt: string) => void;
   /** Promotes the open note into the home quick slot (house-plus control). */
   promoteToQuick: () => void;
 }

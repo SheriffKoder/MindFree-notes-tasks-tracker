@@ -13,17 +13,54 @@ import { createClient } from "@/shared/lib/supabase/server";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+type NoteFieldPatch = Pick<
+  UpdateNoteBody,
+  "title" | "content" | "starred" | "isImportant" | "date" | "isQuick"
+>;
+
+/**
+ * Loads one note row owned by the current user (RLS), or `null` when missing.
+ */
+export async function findNoteById(
+  userId: string,
+  id: string,
+): Promise<Note | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from(NOTES_TABLE)
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to find note: ${error.message}`);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return mapNoteRow(data as NoteRow);
+}
+
 /**
  * Applies a partial update to one note row owned by the current user (RLS).
  *
+ * The update is gated on `expectedLastEditedAt` matching the row's current
+ * `last_edited_at` so a stale client cannot silently overwrite a newer write.
+ *
  * @param id - note row id
  * @param patch - editable fields to merge
- * @returns updated note, or `null` when no row matches
+ * @param expectedLastEditedAt - last server-confirmed version the client based this write on
+ * @returns updated note, or `null` when no row matches id+user+version
  */
 export async function updateNoteById(
   userId: string,
   id: string,
-  patch: UpdateNoteBody,
+  patch: NoteFieldPatch,
+  expectedLastEditedAt: string,
 ): Promise<Note | null> {
   const supabase = await createClient();
 
@@ -63,6 +100,7 @@ export async function updateNoteById(
     .update(dbPatch)
     .eq("id", id)
     .eq("user_id", userId)
+    .eq("last_edited_at", expectedLastEditedAt)
     .select("*")
     .maybeSingle();
 
@@ -114,24 +152,21 @@ export async function findCalendarNoteByDate(
   return mapNoteRow(data as NoteRow);
 }
 
-type NoteFieldPatch = Pick<
-  UpdateNoteBody,
-  "title" | "content" | "starred" | "isImportant" | "date"
->;
-
 /**
  * Hard-deletes any other note on `date`, then updates the target row.
  *
  * @param targetId - note row being assigned to `date`
  * @param date - target calendar day
  * @param patch - editable fields including `date`
- * @returns updated note, or `null` when the target row is missing
+ * @param expectedLastEditedAt - concurrency token for the target row
+ * @returns updated note, or `null` when the target row is missing or stale
  */
 export async function replaceNoteOnDate(
   userId: string,
   targetId: string,
   date: string,
   patch: NoteFieldPatch,
+  expectedLastEditedAt: string,
 ): Promise<Note | null> {
   const conflicting = await findCalendarNoteByDate(userId, date, targetId);
 
@@ -139,5 +174,5 @@ export async function replaceNoteOnDate(
     await deleteNoteById(userId, conflicting.id);
   }
 
-  return updateNoteById(userId, targetId, { ...patch, date });
+  return updateNoteById(userId, targetId, { ...patch, date }, expectedLastEditedAt);
 }

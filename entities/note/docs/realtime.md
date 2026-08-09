@@ -64,6 +64,7 @@ local mutations and offline reconciliation.
 | Mutation pending set | `hooks/note-mutation-pending.ts` tracks ids so application logic can skip an in-flight local write echo |
 | DELETE cache membership | Unfiltered DELETE only clears ids already in warm caches |
 | Drawer sync guard | Do not bump `remoteSyncKey` into a dirty / non-idle form |
+| PATCH `expectedLastEditedAt` | Server rejects stale writes with `409 STALE_WRITE` + current note |
 
 Cache can move under an open editor; **form fields** only pull remote values when the guard allows (idle, clean). See [optimistic-updates.md](./optimistic-updates.md).
 

@@ -51,6 +51,8 @@ export interface NoteOfflinePayload {
   values: NoteFormValues;
   isQuick?: boolean;
   replaceExistingOnDate: boolean;
+  /** Last server-confirmed version for patch concurrency; omitted on legacy queue rows. */
+  expectedLastEditedAt?: string;
   savedAt: string;
 }
 
@@ -61,6 +63,7 @@ export interface NoteOfflinePendingInput {
   date?: string | null;
   isQuick?: boolean;
   replaceExistingOnDate?: boolean;
+  expectedLastEditedAt?: string;
 }
 
 function resolveDatePatch(
@@ -115,6 +118,7 @@ function resolvePendingFromPayload(
       date: payload.date,
       isQuick: payload.isQuick,
       replaceExistingOnDate: payload.replaceExistingOnDate,
+      expectedLastEditedAt: payload.expectedLastEditedAt,
     };
   }
 
@@ -148,6 +152,7 @@ export function toNoteOfflineWrite(
       values: input.values,
       isQuick: input.isQuick,
       replaceExistingOnDate: input.replaceExistingOnDate ?? false,
+      expectedLastEditedAt: input.expectedLastEditedAt,
       savedAt,
     },
   };
@@ -292,6 +297,7 @@ function shouldApplyOfflinePayload(
 }
 
 async function executeNoteOfflinePayload(
+  queryClient: QueryClient,
   payload: NoteOfflinePayload,
 ): Promise<Note | null> {
   switch (payload.operation) {
@@ -300,9 +306,15 @@ async function executeNoteOfflinePayload(
         return null;
       }
 
+      const expectedLastEditedAt =
+        payload.expectedLastEditedAt ??
+        resolveCachedNoteForPayload(queryClient, payload)?.lastEditedAt ??
+        payload.savedAt;
+
       const response = await fetchPatchNote(
         payload.noteId,
         payload.values,
+        expectedLastEditedAt,
         payload.date,
         payload.replaceExistingOnDate,
         payload.isQuick,
@@ -386,7 +398,10 @@ export function createNotesOfflineSyncAdapter(
 
         try {
           const previous = resolveCachedNoteForPayload(queryClient, payload);
-          const serverNote = await executeNoteOfflinePayload(payload);
+          const serverNote = await executeNoteOfflinePayload(
+            queryClient,
+            payload,
+          );
           const change = noteChangeFromOfflineFlush(queryClient, payload, {
             previous,
             serverNote,

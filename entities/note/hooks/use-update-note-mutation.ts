@@ -10,7 +10,8 @@
  * 1. Resolve whether `date` differs from the loaded note (date patch).
  * 2. Snapshot affected cache buckets before writing.
  * 3. On date patch: relocateNoteInCache; else patch owning calendar/general bucket.
- * 4. On error: restore snapshots; on success: reconcile only when server is newer than cache.
+ * 4. On stale 409: apply the server's current note instead of rolling back.
+ * 5. On other errors: restore snapshots; on success: reconcile only when server is newer than cache.
  */
 
 "use client";
@@ -25,7 +26,11 @@ import {
   resolveOwningQueryKey,
   synchronizeNoteCaches,
 } from "@/entities/note/cache";
-import { fetchPatchNote } from "@/entities/note/client/patch-note";
+import {
+  fetchPatchNote,
+  STALE_WRITE_ERROR_CODE,
+  type PatchNoteError,
+} from "@/entities/note/client/patch-note";
 import {
   clearNoteMutationPending,
   markNoteMutationPending,
@@ -43,6 +48,11 @@ export interface UpdateNoteMutationInput {
   note: Note;
   /** Full editable form snapshot sent to the API. */
   values: NoteFormValues;
+  /**
+   * Last server-confirmed `lastEditedAt` this write is based on.
+   * Must not be an optimistic cache timestamp.
+   */
+  expectedLastEditedAt: string;
   /** Target calendar day — sent only when it differs from `note.date`. */
   date?: string | null;
   /** When true, server deletes the other note on the target day first. */
@@ -139,6 +149,19 @@ function buildOptimisticNote(
   });
 }
 
+function getStaleWriteNote(error: unknown): Note | null {
+  const patchError = error as PatchNoteError | null;
+
+  if (
+    patchError?.code === STALE_WRITE_ERROR_CODE &&
+    patchError.note
+  ) {
+    return patchError.note;
+  }
+
+  return null;
+}
+
 /**
  * PATCH autosave mutation — optimistically updates the owning read cache only.
  */
@@ -149,6 +172,7 @@ export function useUpdateNoteMutation() {
     mutationFn: async ({
       note,
       values,
+      expectedLastEditedAt,
       date,
       replaceExistingOnDate,
       isQuick,
@@ -156,6 +180,7 @@ export function useUpdateNoteMutation() {
       const response = await fetchPatchNote(
         note.id,
         values,
+        expectedLastEditedAt,
         resolveDatePatch(note, date),
         replaceExistingOnDate,
         isQuick,
@@ -193,7 +218,18 @@ export function useUpdateNoteMutation() {
     onSettled: (_data, _error, variables) => {
       clearNoteMutationPending(variables.note.id);
     },
-    onError: (_error, _variables, context) => {
+    onError: (error, variables, context) => {
+      const staleNote = getStaleWriteNote(error);
+
+      if (staleNote) {
+        synchronizeNoteCaches(queryClient, {
+          type: "update",
+          previous: variables.note,
+          next: staleNote,
+        });
+        return;
+      }
+
       if (!context) {
         return;
       }

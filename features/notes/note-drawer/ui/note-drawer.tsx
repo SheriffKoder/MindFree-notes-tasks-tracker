@@ -81,12 +81,14 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     saveStatus,
     handleChange,
     commitKey,
+    formSyncKey,
     effectiveDateNavEnabled,
     applyPickedDate,
     conflict,
     resolveReplace,
     resolveDismiss,
     reevaluateFromCache,
+    acceptRemoteFormSync,
     promoteToQuick,
   } = usePreSaveOrchestrator({
     note,
@@ -156,6 +158,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
       resetKey,
       onChange: handleChange,
       reevaluateFromCache,
+      onRemoteFormSync: acceptRemoteFormSync,
     });
 
   const handleDatePick = useCallback(
@@ -208,7 +211,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
           commitKey={commitKey}
           isQuickNote={isQuickNoteContext}
           note={note}
-          remoteSyncKey={remoteSyncKey}
+          remoteSyncKey={remoteSyncKey + formSyncKey}
           resetKey={resetKey}
           saveStatus={saveStatus}
           showContentLastSaved={false}

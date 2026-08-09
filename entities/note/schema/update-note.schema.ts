@@ -8,7 +8,7 @@
  * Used for: PATCH payloads with `date`, `replaceExistingOnDate`, and form fields.
  *
  * Exports:
- * - updateNoteBodySchema / UpdateNoteBody: partial form + optional date fields
+ * - updateNoteBodySchema / UpdateNoteBody: partial form + optional date fields + expectedLastEditedAt
  * - updateNoteResponseSchema / UpdateNoteResponse: `{ note }` success shape
  */
 
@@ -21,6 +21,9 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Partial PATCH body — any subset of editable drawer fields.
+ *
+ * `expectedLastEditedAt` is the last server-confirmed version the client
+ * based this write on (not an optimistic cache timestamp).
  */
 export const updateNoteBodySchema = noteFormSchema.partial().extend({
   date: z
@@ -30,6 +33,7 @@ export const updateNoteBodySchema = noteFormSchema.partial().extend({
     .optional(),
   isQuick: z.boolean().optional(),
   replaceExistingOnDate: z.boolean().optional(),
+  expectedLastEditedAt: z.string().min(1),
 });
 
 export type UpdateNoteBody = z.infer<typeof updateNoteBodySchema>;
