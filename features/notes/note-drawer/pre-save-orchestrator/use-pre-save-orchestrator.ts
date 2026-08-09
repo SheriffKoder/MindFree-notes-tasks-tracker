@@ -82,6 +82,26 @@ function formValuesFromPayload(payload: NoteSavePayload): NoteFormValues {
   return values;
 }
 
+function formatMutationErrorFeedback(error: unknown, kind: string): string {
+  if (!(error instanceof Error)) {
+    return `${kind} failed · unknown error`;
+  }
+
+  const patchError = error as PatchNoteError;
+  const parts = [
+    kind,
+    patchError.status != null ? String(patchError.status) : null,
+    patchError.code ?? null,
+    patchError.message || "request failed",
+  ].filter(Boolean);
+
+  if (patchError.code === STALE_WRITE_ERROR_CODE && patchError.note) {
+    parts.push(`server=${patchError.note.lastEditedAt}`, "form reloaded");
+  }
+
+  return parts.join(" · ");
+}
+
 /**
  * Orchestrates drawer saves via evaluateNoteSave — no business rules here.
  */
@@ -103,6 +123,7 @@ export function usePreSaveOrchestrator({
   const { mutate: deleteNote } = useDeleteNoteMutation();
 
   const [saveStatus, setSaveStatus] = useState<NoteSaveStatus>("idle");
+  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
   const [commitKey, setCommitKey] = useState(0);
   const [formSyncKey, setFormSyncKey] = useState(0);
   const [effectiveDateNavEnabled, setEffectiveDateNavEnabled] = useState(false);
@@ -161,6 +182,7 @@ export function usePreSaveOrchestrator({
     savedResetTimerRef.current = setTimeout(() => {
       if (saveStatusRef.current === "saved") {
         setGatedStatus("idle");
+        setSaveFeedback(null);
       }
     }, SAVED_STATUS_RESET_MS);
   }, [clearSavedResetTimer, setGatedStatus]);
@@ -177,10 +199,11 @@ export function usePreSaveOrchestrator({
     }, SAVE_STATUS_IDLE_MS);
   }, [clearIdleTimer, setGatedStatus, startSavedResetTimer]);
 
-  const markSaveSuccess = useCallback(() => {
+  const markSaveSuccess = useCallback((feedback?: string) => {
     actualSaveStatusRef.current = "saved";
     setCommitKey((previous) => previous + 1);
     replaceConfirmedRef.current = false;
+    setSaveFeedback(feedback ?? "Saved");
 
     if (saveStatusRef.current === "saving") {
       startIdleTimer();
@@ -191,15 +214,20 @@ export function usePreSaveOrchestrator({
     startSavedResetTimer();
   }, [setGatedStatus, startIdleTimer, startSavedResetTimer]);
 
-  const markSaveError = useCallback(() => {
-    actualSaveStatusRef.current = "error";
-    clearIdleTimer();
-    clearSavedResetTimer();
-    setGatedStatus("error");
-  }, [clearIdleTimer, clearSavedResetTimer, setGatedStatus]);
+  const markSaveError = useCallback(
+    (feedback: string) => {
+      actualSaveStatusRef.current = "error";
+      clearIdleTimer();
+      clearSavedResetTimer();
+      setSaveFeedback(feedback);
+      setGatedStatus("error");
+    },
+    [clearIdleTimer, clearSavedResetTimer, setGatedStatus],
+  );
 
   const acceptRemoteFormSync = useCallback((serverLastEditedAt: string) => {
     confirmedLastEditedAtRef.current = serverLastEditedAt;
+    setSaveFeedback(`Remote sync · confirmed=${serverLastEditedAt}`);
   }, []);
 
   const handlePatchError = useCallback(
@@ -214,7 +242,7 @@ export function usePreSaveOrchestrator({
         setFormSyncKey((previous) => previous + 1);
       }
 
-      markSaveError();
+      markSaveError(formatMutationErrorFeedback(error, "PATCH"));
     },
     [markSaveError],
   );
@@ -248,9 +276,11 @@ export function usePreSaveOrchestrator({
     // Offline — persist locally, keep optimistic cache, skip network
     if (!isOnline()) {
       if (!userId) {
-        markSaveError();
+        markSaveError("Offline save blocked · no userId");
         return;
       }
+
+      setSaveFeedback(`Saving offline · ${pending.kind}`);
 
       switch (pending.kind) {
         case "patch":
@@ -307,16 +337,16 @@ export function usePreSaveOrchestrator({
         onQuickNoteCreated("optimistic-quick");
       }
 
-      markSaveSuccess();
+      markSaveSuccess(`Saved offline · ${pending.kind}`);
       return;
     }
 
     const mutationOptions = {
       onSuccess: () => {
-        markSaveSuccess();
+        markSaveSuccess(`Saved · ${pending.kind}`);
       },
-      onError: () => {
-        markSaveError();
+      onError: (error: unknown) => {
+        markSaveError(formatMutationErrorFeedback(error, pending.kind));
       },
     };
 
@@ -333,10 +363,13 @@ export function usePreSaveOrchestrator({
         const expectedLastEditedAt = confirmedLastEditedAtRef.current;
 
         if (!expectedLastEditedAt) {
-          markSaveError();
+          markSaveError(
+            "PATCH blocked · confirmedLastEditedAt is null (token never seeded)",
+          );
           return;
         }
 
+        setSaveFeedback(`Saving… · PATCH · expected=${expectedLastEditedAt}`);
         patchInFlightRef.current = true;
         patchNote(
           {
@@ -351,7 +384,9 @@ export function usePreSaveOrchestrator({
             onSuccess: (serverNote) => {
               confirmedLastEditedAtRef.current = serverNote.lastEditedAt;
               patchInFlightRef.current = false;
-              markSaveSuccess();
+              markSaveSuccess(
+                `Saved · PATCH · confirmed=${serverNote.lastEditedAt}`,
+              );
               flushQueuedPatch();
             },
             onError: (error) => {
@@ -363,6 +398,7 @@ export function usePreSaveOrchestrator({
         return;
       }
       case "create-calendar":
+        setSaveFeedback(`Saving… · create-calendar · ${pending.date}`);
         createCalendarNote(
           {
             date: pending.date,
@@ -373,36 +409,45 @@ export function usePreSaveOrchestrator({
         );
         return;
       case "create-general":
+        setSaveFeedback("Saving… · create-general");
         createGeneralNote(
           { values: pending.values },
           {
             onSuccess: (serverNote) => {
               confirmedLastEditedAtRef.current = serverNote.lastEditedAt;
-              markSaveSuccess();
+              markSaveSuccess(
+                `Saved · create-general · confirmed=${serverNote.lastEditedAt}`,
+              );
               onGeneralNoteCreated(serverNote.id);
             },
-            onError: () => {
-              markSaveError();
+            onError: (error) => {
+              markSaveError(
+                formatMutationErrorFeedback(error, "create-general"),
+              );
             },
           },
         );
         return;
       case "create-quick":
+        setSaveFeedback("Saving… · create-quick");
         createQuickNote(
           { values: pending.values },
           {
             onSuccess: (serverNote) => {
               confirmedLastEditedAtRef.current = serverNote.lastEditedAt;
-              markSaveSuccess();
+              markSaveSuccess(
+                `Saved · create-quick · confirmed=${serverNote.lastEditedAt}`,
+              );
               onQuickNoteCreated(serverNote.id);
             },
-            onError: () => {
-              markSaveError();
+            onError: (error) => {
+              markSaveError(formatMutationErrorFeedback(error, "create-quick"));
             },
           },
         );
         return;
       case "delete":
+        setSaveFeedback("Saving… · delete");
         deleteNote({ note: pending.note }, mutationOptions);
     }
   }, [
@@ -441,10 +486,14 @@ export function usePreSaveOrchestrator({
       switch (result.action) {
         case "patch":
           if (!note) {
+            markSaveError("PATCH skipped · note is null");
             return;
           }
 
           if (!confirmedLastEditedAtRef.current) {
+            markSaveError(
+              "PATCH skipped · confirmedLastEditedAt is null (token never seeded)",
+            );
             return;
           }
 
@@ -490,7 +539,7 @@ export function usePreSaveOrchestrator({
           clearDebounceTimer();
       }
     },
-    [clearDebounceTimer, note, scheduleMutation],
+    [clearDebounceTimer, markSaveError, note, scheduleMutation],
   );
 
   const evaluate = useCallback(
@@ -681,6 +730,7 @@ export function usePreSaveOrchestrator({
     /////////////////////////////////
     // Drawer open — reset save UI, picker refs, and date-nav mode for this context
     setSaveStatus("idle");
+    setSaveFeedback(null);
     saveStatusRef.current = "idle";
     actualSaveStatusRef.current = "idle";
     clearIdleTimer();
@@ -706,6 +756,7 @@ export function usePreSaveOrchestrator({
 
   return {
     saveStatus,
+    saveFeedback,
     handleChange,
     commitKey,
     formSyncKey,

@@ -74,6 +74,11 @@ export interface UsePreSaveOrchestratorOptions {
 
 export interface UsePreSaveOrchestratorResult {
   saveStatus: NoteSaveStatus;
+  /**
+   * Branch debug copy for the drawer footer — HTTP status, concurrency token,
+   * and failure reason. Cleared when status returns to idle after a success.
+   */
+  saveFeedback: string | null;
   handleChange: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
   commitKey: number;
   /**

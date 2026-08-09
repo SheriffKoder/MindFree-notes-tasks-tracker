@@ -79,6 +79,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
 
   const {
     saveStatus,
+    saveFeedback,
     handleChange,
     commitKey,
     formSyncKey,
@@ -227,7 +228,8 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
           conflict={conflict}
           formattedLastEditedAt={footerMeta.formattedLastEditedAt}
           isDateNavEnabled={effectiveDateNavEnabled}
-          saveStatus={footerMeta.saveStatus}
+          saveFeedback={saveFeedback}
+          saveStatus={saveStatus}
           onNext={goToNextDay}
           onPrevious={goToPreviousDay}
           onResolveDismiss={resolveDismiss}

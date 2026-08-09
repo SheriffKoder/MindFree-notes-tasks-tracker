@@ -22,6 +22,8 @@ export interface NoteDrawerFooterProps {
   isDateNavEnabled: boolean;
   formattedLastEditedAt: string | null;
   saveStatus?: NoteSaveStatus;
+  /** Detailed save/error copy from the orchestrator (branch debug). */
+  saveFeedback?: string | null;
   /** Same-day conflict — blocks autosave until the user replaces or changes date. */
   conflict?: NoteDrawerFooterConflict | null;
   onPrevious: () => void;
@@ -40,6 +42,7 @@ export function NoteDrawerFooter({
   isDateNavEnabled,
   formattedLastEditedAt,
   saveStatus = "idle",
+  saveFeedback = null,
   conflict = null,
   onPrevious,
   onNext,
@@ -135,11 +138,14 @@ export function NoteDrawerFooter({
           ) : null}
         </div>
 
-        <NoteFormLastSaved
-          formattedLastEditedAt={formattedLastEditedAt}
-          saveStatus={saveStatus}
-          variant="inline"
-        />
+        <div className="min-w-0 flex-1">
+          <NoteFormLastSaved
+            formattedLastEditedAt={formattedLastEditedAt}
+            saveFeedback={saveFeedback}
+            saveStatus={saveStatus}
+            variant="inline"
+          />
+        </div>
       </div>
     </footer>
   );
