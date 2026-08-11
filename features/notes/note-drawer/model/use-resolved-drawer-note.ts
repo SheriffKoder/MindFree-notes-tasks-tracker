@@ -6,7 +6,6 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
 
 import type { Note } from "@/entities/note";
 import {
@@ -24,6 +23,11 @@ import type { NoteEditorRequest } from "@/views/notes/model/editor/note-editor-r
  * - Create mode: always `null` (draft). Occupants on the active day are
  *   discovered via the conflict gate / `openEdit`, not by binding into the form —
  *   otherwise a 409 cache seed would wipe in-progress create drafts.
+ *
+ * Re-resolves on every render (cheap `getQueryData` walk). Do not memoize on
+ * `[queryClient, request]` only — that kept a stale `Note` after realtime /
+ * `setQueryData` while list cards (direct `useQuery` data) updated, so open
+ * drawers on other devices stopped collaborating.
  */
 export function useResolvedDrawerNote(
   request: NoteEditorRequest | null,
@@ -34,23 +38,22 @@ export function useResolvedDrawerNote(
   const activeMonth =
     isDateNavEnabled && activeDate ? monthOfIsoDate(activeDate) : null;
 
-  // Keep month queries subscribed while date-nav is active so conflict lookups
-  // and create→edit promotion see fresh cache after seeds / realtime.
+  // Subscribe so cache patches (realtime / mutations) re-render this hook.
+  // `formReloadKey` bumps also re-render the drawer; both paths must see a
+  // fresh `findNoteByIdInCache` result, not a memoized snapshot.
   useQuery({
     ...calendarNotesQueryOptions(activeMonth ?? ""),
     enabled: Boolean(activeMonth),
   });
   useGeneralNotesQuery();
 
-  return useMemo(() => {
-    if (!request) {
-      return null;
-    }
-
-    if (request.mode === "edit") {
-      return findNoteByIdInCache(queryClient, request.noteId);
-    }
-
+  if (!request) {
     return null;
-  }, [queryClient, request]);
+  }
+
+  if (request.mode === "edit") {
+    return findNoteByIdInCache(queryClient, request.noteId);
+  }
+
+  return null;
 }

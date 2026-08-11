@@ -23,7 +23,7 @@ Form fields and validation live in `entities/note/editor/`.
 
 ## Cache resolution
 
-`model/use-resolved-drawer-note.ts` — resolves `Note | null` from TanStack cache (edit by id only; create stays a draft until `openEdit`)  
+`model/use-resolved-drawer-note.ts` — resolves `Note | null` from TanStack cache each render (edit by id only; create stays a draft until `openEdit`; never memoize on request alone)  
 `lib/find-note-in-cache.ts` — feature convenience re-export of `findNoteByIdInCache` and `findNoteOnDateInCache`; lookup ownership remains in `entities/note/cache/`
 
 ---
@@ -72,6 +72,7 @@ Entity cache application: `entities/note/cache/apply-realtime-note-change.ts`
 | Change drawer layout / what gets composed | `ui/note-drawer.tsx` |
 | Change footer arrows or conflict banner | `ui/note-drawer-footer.tsx` |
 | Fix which note loads in the drawer | `model/use-resolved-drawer-note.ts` |
+| Fix open drawer stale while cards update (multi-device) | `model/use-resolved-drawer-note.ts` (must re-read cache each render — do not memoize on request only), `model/use-note-drawer-realtime-sync.ts` |
 | Fix prev/next day | `model/use-drawer-date-navigation.ts` |
 | Fix when date nav is enabled | `model/use-drawer-active-date.ts` |
 | Fix month prefetch on day nav | `model/use-drawer-month-prefetch.ts` |
