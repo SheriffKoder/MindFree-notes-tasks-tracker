@@ -14,6 +14,16 @@ export interface PostNoteResponse {
   note: Note;
 }
 
+export const DATE_CONFLICT_ERROR_CODE = "DATE_CONFLICT" as const;
+
+export type PostCalendarNoteError = Error & {
+  status?: number;
+  code?: typeof DATE_CONFLICT_ERROR_CODE;
+  conflictingNoteId?: string;
+  date?: string;
+  note?: Note;
+};
+
 /**
  * Creates a calendar note for one ISO date.
  *
@@ -45,20 +55,29 @@ export async function fetchPostCalendarNote(
   });
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
+    const errorBody = (await response.json().catch(() => null)) as {
       error?: string;
+      code?: string;
       conflictingNoteId?: string;
+      date?: string;
+      note?: Note;
     } | null;
     const error = new Error(
-      body?.error ?? "Failed to create calendar note.",
-    ) as Error & {
-      conflictingNoteId?: string;
-      status?: number;
-    };
+      errorBody?.error ?? "Failed to create calendar note.",
+    ) as PostCalendarNoteError;
     error.status = response.status;
 
-    if (body?.conflictingNoteId) {
-      error.conflictingNoteId = body.conflictingNoteId;
+    if (
+      errorBody?.code === DATE_CONFLICT_ERROR_CODE ||
+      errorBody?.conflictingNoteId
+    ) {
+      error.code = DATE_CONFLICT_ERROR_CODE;
+      error.conflictingNoteId = errorBody.conflictingNoteId;
+      error.date = errorBody.date ?? date;
+
+      if (errorBody.note) {
+        error.note = errorBody.note;
+      }
     }
 
     throw error;

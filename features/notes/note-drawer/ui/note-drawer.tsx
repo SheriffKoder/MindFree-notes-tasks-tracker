@@ -5,13 +5,20 @@
 
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { NoteForm } from "@/entities/note/editor";
 import type { NoteFormFooterMeta } from "@/entities/note/editor/model/types";
-import { useDeleteNoteMutation } from "@/entities/note/client";
+import {
+  calendarNotesQueryOptions,
+  useDeleteNoteMutation,
+} from "@/entities/note/client";
+import { isOptimisticNoteId } from "@/entities/note";
 import { AppDrawer, DrawerTitle } from "@/shared/drawer";
 import { useAuthUserId } from "@/shared/offline-queue";
+import { findNoteOnDateInCache } from "@/features/notes/note-drawer/lib/find-note-in-cache";
+import { monthOfIsoDate } from "@/features/notes/note-drawer/lib/month-of-iso-date";
 import { useDrawerActiveDate } from "@/features/notes/note-drawer/model/use-drawer-active-date";
 import { useDrawerDateNavigation } from "@/features/notes/note-drawer/model/use-drawer-date-navigation";
 import { useDrawerMonthPrefetch } from "@/features/notes/note-drawer/model/use-drawer-month-prefetch";
@@ -44,6 +51,7 @@ const INITIAL_FOOTER_META: NoteFormFooterMeta = {
 export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
   const { isOpen, request, setOpen, openEdit } = drawer;
   const userId = useAuthUserId();
+  const queryClient = useQueryClient();
   const deleteNoteMutation = useDeleteNoteMutation();
   const [footerMeta, setFooterMeta] =
     useState<NoteFormFooterMeta>(INITIAL_FOOTER_META);
@@ -53,6 +61,16 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     isOpen,
   );
   const note = useResolvedDrawerNote(request, activeDate, isDateNavEnabled);
+
+  const createDate =
+    request?.mode === "create" && "date" in request
+      ? (activeDate ?? request.date)
+      : null;
+  const createMonth = createDate ? monthOfIsoDate(createDate) : null;
+  const { data: createMonthData } = useQuery({
+    ...calendarNotesQueryOptions(createMonth ?? ""),
+    enabled: Boolean(isOpen && createMonth),
+  });
 
   const isQuickNoteContext = useMemo(
     () =>
@@ -64,6 +82,13 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
   const canPromoteToQuick = Boolean(note?.id && !note.isQuick);
 
   const handleGeneralNoteCreated = useCallback(
+    (noteId: string) => {
+      openEdit(noteId);
+    },
+    [openEdit],
+  );
+
+  const handleCalendarNoteCreated = useCallback(
     (noteId: string) => {
       openEdit(noteId);
     },
@@ -93,6 +118,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     acceptRemoteFormSync,
     getConfirmedRevision,
     promoteToQuick,
+    isSavingEnabled,
   } = usePreSaveOrchestrator({
     note,
     isOpen,
@@ -100,9 +126,43 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     activeDate,
     isDateNavEnabled,
     userId,
+    onCalendarNoteCreated: handleCalendarNoteCreated,
     onGeneralNoteCreated: handleGeneralNoteCreated,
     onQuickNoteCreated: handleQuickNoteCreated,
   });
+
+  /////////////////////////////////
+  // Create-for-date → edit when a real note appears on the active day
+  // (month refetch after 409 invalidate, or realtime insert while draft is clean).
+  // Skip while conflict banner is up or autosave is blocked (keep create draft).
+  useEffect(() => {
+    if (!isOpen || !createDate || conflict || !isSavingEnabled) {
+      return;
+    }
+
+    if (request?.mode !== "create" || !("date" in request)) {
+      return;
+    }
+
+    const occupant =
+      createMonthData?.monthNotes.find((entry) => entry.date === createDate) ??
+      findNoteOnDateInCache(queryClient, createDate);
+
+    if (!occupant?.id || isOptimisticNoteId(occupant.id)) {
+      return;
+    }
+
+    openEdit(occupant.id);
+  }, [
+    conflict,
+    createDate,
+    createMonthData?.monthNotes,
+    isOpen,
+    isSavingEnabled,
+    openEdit,
+    queryClient,
+    request,
+  ]);
 
   const { goToPreviousDay, goToNextDay } = useDrawerDateNavigation({
     activeDate,

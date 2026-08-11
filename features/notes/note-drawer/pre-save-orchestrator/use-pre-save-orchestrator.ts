@@ -10,6 +10,7 @@
  * - usePreSaveOrchestrator: main hook returned to the drawer island
  * - applyPickedDate: record lastPickedDate and return formatted title for the form
  * - resolveReplace / resolveDismiss: conflict footer actions
+ * - handleDateConflictError: create/patch 409 with conflictingNoteId → banner + cache seed
  *
  * Steps (handleChange):
  * 1. evaluate — run pure pipeline; sync nav/saving/conflict UI state.
@@ -33,6 +34,10 @@ import {
   STALE_WRITE_ERROR_CODE,
   type PatchNoteError,
 } from "@/entities/note/client/patch-note";
+import {
+  DATE_CONFLICT_ERROR_CODE,
+  type PostCalendarNoteError,
+} from "@/entities/note/client/post-note";
 import type {
   NoteFormChangeMeta,
   NoteFormValues,
@@ -40,6 +45,7 @@ import type {
 } from "@/entities/note/editor/model/types";
 import { formatCalendarNoteTitle } from "@/entities/note/editor/lib/format-calendar-note-title";
 import type { Note } from "@/entities/note";
+import { seedConflictingCalendarNoteInCache } from "@/entities/note/cache";
 import { saveNoteOfflinePending } from "@/entities/note/offline";
 import { findNoteOnDateInCache } from "@/features/notes/note-drawer/lib/find-note-in-cache";
 import {
@@ -105,13 +111,31 @@ function formatMutationErrorFeedback(error: unknown): string {
     return "Could not save";
   }
 
-  const patchError = error as PatchNoteError;
+  const writeError = error as PatchNoteError | PostCalendarNoteError;
 
-  if (patchError.code === STALE_WRITE_ERROR_CODE) {
+  if (writeError.code === STALE_WRITE_ERROR_CODE) {
     return "Updated on another device — your changes were reloaded";
   }
 
+  if (writeError.code === DATE_CONFLICT_ERROR_CODE) {
+    return "A note already exists on this date";
+  }
+
   return "Could not save";
+}
+
+function isDateConflictError(
+  error: unknown,
+): error is (PatchNoteError | PostCalendarNoteError) & {
+  conflictingNoteId: string;
+} {
+  const writeError = error as PatchNoteError | PostCalendarNoteError;
+
+  if (writeError.code === STALE_WRITE_ERROR_CODE) {
+    return false;
+  }
+
+  return typeof writeError.conflictingNoteId === "string";
 }
 
 /**
@@ -124,6 +148,7 @@ export function usePreSaveOrchestrator({
   activeDate,
   isDateNavEnabled,
   userId,
+  onCalendarNoteCreated,
   onGeneralNoteCreated,
   onQuickNoteCreated,
 }: UsePreSaveOrchestratorOptions): UsePreSaveOrchestratorResult {
@@ -257,6 +282,31 @@ export function usePreSaveOrchestrator({
     [],
   );
 
+  const handleDateConflictError = useCallback(
+    (
+      error: PatchNoteError | PostCalendarNoteError,
+      fallbackDate?: string,
+    ) => {
+      const date = error.date ?? fallbackDate ?? error.note?.date ?? null;
+      const existingNoteId = error.conflictingNoteId;
+
+      /////////////////////////////////
+      // Stop the create/patch loop — clear queue and block until Replace/Dismiss
+      pendingMutationRef.current = null;
+      clearDebounceTimer();
+      replaceConfirmedRef.current = false;
+
+      if (date && existingNoteId) {
+        setConflict({ date, existingNoteId });
+        setIsSavingEnabled(false);
+        seedConflictingCalendarNoteInCache(queryClient, date, error.note);
+      }
+
+      markSaveError(formatMutationErrorFeedback(error));
+    },
+    [clearDebounceTimer, markSaveError, queryClient],
+  );
+
   const handlePatchError = useCallback(
     (error: unknown) => {
       const patchError = error as PatchNoteError;
@@ -268,11 +318,18 @@ export function usePreSaveOrchestrator({
         confirmedRevisionRef.current = patchError.note.revision;
         setNoteConfirmedToken(patchError.note.id, patchError.note.revision);
         setFormReloadKey((previous) => previous + 1);
+        markSaveError(formatMutationErrorFeedback(error));
+        return;
+      }
+
+      if (isDateConflictError(error)) {
+        handleDateConflictError(error, error.date ?? undefined);
+        return;
       }
 
       markSaveError(formatMutationErrorFeedback(error));
     },
-    [markSaveError],
+    [handleDateConflictError, markSaveError],
   );
 
   const findNoteOnDate = useCallback(
@@ -369,6 +426,10 @@ export function usePreSaveOrchestrator({
         onQuickNoteCreated("optimistic-quick");
       }
 
+      if (pending.kind === "create-calendar") {
+        onCalendarNoteCreated(`optimistic-calendar-${pending.date}`);
+      }
+
       markSaveSuccess("Saved offline");
       return;
     }
@@ -434,7 +495,22 @@ export function usePreSaveOrchestrator({
             values: pending.values,
             replaceExistingOnDate: pending.replaceExistingOnDate,
           },
-          mutationOptions,
+          {
+            onSuccess: (serverNote) => {
+              confirmedRevisionRef.current = serverNote.revision;
+              setNoteConfirmedToken(serverNote.id, serverNote.revision);
+              markSaveSuccess();
+              onCalendarNoteCreated(serverNote.id);
+            },
+            onError: (error) => {
+              if (isDateConflictError(error)) {
+                handleDateConflictError(error, pending.date);
+                return;
+              }
+
+              markSaveError(formatMutationErrorFeedback(error));
+            },
+          },
         );
         return;
       case "create-general":
@@ -477,9 +553,11 @@ export function usePreSaveOrchestrator({
     createGeneralNote,
     createQuickNote,
     deleteNote,
+    handleDateConflictError,
     handlePatchError,
     markSaveError,
     markSaveSuccess,
+    onCalendarNoteCreated,
     onGeneralNoteCreated,
     onQuickNoteCreated,
     patchNote,

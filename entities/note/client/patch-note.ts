@@ -15,12 +15,14 @@ export interface PatchNoteResponse {
 }
 
 export const STALE_WRITE_ERROR_CODE = "STALE_WRITE" as const;
+export const DATE_CONFLICT_ERROR_CODE = "DATE_CONFLICT" as const;
 
 export type PatchNoteError = Error & {
   conflictingNoteId?: string;
   status?: number;
-  code?: typeof STALE_WRITE_ERROR_CODE;
+  code?: typeof STALE_WRITE_ERROR_CODE | typeof DATE_CONFLICT_ERROR_CODE;
   note?: Note;
+  date?: string;
 };
 
 /**
@@ -78,14 +80,24 @@ export async function fetchPatchNote(
       conflictingNoteId?: string;
       code?: string;
       note?: Note;
+      date?: string;
     } | null;
     const error = new Error(
       errorBody?.error ?? "Failed to update note.",
     ) as PatchNoteError;
     error.status = response.status;
 
-    if (errorBody?.conflictingNoteId) {
+    if (
+      errorBody?.code === DATE_CONFLICT_ERROR_CODE ||
+      (errorBody?.conflictingNoteId && errorBody?.code !== STALE_WRITE_ERROR_CODE)
+    ) {
+      error.code = DATE_CONFLICT_ERROR_CODE;
       error.conflictingNoteId = errorBody.conflictingNoteId;
+      error.date = errorBody.date;
+
+      if (errorBody.note) {
+        error.note = errorBody.note;
+      }
     }
 
     if (errorBody?.code === STALE_WRITE_ERROR_CODE && errorBody.note) {

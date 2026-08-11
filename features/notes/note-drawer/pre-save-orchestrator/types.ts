@@ -66,6 +66,8 @@ export interface UsePreSaveOrchestratorOptions {
   isDateNavEnabled: boolean;
   /** Signed-in user — scopes offline writes in localStorage. */
   userId: string | null;
+  /** Switches calendar create intent to edit mode after the first row exists. */
+  onCalendarNoteCreated: (noteId: string) => void;
   /** Switches general create intent to edit mode after the first row exists. */
   onGeneralNoteCreated: (noteId: string) => void;
   /** Switches quick create intent to edit mode after the first row exists. */

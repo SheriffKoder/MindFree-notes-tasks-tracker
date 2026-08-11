@@ -23,7 +23,7 @@ Form fields and validation live in `entities/note/editor/`.
 
 ## Cache resolution
 
-`model/use-resolved-drawer-note.ts` — resolves `Note | null` from TanStack cache (edit by id, date mode by `activeDate`)  
+`model/use-resolved-drawer-note.ts` — resolves `Note | null` from TanStack cache (edit by id only; create stays a draft until `openEdit`)  
 `lib/find-note-in-cache.ts` — feature convenience re-export of `findNoteByIdInCache` and `findNoteOnDateInCache`; lookup ownership remains in `entities/note/cache/`
 
 ---
@@ -78,6 +78,8 @@ Entity cache application: `entities/note/cache/apply-realtime-note-change.ts`
 | Change save routing (create vs patch vs delete) | `pre-save-orchestrator/evaluate-note-save.ts` |
 | Change debounce / when autosave fires | `pre-save-orchestrator/use-pre-save-orchestrator.ts` |
 | Fix same-day conflict UX | `pre-save-orchestrator/*`, `ui/note-drawer-footer.tsx` |
+| Fix create 409 “note already exists” loop | `pre-save-orchestrator/use-pre-save-orchestrator.ts` (`handleDateConflictError`), `entities/note/cache/seed-conflicting-calendar-note.ts` |
+| Fix create-for-date → edit after cache resolve | `ui/note-drawer.tsx` (`onCalendarNoteCreated` + occupant `openEdit` effect) |
 | Fix remote overwrite while typing | `model/note-editor-sync-guard.ts`, `model/use-note-drawer-realtime-sync.ts` |
 | Fix dirty remote “Updated on another device” banner | `model/use-note-drawer-realtime-sync.ts`, `ui/note-drawer-footer.tsx` |
 | Fix conflict banner after remote insert | `pre-save-orchestrator/use-pre-save-orchestrator.ts` (`reevaluateFromCache`) |

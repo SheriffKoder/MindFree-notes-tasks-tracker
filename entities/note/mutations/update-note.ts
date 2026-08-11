@@ -99,7 +99,7 @@ export async function updateNote(
 
     if (conflicting) {
       if (!replaceExistingOnDate) {
-        throw new NoteDateConflictError(patch.date, conflicting.id);
+        throw new NoteDateConflictError(patch.date, conflicting);
       }
 
       const note = await replaceNoteOnDate(

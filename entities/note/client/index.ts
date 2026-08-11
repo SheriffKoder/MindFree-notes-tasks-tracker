@@ -34,6 +34,8 @@ export {
   fetchPostCalendarNote,
   fetchPostGeneralNote,
   fetchPostQuickNote,
+  DATE_CONFLICT_ERROR_CODE,
+  type PostCalendarNoteError,
   type PostNoteResponse,
 } from "@/entities/note/client/post-note";
 export {

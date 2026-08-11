@@ -63,7 +63,10 @@ export async function POST(request: Request) {
       return Response.json(
         {
           error: error.message,
+          code: "DATE_CONFLICT",
           conflictingNoteId: error.conflictingNoteId,
+          date: error.date,
+          note: error.note,
         },
         { status: 409 },
       );

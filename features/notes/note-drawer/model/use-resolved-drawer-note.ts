@@ -21,8 +21,9 @@ import type { NoteEditorRequest } from "@/views/notes/model/editor/note-editor-r
  * Looks up the editor note for the current drawer context.
  *
  * - Edit mode: note by id across calendar and general caches
- * - Date mode: note for `activeDate` in `["calendarNotes", monthOf(activeDate)]`
- * - Create requests without a matching row return `null` (empty draft)
+ * - Create mode: always `null` (draft). Occupants on the active day are
+ *   discovered via the conflict gate / `openEdit`, not by binding into the form —
+ *   otherwise a 409 cache seed would wipe in-progress create drafts.
  */
 export function useResolvedDrawerNote(
   request: NoteEditorRequest | null,
@@ -33,11 +34,13 @@ export function useResolvedDrawerNote(
   const activeMonth =
     isDateNavEnabled && activeDate ? monthOfIsoDate(activeDate) : null;
 
-  const { data: calendarData } = useQuery({
+  // Keep month queries subscribed while date-nav is active so conflict lookups
+  // and create→edit promotion see fresh cache after seeds / realtime.
+  useQuery({
     ...calendarNotesQueryOptions(activeMonth ?? ""),
     enabled: Boolean(activeMonth),
   });
-  const { data: generalData } = useGeneralNotesQuery();
+  useGeneralNotesQuery();
 
   return useMemo(() => {
     if (!request) {
@@ -48,20 +51,6 @@ export function useResolvedDrawerNote(
       return findNoteByIdInCache(queryClient, request.noteId);
     }
 
-    if (isDateNavEnabled && activeDate) {
-      return (
-        calendarData?.monthNotes.find((note) => note.date === activeDate) ??
-        null
-      );
-    }
-
     return null;
-  }, [
-    activeDate,
-    calendarData?.monthNotes,
-    generalData?.generalNotes,
-    isDateNavEnabled,
-    queryClient,
-    request,
-  ]);
+  }, [queryClient, request]);
 }
