@@ -27,6 +27,9 @@ import {
 /**
  * Merges current form values into a note for an optimistic cache write.
  *
+ * Bumps `lastEditedAt` for display/sort only. Never increments `revision` —
+ * that token advances only on the server after a confirmed UPDATE.
+ *
  * @param note - existing note row
  * @param values - editable form snapshot
  * @returns note with updated fields and optimistic `lastEditedAt`

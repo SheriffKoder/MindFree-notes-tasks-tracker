@@ -1,6 +1,6 @@
 /**
  * @file entities/note/errors/note-stale-write-error.ts
- * Typed error when a PATCH is based on an outdated `lastEditedAt`.
+ * Typed error when a PATCH is based on an outdated `revision`.
  *
  * Purpose: Signal optimistic-concurrency failures from server use-cases to API routes.
  * Used in: entities/note/mutations/update-note.ts; app/api/notes/[id]/route.ts

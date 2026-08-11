@@ -21,8 +21,10 @@ export interface Note {
   isImportant: boolean;
   /** Home quick-note slot flag (excluded from Notes page lists). */
   isQuick: boolean;
-  /** Last edit timestamp (ISO). */
+  /** Last edit timestamp (ISO) — display and sort only. */
   lastEditedAt: string;
+  /** Monotonic concurrency token; advanced only by the server on successful UPDATE. */
+  revision: number;
 }
 
 /**
@@ -38,5 +40,6 @@ export interface NoteRow {
   is_important: boolean;
   is_quick: boolean;
   last_edited_at: string;
+  revision: number;
   created_at: string;
 }

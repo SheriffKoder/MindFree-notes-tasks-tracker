@@ -82,7 +82,8 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     saveFeedback,
     handleChange,
     commitKey,
-    formSyncKey,
+    formReloadKey,
+    bumpFormReloadKey,
     effectiveDateNavEnabled,
     applyPickedDate,
     conflict,
@@ -90,6 +91,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     resolveDismiss,
     reevaluateFromCache,
     acceptRemoteFormSync,
+    getConfirmedRevision,
     promoteToQuick,
   } = usePreSaveOrchestrator({
     note,
@@ -152,15 +154,21 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
   }, []);
 
   const noteId = note?.id ?? null;
-  const { remoteSyncKey, handleChangeWithDirty } =
-    useNoteDrawerRealtimeSync({
-      isOpen,
-      noteId,
-      resetKey,
-      onChange: handleChange,
-      reevaluateFromCache,
-      onRemoteFormSync: acceptRemoteFormSync,
-    });
+  const {
+    handleChangeWithDirty,
+    showRemoteUpdateBanner,
+    reloadRemoteForm,
+    dismissRemoteBanner,
+  } = useNoteDrawerRealtimeSync({
+    isOpen,
+    noteId,
+    resetKey,
+    onChange: handleChange,
+    reevaluateFromCache,
+    onRemoteFormSync: acceptRemoteFormSync,
+    bumpFormReloadKey,
+    getConfirmedRevision,
+  });
 
   const handleDatePick = useCallback(
     (isoDate: string) => applyPickedDate(isoDate),
@@ -212,7 +220,7 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
           commitKey={commitKey}
           isQuickNote={isQuickNoteContext}
           note={note}
-          remoteSyncKey={remoteSyncKey + formSyncKey}
+          formReloadKey={formReloadKey}
           resetKey={resetKey}
           saveStatus={saveStatus}
           showContentLastSaved={false}
@@ -230,8 +238,11 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
           isDateNavEnabled={effectiveDateNavEnabled}
           saveFeedback={saveFeedback}
           saveStatus={saveStatus}
+          showRemoteUpdateBanner={showRemoteUpdateBanner}
+          onDismissRemoteBanner={dismissRemoteBanner}
           onNext={goToNextDay}
           onPrevious={goToPreviousDay}
+          onReloadRemote={reloadRemoteForm}
           onResolveDismiss={resolveDismiss}
           onResolveReplace={resolveReplace}
         />

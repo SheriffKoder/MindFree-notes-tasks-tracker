@@ -48,19 +48,19 @@ export async function findNoteById(
 /**
  * Applies a partial update to one note row owned by the current user (RLS).
  *
- * The update is gated on `expectedLastEditedAt` matching the row's current
- * `last_edited_at` so a stale client cannot silently overwrite a newer write.
+ * The update is gated on `expectedRevision` matching the row's current
+ * `revision` so a stale client cannot silently overwrite a newer write.
  *
  * @param id - note row id
  * @param patch - editable fields to merge
- * @param expectedLastEditedAt - last server-confirmed version the client based this write on
+ * @param expectedRevision - last server-confirmed revision the client based this write on
  * @returns updated note, or `null` when no row matches id+user+version
  */
 export async function updateNoteById(
   userId: string,
   id: string,
   patch: NoteFieldPatch,
-  expectedLastEditedAt: string,
+  expectedRevision: number,
 ): Promise<Note | null> {
   const supabase = await createClient();
 
@@ -100,7 +100,7 @@ export async function updateNoteById(
     .update(dbPatch)
     .eq("id", id)
     .eq("user_id", userId)
-    .eq("last_edited_at", expectedLastEditedAt)
+    .eq("revision", expectedRevision)
     .select("*")
     .maybeSingle();
 
@@ -158,7 +158,7 @@ export async function findCalendarNoteByDate(
  * @param targetId - note row being assigned to `date`
  * @param date - target calendar day
  * @param patch - editable fields including `date`
- * @param expectedLastEditedAt - concurrency token for the target row
+ * @param expectedRevision - concurrency token for the target row
  * @returns updated note, or `null` when the target row is missing or stale
  */
 export async function replaceNoteOnDate(
@@ -166,7 +166,7 @@ export async function replaceNoteOnDate(
   targetId: string,
   date: string,
   patch: NoteFieldPatch,
-  expectedLastEditedAt: string,
+  expectedRevision: number,
 ): Promise<Note | null> {
   const conflicting = await findCalendarNoteByDate(userId, date, targetId);
 
@@ -174,5 +174,5 @@ export async function replaceNoteOnDate(
     await deleteNoteById(userId, conflicting.id);
   }
 
-  return updateNoteById(userId, targetId, { ...patch, date }, expectedLastEditedAt);
+  return updateNoteById(userId, targetId, { ...patch, date }, expectedRevision);
 }

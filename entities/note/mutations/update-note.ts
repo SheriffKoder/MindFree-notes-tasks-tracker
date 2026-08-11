@@ -10,11 +10,11 @@
  * - updateNote: validate body → conflict gate → patch or replace-on-date
  *
  * Steps (updateNote):
- * 1. Parse and split `replaceExistingOnDate` / `expectedLastEditedAt` from the PATCH body.
+ * 1. Parse and split `replaceExistingOnDate` / `expectedRevision` from the PATCH body.
  * 2. When `date` is set, look up an occupant on that day (excluding self).
  * 3. On conflict without replace consent, throw NoteDateConflictError.
  * 4. On conflict with replace consent, delete occupant then update target row.
- * 5. Otherwise run a normal updateNoteById patch gated on expectedLastEditedAt.
+ * 5. Otherwise run a normal updateNoteById patch gated on expectedRevision.
  * 6. When the version gate misses, throw NoteStaleWriteError with the current row.
  */
 
@@ -42,14 +42,14 @@ type NoteFieldPatch = Pick<
 function splitUpdateBody(data: UpdateNoteBody): {
   patch: NoteFieldPatch;
   replaceExistingOnDate: boolean;
-  expectedLastEditedAt: string;
+  expectedRevision: number;
 } {
-  const { replaceExistingOnDate, expectedLastEditedAt, ...patch } = data;
+  const { replaceExistingOnDate, expectedRevision, ...patch } = data;
 
   return {
     patch,
     replaceExistingOnDate: replaceExistingOnDate ?? false,
-    expectedLastEditedAt,
+    expectedRevision,
   };
 }
 
@@ -90,8 +90,9 @@ export async function updateNote(
     throw new Error("Invalid note update payload.");
   }
 
-  const { patch, replaceExistingOnDate, expectedLastEditedAt } =
-    splitUpdateBody(parsed.data);
+  const { patch, replaceExistingOnDate, expectedRevision } = splitUpdateBody(
+    parsed.data,
+  );
 
   if (patch.date) {
     const conflicting = await findCalendarNoteByDate(userId, patch.date, id);
@@ -106,19 +107,14 @@ export async function updateNote(
         id,
         patch.date,
         patch,
-        expectedLastEditedAt,
+        expectedRevision,
       );
 
       return resolveUpdateResult(userId, id, note);
     }
   }
 
-  const note = await updateNoteById(
-    userId,
-    id,
-    patch,
-    expectedLastEditedAt,
-  );
+  const note = await updateNoteById(userId, id, patch, expectedRevision);
 
   return resolveUpdateResult(userId, id, note);
 }

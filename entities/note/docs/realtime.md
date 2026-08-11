@@ -60,13 +60,25 @@ local mutations and offline reconciliation.
 
 | Gate | Purpose |
 | ---- | ------- |
-| `lastEditedAt` newer-wins | Ignore older UPDATE payloads vs current cache |
+| `revision` newer-wins | Ignore older UPDATE payloads vs current cache |
 | Mutation pending set | `hooks/note-mutation-pending.ts` tracks ids so application logic can skip an in-flight local write echo |
 | DELETE cache membership | Unfiltered DELETE only clears ids already in warm caches |
-| Drawer sync guard | Do not bump `remoteSyncKey` into a dirty / non-idle form |
-| PATCH `expectedLastEditedAt` | Server rejects stale writes with `409 STALE_WRITE` + current note |
+| Drawer sync guard | Do not bump `formReloadKey` into a dirty form; clean drawers always pull |
+| Dirty remote banner | While dirty, set `pendingRemoteRevision` and show Reload / Keep editing |
+| PATCH `expectedRevision` | Server rejects stale writes with `409 STALE_WRITE` + current note |
 
-Cache can move under an open editor; **form fields** only pull remote values when the guard allows (idle, clean). See [optimistic-updates.md](./optimistic-updates.md).
+Cache can move under an open editor; **form fields** only pull remote values when
+the guard allows (clean). Dirty forms get a banner instead — never a typing gate.
+See [optimistic-updates.md](./optimistic-updates.md).
+
+### Drawer sync (feature)
+
+| Piece | Role |
+| ----- | ---- |
+| `formReloadKey` | Single counter — bumps reload form fields from cache |
+| `note-confirmed-token-store` | Session `confirmedRevision` per note id |
+| `shouldSyncRemoteIntoForm` | Clean → pull; dirty → never overwrite |
+| Dirty remote banner | `pendingRemoteRevision` + Reload / Keep editing |
 
 The pending tracker is intentionally colocated with mutation hooks because
 those hooks mark and clear the ids. Realtime application reads the tracker, but

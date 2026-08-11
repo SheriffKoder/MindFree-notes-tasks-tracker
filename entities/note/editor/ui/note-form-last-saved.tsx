@@ -13,8 +13,8 @@ export interface NoteFormLastSavedProps {
   formattedLastEditedAt: string | null;
   saveStatus?: NoteSaveStatus;
   /**
-   * Optional detailed status/error copy (e.g. HTTP status + concurrency token).
-   * When set, replaces the default short label for the current saveStatus.
+   * Optional user-facing status copy (e.g. stale reload, offline saved).
+   * When unset, the default label follows `saveStatus` and last-edited time.
    */
   saveFeedback?: string | null;
   /** `overlay` anchors inside the content row; `inline` renders in a thin footer row. */

@@ -75,17 +75,19 @@ export interface UsePreSaveOrchestratorOptions {
 export interface UsePreSaveOrchestratorResult {
   saveStatus: NoteSaveStatus;
   /**
-   * Branch debug copy for the drawer footer — HTTP status, concurrency token,
-   * and failure reason. Cleared when status returns to idle after a success.
+   * Optional user-facing footer copy (errors, offline saved, stale reload).
+   * When null, the footer follows `saveStatus` and last-edited time.
    */
   saveFeedback: string | null;
   handleChange: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
   commitKey: number;
   /**
-   * Bumped when a stale-write 409 forces the form to reload from cache.
-   * Combine with the drawer realtime `remoteSyncKey`.
+   * Bumped when the form should reload field values from the cached note
+   * (remote pull, explicit Reload, or stale-write 409).
    */
-  formSyncKey: number;
+  formReloadKey: number;
+  /** Forces a form field pull from the current cached note. */
+  bumpFormReloadKey: () => void;
   effectiveDateNavEnabled: boolean;
   isSavingEnabled: boolean;
   conflict: { date: string; existingNoteId: string } | null;
@@ -95,8 +97,13 @@ export interface UsePreSaveOrchestratorResult {
   applyPickedDate: (isoDate: string) => string;
   /** Re-run pipeline after remote cache sync — conflict/nav only, no schedule. */
   reevaluateFromCache: () => void;
-  /** Record the server version after a safe remote form pull. */
-  acceptRemoteFormSync: (serverLastEditedAt: string) => void;
+  /** Record the server revision after a safe remote form pull. */
+  acceptRemoteFormSync: (serverRevision: number) => void;
+  /**
+   * Server-confirmed revision the open form is based on.
+   * Used by drawer realtime to decide clean pull vs dirty pending banner.
+   */
+  getConfirmedRevision: () => number | null;
   /** Promotes the open note into the home quick slot (house-plus control). */
   promoteToQuick: () => void;
 }

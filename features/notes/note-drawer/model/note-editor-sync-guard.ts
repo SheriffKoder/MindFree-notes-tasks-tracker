@@ -2,31 +2,29 @@
  * @file features/notes/note-drawer/model/note-editor-sync-guard.ts
  * Drawer editor state for realtime → form sync decisions.
  *
- * Purpose: Block remote form pulls while dirty; allow server wins after idle.
- * Used in: note-drawer.tsx, use-notes-realtime-sync.ts (via shouldSyncRemoteIntoForm)
+ * Purpose: Allow remote form pulls only when the open drawer is clean.
+ * Used in: use-note-drawer-realtime-sync.ts (via shouldSyncRemoteIntoForm)
+ *
+ * Steps:
+ * 1. Store the mounted drawer's open/note/dirty snapshot in a singleton.
+ * 2. Answer whether a remote note id may replace open form fields (dirty-only).
  */
-
-/** Ms without local edits before an idle open drawer accepts remote form sync. */
-export const REMOTE_SYNC_IDLE_MS = 3000;
 
 export interface NoteEditorSyncState {
   isOpen: boolean;
   noteId: string | null;
   isDirty: boolean;
-  openedAt: number;
-  lastLocalEditAt: number | null;
 }
 
 let editorSyncState: NoteEditorSyncState = {
   isOpen: false,
   noteId: null,
   isDirty: false,
-  openedAt: 0,
-  lastLocalEditAt: null,
 };
 
 /**
  * Updates the singleton drawer sync guard (one drawer per app session).
+ * Call synchronously on local edits so realtime cannot race a stale clean flag.
  */
 export function registerNoteEditorSyncState(state: NoteEditorSyncState): void {
   editorSyncState = state;
@@ -34,18 +32,12 @@ export function registerNoteEditorSyncState(state: NoteEditorSyncState): void {
 
 /**
  * @returns whether a remote update may replace the open editor fields.
+ * Clean open drawers always sync; dirty drawers never overwrite local typing.
  */
 export function shouldSyncRemoteIntoForm(noteId: string): boolean {
   if (!editorSyncState.isOpen || editorSyncState.noteId !== noteId) {
     return false;
   }
 
-  if (editorSyncState.isDirty) {
-    return false;
-  }
-
-  const idleAnchor =
-    editorSyncState.lastLocalEditAt ?? editorSyncState.openedAt;
-
-  return Date.now() - idleAnchor >= REMOTE_SYNC_IDLE_MS;
+  return !editorSyncState.isDirty;
 }

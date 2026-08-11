@@ -11,7 +11,7 @@
  * 2. Snapshot affected cache buckets before writing.
  * 3. On date patch: relocateNoteInCache; else patch owning calendar/general bucket.
  * 4. On stale 409: apply the server's current note instead of rolling back.
- * 5. On other errors: restore snapshots; on success: reconcile only when server is newer than cache.
+ * 5. On other errors: restore snapshots; on success: reconcile only when server revision is newer than cache.
  */
 
 "use client";
@@ -49,10 +49,10 @@ export interface UpdateNoteMutationInput {
   /** Full editable form snapshot sent to the API. */
   values: NoteFormValues;
   /**
-   * Last server-confirmed `lastEditedAt` this write is based on.
-   * Must not be an optimistic cache timestamp.
+   * Last server-confirmed `revision` this write is based on.
+   * Must not be invented client-side.
    */
-  expectedLastEditedAt: string;
+  expectedRevision: number;
   /** Target calendar day — sent only when it differs from `note.date`. */
   date?: string | null;
   /** When true, server deletes the other note on the target day first. */
@@ -172,7 +172,7 @@ export function useUpdateNoteMutation() {
     mutationFn: async ({
       note,
       values,
-      expectedLastEditedAt,
+      expectedRevision,
       date,
       replaceExistingOnDate,
       isQuick,
@@ -180,7 +180,7 @@ export function useUpdateNoteMutation() {
       const response = await fetchPatchNote(
         note.id,
         values,
-        expectedLastEditedAt,
+        expectedRevision,
         resolveDatePatch(note, date),
         replaceExistingOnDate,
         isQuick,
@@ -239,8 +239,7 @@ export function useUpdateNoteMutation() {
       }
     },
     onSuccess: (serverNote, { note }) => {
-      /////////////////////////////////
-      // Skip stale responses — optimistic cache may already hold a newer edit.
+      // Skip stale responses — cache may already hold a higher revision (e.g. realtime).
       const cached = findNoteByIdInCache(queryClient, note.id);
 
       if (!isRemoteNoteNewer(serverNote, cached)) {

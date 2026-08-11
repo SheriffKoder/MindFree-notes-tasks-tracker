@@ -28,7 +28,7 @@ export type PatchNoteError = Error & {
  *
  * @param id - note row id
  * @param values - full editable form snapshot
- * @param expectedLastEditedAt - last server-confirmed version this write is based on
+ * @param expectedRevision - last server-confirmed revision this write is based on
  * @param date - target calendar day, or `null` for general (omitted when unchanged)
  * @param replaceExistingOnDate - hard-delete the other note on the target day first
  * @returns server-confirmed note
@@ -36,7 +36,7 @@ export type PatchNoteError = Error & {
 export async function fetchPatchNote(
   id: string,
   values: NoteFormValues,
-  expectedLastEditedAt: string,
+  expectedRevision: number,
   date?: string | null,
   replaceExistingOnDate?: boolean,
   isQuick?: boolean,
@@ -45,10 +45,10 @@ export async function fetchPatchNote(
     date?: string | null;
     isQuick?: boolean;
     replaceExistingOnDate?: boolean;
-    expectedLastEditedAt: string;
+    expectedRevision: number;
   } = {
     ...values,
-    expectedLastEditedAt,
+    expectedRevision,
   };
 
   if (date !== undefined) {

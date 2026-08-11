@@ -23,6 +23,7 @@ function buildDeleteNoteFromPayload(payload: NoteOfflinePayload): Note {
     isImportant: payload.values.isImportant,
     isQuick: payload.isQuick ?? false,
     lastEditedAt: payload.savedAt,
+    revision: payload.expectedRevision ?? 1,
   };
 }
 

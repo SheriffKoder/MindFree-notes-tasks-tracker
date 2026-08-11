@@ -51,8 +51,8 @@ export interface NoteOfflinePayload {
   values: NoteFormValues;
   isQuick?: boolean;
   replaceExistingOnDate: boolean;
-  /** Last server-confirmed version for patch concurrency; omitted on legacy queue rows. */
-  expectedLastEditedAt?: string;
+  /** Last server-confirmed revision for patch concurrency; omitted on legacy queue rows. */
+  expectedRevision?: number;
   savedAt: string;
 }
 
@@ -63,7 +63,7 @@ export interface NoteOfflinePendingInput {
   date?: string | null;
   isQuick?: boolean;
   replaceExistingOnDate?: boolean;
-  expectedLastEditedAt?: string;
+  expectedRevision?: number;
 }
 
 function resolveDatePatch(
@@ -118,7 +118,7 @@ function resolvePendingFromPayload(
       date: payload.date,
       isQuick: payload.isQuick,
       replaceExistingOnDate: payload.replaceExistingOnDate,
-      expectedLastEditedAt: payload.expectedLastEditedAt,
+      expectedRevision: payload.expectedRevision,
     };
   }
 
@@ -152,7 +152,7 @@ export function toNoteOfflineWrite(
       values: input.values,
       isQuick: input.isQuick,
       replaceExistingOnDate: input.replaceExistingOnDate ?? false,
-      expectedLastEditedAt: input.expectedLastEditedAt,
+      expectedRevision: input.expectedRevision,
       savedAt,
     },
   };
@@ -293,6 +293,10 @@ function shouldApplyOfflinePayload(
     return true;
   }
 
+  if (payload.operation === "patch" && payload.expectedRevision != null) {
+    return cached.revision <= payload.expectedRevision;
+  }
+
   return payload.savedAt > cached.lastEditedAt;
 }
 
@@ -306,15 +310,20 @@ async function executeNoteOfflinePayload(
         return null;
       }
 
-      const expectedLastEditedAt =
-        payload.expectedLastEditedAt ??
-        resolveCachedNoteForPayload(queryClient, payload)?.lastEditedAt ??
-        payload.savedAt;
+      const expectedRevision =
+        payload.expectedRevision ??
+        resolveCachedNoteForPayload(queryClient, payload)?.revision;
+
+      if (expectedRevision == null) {
+        throw new Error(
+          "Offline PATCH blocked · expectedRevision is missing and cache has no revision.",
+        );
+      }
 
       const response = await fetchPatchNote(
         payload.noteId,
         payload.values,
-        expectedLastEditedAt,
+        expectedRevision,
         payload.date,
         payload.replaceExistingOnDate,
         payload.isQuick,

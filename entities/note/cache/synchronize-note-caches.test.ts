@@ -19,6 +19,7 @@ function buildNote(overrides: Partial<Note> = {}): Note {
     isImportant: false,
     isQuick: false,
     lastEditedAt: "2024-06-01T12:00:00.000Z",
+    revision: 1,
     ...overrides,
   };
 }

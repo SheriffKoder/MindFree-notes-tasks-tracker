@@ -4,7 +4,7 @@
  *
  * Purpose: Keep calendar/general caches in sync with remote writes.
  * Used in: entities/note/hooks/use-notes-realtime-sync.ts
- * Used for: INSERT/UPDATE/DELETE on mf_notes with last_edited_at gating.
+ * Used for: INSERT/UPDATE/DELETE on mf_notes with revision newer-wins gating.
  */
 
 import { findNoteByIdInCache } from "@/entities/note/cache/find-note-in-cache";
@@ -27,6 +27,9 @@ export interface ApplyRealtimeNoteChangeResult {
 
 /**
  * @returns whether the remote row is strictly newer than the cached copy.
+ *
+ * Compares monotonic `revision` only — optimistic `lastEditedAt` bumps are
+ * display/sort-only and must not win over a lower revision.
  */
 export function isRemoteNoteNewer(
   remote: Note,
@@ -36,7 +39,7 @@ export function isRemoteNoteNewer(
     return true;
   }
 
-  return remote.lastEditedAt.localeCompare(cached.lastEditedAt) > 0;
+  return remote.revision > cached.revision;
 }
 
 function mapRealtimeRow(row: Record<string, unknown>): Note {

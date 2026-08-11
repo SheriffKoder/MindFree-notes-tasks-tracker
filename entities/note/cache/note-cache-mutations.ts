@@ -47,6 +47,7 @@ export function buildOptimisticCalendarNote(
     isImportant: values.isImportant,
     isQuick: false,
     lastEditedAt: new Date().toISOString(),
+    revision: 1,
   };
 }
 
@@ -66,6 +67,7 @@ export function buildOptimisticGeneralNote(values: NoteFormValues): Note {
     isImportant: values.isImportant,
     isQuick: false,
     lastEditedAt: new Date().toISOString(),
+    revision: 1,
   };
 }
 
@@ -265,6 +267,7 @@ export function buildOptimisticQuickNote(values: NoteFormValues): Note {
     isImportant: values.isImportant,
     isQuick: true,
     lastEditedAt: new Date().toISOString(),
+    revision: 1,
   };
 }
 

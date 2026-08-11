@@ -18,7 +18,7 @@ interface RouteContext {
 /**
  * Partially updates one note (`title`, `content`, `starred`, `isImportant`, `date`).
  *
- * Requires `expectedLastEditedAt` so a stale client cannot overwrite a newer row.
+ * Requires `expectedRevision` so a stale client cannot overwrite a newer row.
  *
  * @param request - incoming HTTP request with JSON body
  * @param context - dynamic route params

@@ -105,7 +105,7 @@ export function useNoteForm({
   resetKey,
   commitKey = 0,
   calendarDate = null,
-  remoteSyncKey = 0,
+  formReloadKey = 0,
   onChange,
 }: UseNoteFormOptions): UseNoteFormResult {
   const noteKey = note?.id ?? "draft";
@@ -137,9 +137,9 @@ export function useNoteForm({
   }, [calendarDate, noteKey, resetKey]);
 
   /////////////////////////////////
-  // Remote sync — pull cached note fields only when remoteSyncKey bumps (not on every cache write).
+  // Form reload — pull cached note fields only when formReloadKey bumps (not on every cache write).
   useEffect(() => {
-    if (remoteSyncKey === 0) {
+    if (formReloadKey === 0) {
       return;
     }
 
@@ -150,7 +150,7 @@ export function useNoteForm({
     setBaselineValues(nextValues);
     setValues(nextValues);
     setErrors({});
-  }, [remoteSyncKey]);
+  }, [formReloadKey]);
 
   // Successful autosave — snap baseline without overwriting current inputs.
   useEffect(() => {

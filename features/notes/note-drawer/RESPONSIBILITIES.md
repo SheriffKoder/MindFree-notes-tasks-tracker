@@ -17,7 +17,7 @@ Form fields and validation live in `entities/note/editor/`.
 ## UI shell
 
 `ui/note-drawer.tsx` — composes `AppDrawer` + `NoteForm` + footer; wires orchestrator, date nav, realtime hook  
-`ui/note-drawer-footer.tsx` — prev/next day arrows, conflict Replace prompt, last-edited / save status
+`ui/note-drawer-footer.tsx` — prev/next day arrows, conflict Replace prompt, remote Reload/Keep banner, last-edited / save status
 
 ---
 
@@ -52,9 +52,12 @@ Form fields and validation live in `entities/note/editor/`.
 
 ## Realtime (drawer side)
 
-`model/use-note-drawer-realtime-sync.ts` — dirty tracking, sync guard registration, `remoteSyncKey`, drawer realtime handler  
-`model/note-editor-sync-guard.ts` — singleton: block remote form pull while dirty; idle 3s → server wins  
+`model/use-note-drawer-realtime-sync.ts` — synchronous dirty publish, pending remote banner, bumps orchestrator `formReloadKey` on clean pull  
+`model/note-confirmed-token-store.ts` — session store of server-confirmed `revision` per note id  
+`model/note-editor-sync-guard.ts` — clean open drawer may pull remote fields; dirty never overwrites typing (no idle timer, no typing gate)  
 `model/note-realtime-drawer-bridge.ts` — forwards page realtime events to the mounted drawer
+
+**Sync policy:** clean → always pull remote into form; dirty → banner only (Reload / Keep editing); save while stale → server `409` + form reload.
 
 Entity subscription hook: `entities/note/hooks/use-notes-realtime-sync.ts`
 
@@ -76,6 +79,7 @@ Entity cache application: `entities/note/cache/apply-realtime-note-change.ts`
 | Change debounce / when autosave fires | `pre-save-orchestrator/use-pre-save-orchestrator.ts` |
 | Fix same-day conflict UX | `pre-save-orchestrator/*`, `ui/note-drawer-footer.tsx` |
 | Fix remote overwrite while typing | `model/note-editor-sync-guard.ts`, `model/use-note-drawer-realtime-sync.ts` |
+| Fix dirty remote “Updated on another device” banner | `model/use-note-drawer-realtime-sync.ts`, `ui/note-drawer-footer.tsx` |
 | Fix conflict banner after remote insert | `pre-save-orchestrator/use-pre-save-orchestrator.ts` (`reevaluateFromCache`) |
 | Open drawer from page | `views/notes/model/editor/use-notes-drawer.ts` |
 | Change form fields | `entities/note/editor/` |
