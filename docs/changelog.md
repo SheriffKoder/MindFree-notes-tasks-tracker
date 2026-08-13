@@ -6,6 +6,37 @@ Build-history plans may still live under `app/development/changelogs/`; this fil
 
 ---
 
+## 2026-08-11 — Notes multi-device sync (revision + open drawers)
+
+Two devices could both show an open note drawer, yet edits on one often never
+landed in the other’s form — while background list cards *did* update. Saving
+from the stale drawer could silently overwrite the newer remote version.
+Separately, creating a calendar note when the client cache missed an existing
+same-day row looped on `409 A note already exists on this date.`
+
+**What we shipped:**
+
+| Piece | Role |
+| ----- | ---- |
+| `mf_notes.revision` (+ migration `040`) | Monotonic concurrency token; PATCH sends `expectedRevision` |
+| Stale write `409` | Reject outdated PATCH; reload form from server note |
+| Clean vs dirty drawer policy | Clean → always pull remote into fields; dirty → banner (“Updated on another device”), never clobber typing |
+| `formReloadKey` + confirmed-revision session store | One reload counter; token never invented from optimistic cache |
+| Same-day `DATE_CONFLICT` | `409` returns full occupant `note`; seed cache, conflict footer, stop create loop |
+| `useResolvedDrawerNote` | Re-read cache every render (no request-only memo) so form reload sees the realtime row |
+
+**Plan / review:** [app/development/changelogs/saving-issues/architecture-review.md](../app/development/changelogs/saving-issues/architecture-review.md)
+
+### Reflections
+
+- **Cards updating ≠ drawer updating.** Realtime patched TanStack lists correctly, but the open form only reloads on an explicit `formReloadKey` bump *and* must read a fresh `Note`. Memoizing resolve on `[queryClient, request]` kept a stale snapshot after `setQueryData`, so Device B “synced” its revision token while still showing old fields.
+- **`lastEditedAt` is a bad concurrency token.** Optimistic bumps and `timestamptz` equality made same-device / mixed-version clients fail to save. Integer `revision` (server-only increment) is the write gate; timestamps stay display/sort only.
+- **Idle timers and typing gates fought the product.** A clean open drawer should collaborate; a dirty one should warn, not freeze editing. Dropped idle “maybe sync” windows and the proposed typing gate.
+- **Cache miss on create is a UX loop, not just an error toast.** If evaluate-save thinks the day is empty, POST/`create-calendar` 409s forever. Treat same-day conflict like replace/dismiss: clear pending creates, seed the occupant, optionally promote create → edit when a real id appears.
+- **Deploy order matters.** Clients that send `expectedRevision` need migration `040` applied first; older clients without the column/token path will not interoperate cleanly with the new PATCH contract.
+
+---
+
 ## 2026-08-02 — Calendar cursor hover tip (desktop)
 
 Notes, Tasks, and Reminders month calendars gain a desktop-only peek on cell
