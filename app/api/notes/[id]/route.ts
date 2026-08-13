@@ -6,6 +6,7 @@
 import {
   deleteNote,
   NoteDateConflictError,
+  NoteStaleWriteError,
   updateNote,
 } from "@/entities/note/server";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
@@ -16,6 +17,8 @@ interface RouteContext {
 
 /**
  * Partially updates one note (`title`, `content`, `starred`, `isImportant`, `date`).
+ *
+ * Requires `expectedRevision` so a stale client cannot overwrite a newer row.
  *
  * @param request - incoming HTTP request with JSON body
  * @param context - dynamic route params
@@ -40,7 +43,21 @@ export async function PATCH(request: Request, context: RouteContext) {
       return Response.json(
         {
           error: error.message,
+          code: "DATE_CONFLICT",
           conflictingNoteId: error.conflictingNoteId,
+          date: error.date,
+          note: error.note,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (error instanceof NoteStaleWriteError) {
+      return Response.json(
+        {
+          error: error.message,
+          code: "STALE_WRITE",
+          note: error.currentNote,
         },
         { status: 409 },
       );

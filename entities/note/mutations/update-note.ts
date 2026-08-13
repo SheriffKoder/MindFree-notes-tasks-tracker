@@ -10,14 +10,18 @@
  * - updateNote: validate body → conflict gate → patch or replace-on-date
  *
  * Steps (updateNote):
- * 1. Parse and split `replaceExistingOnDate` from the PATCH body.
+ * 1. Parse and split `replaceExistingOnDate` / `expectedRevision` from the PATCH body.
  * 2. When `date` is set, look up an occupant on that day (excluding self).
  * 3. On conflict without replace consent, throw NoteDateConflictError.
  * 4. On conflict with replace consent, delete occupant then update target row.
- * 5. Otherwise run a normal updateNoteById patch.
+ * 5. Otherwise run a normal updateNoteById patch gated on expectedRevision.
+ * 6. When the version gate misses, throw NoteStaleWriteError with the current row.
  */
 
-import { NoteDateConflictError } from "@/entities/note/errors";
+import {
+  NoteDateConflictError,
+  NoteStaleWriteError,
+} from "@/entities/note/errors";
 import {
   updateNoteBodySchema,
   type UpdateNoteBody,
@@ -25,20 +29,46 @@ import {
 import type { Note } from "@/entities/note/model/types";
 import {
   findCalendarNoteByDate,
+  findNoteById,
   replaceNoteOnDate,
   updateNoteById,
 } from "@/entities/note/repository";
 
+type NoteFieldPatch = Pick<
+  UpdateNoteBody,
+  "title" | "content" | "starred" | "isImportant" | "date" | "isQuick"
+>;
+
 function splitUpdateBody(data: UpdateNoteBody): {
-  patch: UpdateNoteBody;
+  patch: NoteFieldPatch;
   replaceExistingOnDate: boolean;
+  expectedRevision: number;
 } {
-  const { replaceExistingOnDate, ...patch } = data;
+  const { replaceExistingOnDate, expectedRevision, ...patch } = data;
 
   return {
     patch,
     replaceExistingOnDate: replaceExistingOnDate ?? false,
+    expectedRevision,
   };
+}
+
+async function resolveUpdateResult(
+  userId: string,
+  id: string,
+  note: Note | null,
+): Promise<Note> {
+  if (note) {
+    return note;
+  }
+
+  const current = await findNoteById(userId, id);
+
+  if (current) {
+    throw new NoteStaleWriteError(current);
+  }
+
+  throw new Error("Note not found.");
 }
 
 /**
@@ -47,7 +77,7 @@ function splitUpdateBody(data: UpdateNoteBody): {
  * @param id - note row id
  * @param body - raw request body (validated here)
  * @returns updated domain note
- * @throws when body is invalid or the note is not found
+ * @throws when body is invalid, the note is not found, or the write is stale
  */
 export async function updateNote(
   userId: string,
@@ -60,31 +90,31 @@ export async function updateNote(
     throw new Error("Invalid note update payload.");
   }
 
-  const { patch, replaceExistingOnDate } = splitUpdateBody(parsed.data);
+  const { patch, replaceExistingOnDate, expectedRevision } = splitUpdateBody(
+    parsed.data,
+  );
 
   if (patch.date) {
     const conflicting = await findCalendarNoteByDate(userId, patch.date, id);
 
     if (conflicting) {
       if (!replaceExistingOnDate) {
-        throw new NoteDateConflictError(patch.date, conflicting.id);
+        throw new NoteDateConflictError(patch.date, conflicting);
       }
 
-      const note = await replaceNoteOnDate(userId, id, patch.date, patch);
+      const note = await replaceNoteOnDate(
+        userId,
+        id,
+        patch.date,
+        patch,
+        expectedRevision,
+      );
 
-      if (!note) {
-        throw new Error("Note not found.");
-      }
-
-      return note;
+      return resolveUpdateResult(userId, id, note);
     }
   }
 
-  const note = await updateNoteById(userId, id, patch);
+  const note = await updateNoteById(userId, id, patch, expectedRevision);
 
-  if (!note) {
-    throw new Error("Note not found.");
-  }
-
-  return note;
+  return resolveUpdateResult(userId, id, note);
 }

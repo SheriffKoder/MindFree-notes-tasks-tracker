@@ -54,7 +54,7 @@ form onChange
   → debounce
   → TanStack mutation (create / patch / delete)
        onMutate → synchronizeNoteCaches (optimistic)
-       onSuccess → hub again only if server row is newer than cache
+       onSuccess → hub again only if server revision is newer than cache
        onError → restore snapshots
 ```
 

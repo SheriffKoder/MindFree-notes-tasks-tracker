@@ -17,13 +17,13 @@ Form fields and validation live in `entities/note/editor/`.
 ## UI shell
 
 `ui/note-drawer.tsx` — composes `AppDrawer` + `NoteForm` + footer; wires orchestrator, date nav, realtime hook  
-`ui/note-drawer-footer.tsx` — prev/next day arrows, conflict Replace prompt, last-edited / save status
+`ui/note-drawer-footer.tsx` — prev/next day arrows, conflict Replace prompt, remote Reload/Keep banner, last-edited / save status
 
 ---
 
 ## Cache resolution
 
-`model/use-resolved-drawer-note.ts` — resolves `Note | null` from TanStack cache (edit by id, date mode by `activeDate`)  
+`model/use-resolved-drawer-note.ts` — resolves `Note | null` from TanStack cache each render (edit by id only; create stays a draft until `openEdit`; never memoize on request alone)  
 `lib/find-note-in-cache.ts` — feature convenience re-export of `findNoteByIdInCache` and `findNoteOnDateInCache`; lookup ownership remains in `entities/note/cache/`
 
 ---
@@ -52,9 +52,12 @@ Form fields and validation live in `entities/note/editor/`.
 
 ## Realtime (drawer side)
 
-`model/use-note-drawer-realtime-sync.ts` — dirty tracking, sync guard registration, `remoteSyncKey`, drawer realtime handler  
-`model/note-editor-sync-guard.ts` — singleton: block remote form pull while dirty; idle 3s → server wins  
+`model/use-note-drawer-realtime-sync.ts` — synchronous dirty publish, pending remote banner, bumps orchestrator `formReloadKey` on clean pull  
+`model/note-confirmed-token-store.ts` — session store of server-confirmed `revision` per note id  
+`model/note-editor-sync-guard.ts` — clean open drawer may pull remote fields; dirty never overwrites typing (no idle timer, no typing gate)  
 `model/note-realtime-drawer-bridge.ts` — forwards page realtime events to the mounted drawer
+
+**Sync policy:** clean → always pull remote into form; dirty → banner only (Reload / Keep editing); save while stale → server `409` + form reload.
 
 Entity subscription hook: `entities/note/hooks/use-notes-realtime-sync.ts`
 
@@ -69,13 +72,17 @@ Entity cache application: `entities/note/cache/apply-realtime-note-change.ts`
 | Change drawer layout / what gets composed | `ui/note-drawer.tsx` |
 | Change footer arrows or conflict banner | `ui/note-drawer-footer.tsx` |
 | Fix which note loads in the drawer | `model/use-resolved-drawer-note.ts` |
+| Fix open drawer stale while cards update (multi-device) | `model/use-resolved-drawer-note.ts` (must re-read cache each render — do not memoize on request only), `model/use-note-drawer-realtime-sync.ts` |
 | Fix prev/next day | `model/use-drawer-date-navigation.ts` |
 | Fix when date nav is enabled | `model/use-drawer-active-date.ts` |
 | Fix month prefetch on day nav | `model/use-drawer-month-prefetch.ts` |
 | Change save routing (create vs patch vs delete) | `pre-save-orchestrator/evaluate-note-save.ts` |
 | Change debounce / when autosave fires | `pre-save-orchestrator/use-pre-save-orchestrator.ts` |
 | Fix same-day conflict UX | `pre-save-orchestrator/*`, `ui/note-drawer-footer.tsx` |
+| Fix create 409 “note already exists” loop | `pre-save-orchestrator/use-pre-save-orchestrator.ts` (`handleDateConflictError`), `entities/note/cache/seed-conflicting-calendar-note.ts` |
+| Fix create-for-date → edit after cache resolve | `ui/note-drawer.tsx` (`onCalendarNoteCreated` + occupant `openEdit` effect) |
 | Fix remote overwrite while typing | `model/note-editor-sync-guard.ts`, `model/use-note-drawer-realtime-sync.ts` |
+| Fix dirty remote “Updated on another device” banner | `model/use-note-drawer-realtime-sync.ts`, `ui/note-drawer-footer.tsx` |
 | Fix conflict banner after remote insert | `pre-save-orchestrator/use-pre-save-orchestrator.ts` (`reevaluateFromCache`) |
 | Open drawer from page | `views/notes/model/editor/use-notes-drawer.ts` |
 | Change form fields | `entities/note/editor/` |

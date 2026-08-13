@@ -14,11 +14,23 @@ export interface PatchNoteResponse {
   note: Note;
 }
 
+export const STALE_WRITE_ERROR_CODE = "STALE_WRITE" as const;
+export const DATE_CONFLICT_ERROR_CODE = "DATE_CONFLICT" as const;
+
+export type PatchNoteError = Error & {
+  conflictingNoteId?: string;
+  status?: number;
+  code?: typeof STALE_WRITE_ERROR_CODE | typeof DATE_CONFLICT_ERROR_CODE;
+  note?: Note;
+  date?: string;
+};
+
 /**
  * Sends a debounced autosave PATCH for one existing note.
  *
  * @param id - note row id
  * @param values - full editable form snapshot
+ * @param expectedRevision - last server-confirmed revision this write is based on
  * @param date - target calendar day, or `null` for general (omitted when unchanged)
  * @param replaceExistingOnDate - hard-delete the other note on the target day first
  * @returns server-confirmed note
@@ -26,6 +38,7 @@ export interface PatchNoteResponse {
 export async function fetchPatchNote(
   id: string,
   values: NoteFormValues,
+  expectedRevision: number,
   date?: string | null,
   replaceExistingOnDate?: boolean,
   isQuick?: boolean,
@@ -34,7 +47,11 @@ export async function fetchPatchNote(
     date?: string | null;
     isQuick?: boolean;
     replaceExistingOnDate?: boolean;
-  } = { ...values };
+    expectedRevision: number;
+  } = {
+    ...values,
+    expectedRevision,
+  };
 
   if (date !== undefined) {
     body.date = date;
@@ -61,17 +78,31 @@ export async function fetchPatchNote(
     const errorBody = (await response.json().catch(() => null)) as {
       error?: string;
       conflictingNoteId?: string;
+      code?: string;
+      note?: Note;
+      date?: string;
     } | null;
     const error = new Error(
       errorBody?.error ?? "Failed to update note.",
-    ) as Error & {
-      conflictingNoteId?: string;
-      status?: number;
-    };
+    ) as PatchNoteError;
     error.status = response.status;
 
-    if (errorBody?.conflictingNoteId) {
+    if (
+      errorBody?.code === DATE_CONFLICT_ERROR_CODE ||
+      (errorBody?.conflictingNoteId && errorBody?.code !== STALE_WRITE_ERROR_CODE)
+    ) {
+      error.code = DATE_CONFLICT_ERROR_CODE;
       error.conflictingNoteId = errorBody.conflictingNoteId;
+      error.date = errorBody.date;
+
+      if (errorBody.note) {
+        error.note = errorBody.note;
+      }
+    }
+
+    if (errorBody?.code === STALE_WRITE_ERROR_CODE && errorBody.note) {
+      error.code = STALE_WRITE_ERROR_CODE;
+      error.note = errorBody.note;
     }
 
     throw error;

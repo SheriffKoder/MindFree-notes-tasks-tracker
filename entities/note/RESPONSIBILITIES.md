@@ -152,7 +152,7 @@ hydration boundaries.
 - `hooks/use-notes-realtime-sync.ts` owns the authenticated Supabase
   `postgres_changes` subscription and React cleanup.
 - `cache/apply-realtime-note-change.ts` owns row mapping, mutation-echo
-  suppression, `lastEditedAt` ordering, and cache application.
+  suppression, `revision` newer-wins, and cache application.
 - `hooks/note-mutation-pending.ts` owns the in-flight mutation-id set.
 
 The drawer form sync guard lives in `features/notes/note-drawer/model/`, outside
@@ -188,7 +188,7 @@ cross-cache consistency:
 ## Editor form
 
 - `editor/model/note-form.schema.ts` — Zod form values
-- `editor/model/types.ts` — form props, values, save status, and `remoteSyncKey`
+- `editor/model/types.ts` — form props, values, save status, and `formReloadKey`
 - `editor/model/use-note-form.ts` — local fields, dirty/valid state, and resets
 - `editor/ui/` — form composition, title/content rows, toggles, date picker, and
   last-saved label

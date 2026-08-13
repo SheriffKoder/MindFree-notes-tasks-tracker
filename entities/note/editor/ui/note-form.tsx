@@ -32,7 +32,7 @@ export function NoteForm({
   calendarDate = null,
   onChange,
   onDatePick,
-  remoteSyncKey = 0,
+  formReloadKey = 0,
   saveStatus = "idle",
   showContentLastSaved = true,
   onFooterMetaChange,
@@ -49,7 +49,7 @@ export function NoteForm({
     setContent,
     toggleStarred,
     toggleImportant,
-  } = useNoteForm({ note, resetKey, commitKey, calendarDate, remoteSyncKey, onChange });
+  } = useNoteForm({ note, resetKey, commitKey, calendarDate, formReloadKey, onChange });
 
   const handleDatePick = useCallback(
     (isoDate: string) => {

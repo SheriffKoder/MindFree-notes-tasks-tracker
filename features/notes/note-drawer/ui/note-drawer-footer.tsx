@@ -1,6 +1,10 @@
 /**
  * @file features/notes/note-drawer/ui/note-drawer-footer.tsx
- * Thin drawer footer — day arrows, conflict prompt, last-edited status.
+ * Thin drawer footer — day arrows, conflict prompt, remote-update banner, last-edited status.
+ *
+ * Purpose: Present drawer chrome actions without owning save/sync policy.
+ * Used in: features/notes/note-drawer/ui/note-drawer.tsx
+ * Used for: Date nav, same-day conflict Replace, dirty remote Reload/Keep, save label.
  */
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -22,14 +26,25 @@ export interface NoteDrawerFooterProps {
   isDateNavEnabled: boolean;
   formattedLastEditedAt: string | null;
   saveStatus?: NoteSaveStatus;
+  /** Optional override for the footer save label (errors, offline, stale reload). */
+  saveFeedback?: string | null;
   /** Same-day conflict — blocks autosave until the user replaces or changes date. */
   conflict?: NoteDrawerFooterConflict | null;
+  /**
+   * Dirty form with a newer remote revision — never overwrites typing;
+   * Reload / Keep editing only.
+   */
+  showRemoteUpdateBanner?: boolean;
   onPrevious: () => void;
   onNext: () => void;
   /** Hard-delete the other note on the day, then save the current note. */
   onResolveReplace?: () => void;
   /** Dismiss the prompt; user can change date or title before saving. */
   onResolveDismiss?: () => void;
+  /** Discard local fields and load the remote note from cache. */
+  onReloadRemote?: () => void;
+  /** Hide the remote banner; keep editing local fields. */
+  onDismissRemoteBanner?: () => void;
 }
 
 /**
@@ -40,11 +55,15 @@ export function NoteDrawerFooter({
   isDateNavEnabled,
   formattedLastEditedAt,
   saveStatus = "idle",
+  saveFeedback = null,
   conflict = null,
+  showRemoteUpdateBanner = false,
   onPrevious,
   onNext,
   onResolveReplace,
   onResolveDismiss,
+  onReloadRemote,
+  onDismissRemoteBanner,
 }: NoteDrawerFooterProps) {
   const previousDateLabel =
     activeDate && isDateNavEnabled
@@ -55,18 +74,21 @@ export function NoteDrawerFooter({
       ? formatDayAriaLabel(shiftIsoDate(activeDate, 1))
       : null;
 
+  const showConflictBanner = Boolean(conflict);
+  const showRemoteBanner = showRemoteUpdateBanner && !showConflictBanner;
+
   return (
     <footer className="absolute bottom-0 right-0 md:right-3 w-full md:w-[50%] z-10 flex min-h-[2rem] flex-col justify-center gap-1.5 px-3 shadow-[0_-1px_0_0_rgba(255,255,255,0.02)] pointer-events-none">
       <div
         className={
-          conflict
+          showConflictBanner || showRemoteBanner
             ? "flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-border)] px-2 py-1.5 [background-color:color-mix(in_srgb,var(--color-surface)_88%,transparent)]"
             : ""
         }
-        role={conflict ? "status" : undefined}
-        aria-hidden={conflict ? undefined : "true"}
+        role={showConflictBanner || showRemoteBanner ? "status" : undefined}
+        aria-hidden={showConflictBanner || showRemoteBanner ? undefined : "true"}
       >
-        {conflict ? (
+        {showConflictBanner && conflict ? (
           <>
             <p className="min-w-0 text-caption [color:var(--color-fg-muted)]">
               A note exists on {formatDayAriaLabel(conflict.date)}. Replace?
@@ -90,6 +112,33 @@ export function NoteDrawerFooter({
                 onClick={onResolveDismiss}
               >
                 No
+              </Button>
+            </div>
+          </>
+        ) : showRemoteBanner ? (
+          <>
+            <p className="min-w-0 text-caption [color:var(--color-fg-muted)]">
+              Updated on another device
+            </p>
+
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                className="h-7 border-transparent px-2.5 text-caption [background-color:var(--color-accent)] [color:var(--color-accent-fg)] hover:brightness-95 pointer-events-auto"
+                size="sm"
+                type="button"
+                onClick={onReloadRemote}
+              >
+                Reload
+              </Button>
+
+              <Button
+                className="h-7 border-[var(--color-border)] px-2.5 text-caption [background-color:var(--color-card-overlay)] [color:var(--color-fg-muted)] hover:[background-color:var(--color-card-hover)] hover:[color:var(--color-fg)] pointer-events-auto"
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={onDismissRemoteBanner}
+              >
+                Keep editing
               </Button>
             </div>
           </>
@@ -135,11 +184,14 @@ export function NoteDrawerFooter({
           ) : null}
         </div>
 
-        <NoteFormLastSaved
-          formattedLastEditedAt={formattedLastEditedAt}
-          saveStatus={saveStatus}
-          variant="inline"
-        />
+        <div className="min-w-0 flex-1">
+          <NoteFormLastSaved
+            formattedLastEditedAt={formattedLastEditedAt}
+            saveFeedback={saveFeedback}
+            saveStatus={saveStatus}
+            variant="inline"
+          />
+        </div>
       </div>
     </footer>
   );

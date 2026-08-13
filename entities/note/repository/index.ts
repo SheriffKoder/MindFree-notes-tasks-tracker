@@ -13,7 +13,7 @@
  * - getStarredNotes         (get-starred-notes)
  * - createCalendarNote      (create-calendar-note)
  * - createGeneralNote, createQuickNote (create-general-note)
- * - updateNoteById, findCalendarNoteByDate, replaceNoteOnDate (update-note)
+ * - updateNoteById, findNoteById, findCalendarNoteByDate, replaceNoteOnDate (update-note)
  * - deleteNoteById          (delete-note)
  */
 
@@ -30,6 +30,7 @@ export {
 } from "@/entities/note/repository/create-general-note";
 export {
   findCalendarNoteByDate,
+  findNoteById,
   replaceNoteOnDate,
   updateNoteById,
 } from "@/entities/note/repository/update-note";

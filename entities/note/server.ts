@@ -10,7 +10,7 @@
  * - `@/entities/note/queries` — read use-cases
  * - `@/entities/note/mutations` — write use-cases
  * - `@/entities/note/hydration` — SSR cache seeders
- * - `@/entities/note/errors` — NoteDateConflictError
+ * - `@/entities/note/errors` — NoteDateConflictError, NoteStaleWriteError
  * - `@/entities/note/repository` — getAuthenticatedUserId
  */
 
@@ -32,5 +32,8 @@ export {
   deleteNote,
   updateNote,
 } from "@/entities/note/mutations";
-export { NoteDateConflictError } from "@/entities/note/errors";
+export {
+  NoteDateConflictError,
+  NoteStaleWriteError,
+} from "@/entities/note/errors";
 export { getAuthenticatedUserId } from "@/entities/note/repository";

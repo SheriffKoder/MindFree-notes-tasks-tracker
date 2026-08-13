@@ -3,7 +3,6 @@
  * Bottom-right last-saved label anchored inside the description row.
  */
 
-import { cn } from "@/lib/utils";
 import {
   SaveStatusLabel,
   getSaveStatusLabel,
@@ -13,6 +12,11 @@ import type { NoteSaveStatus } from "@/entities/note/editor/model/types";
 export interface NoteFormLastSavedProps {
   formattedLastEditedAt: string | null;
   saveStatus?: NoteSaveStatus;
+  /**
+   * Optional user-facing status copy (e.g. stale reload, offline saved).
+   * When unset, the default label follows `saveStatus` and last-edited time.
+   */
+  saveFeedback?: string | null;
   /** `overlay` anchors inside the content row; `inline` renders in a thin footer row. */
   variant?: "overlay" | "inline";
 }
@@ -23,23 +27,33 @@ export interface NoteFormLastSavedProps {
 export function NoteFormLastSaved({
   formattedLastEditedAt,
   saveStatus = "idle",
+  saveFeedback = null,
   variant = "overlay",
 }: NoteFormLastSavedProps) {
   let label: string;
 
-  if (saveStatus === "saving") {
+  if (saveFeedback) {
+    label = saveFeedback;
+  } else if (saveStatus === "saving") {
     const suffix = formattedLastEditedAt
       ? ` · ${formattedLastEditedAt}`
       : " · Edited just now";
     label = `Saving${suffix}`;
   } else if (saveStatus === "saved") {
     label = formattedLastEditedAt ?? "Edited just now";
+  } else if (saveStatus === "error") {
+    label = getSaveStatusLabel("error") ?? "Could not save";
   } else {
     label = formattedLastEditedAt ?? "New note";
   }
 
   return (
     <SaveStatusLabel
+      className={
+        saveFeedback
+          ? "max-w-full whitespace-normal break-words text-right leading-snug"
+          : undefined
+      }
       label={label}
       saveStatus={saveStatus}
       variant={variant}

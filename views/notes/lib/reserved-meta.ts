@@ -13,6 +13,7 @@
  *   isImportant: true,
  *   isQuick: false,
  *   lastEditedAt: "2026-07-09T10:15:00.000Z",
+ *   revision: 1,
  * };
  *
  * getReservedMeta("month-notes", note);
@@ -30,6 +31,7 @@
  *   isImportant: false,
  *   isQuick: false,
  *   lastEditedAt: "2026-07-08T13:30:00.000Z",
+ *   revision: 1,
  * };
  *
  * getReservedMeta("general-notes", note);

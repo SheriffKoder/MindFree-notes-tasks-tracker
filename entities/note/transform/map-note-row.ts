@@ -21,5 +21,6 @@ export function mapNoteRow(row: NoteRow): Note {
     isImportant: row.is_important,
     isQuick: row.is_quick,
     lastEditedAt: row.last_edited_at,
+    revision: row.revision,
   };
 }

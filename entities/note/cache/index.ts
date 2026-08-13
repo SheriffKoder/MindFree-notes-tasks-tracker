@@ -7,6 +7,7 @@
  * - buildOptimistic*, upsert*, remove*, relocate*, home helpers (note-cache-mutations)
  * - mergeFormValuesIntoNote, patch*Cache, resolveOwningQueryKey (patch-note-in-cache)
  * - synchronizeNoteCaches, upsertNoteInOwnerCaches, NoteChange (synchronize-note-caches)
+ * - seedConflictingCalendarNoteInCache (seed-conflicting-calendar-note)
  * - applyRealtimeNoteChange, isRemoteNoteNewer (apply-realtime-note-change)
  */
 
@@ -42,6 +43,7 @@ export {
   upsertNoteInOwnerCaches,
   type NoteChange,
 } from "@/entities/note/cache/synchronize-note-caches";
+export { seedConflictingCalendarNoteInCache } from "@/entities/note/cache/seed-conflicting-calendar-note";
 export {
   applyRealtimeNoteChange,
   isRemoteNoteNewer,

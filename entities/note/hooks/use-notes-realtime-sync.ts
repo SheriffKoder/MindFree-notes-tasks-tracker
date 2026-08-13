@@ -27,7 +27,7 @@ export interface RealtimeNoteChangePayload {
 }
 
 export interface UseNotesRealtimeSyncOptions {
-  /** Called after a cache patch — e.g. orchestrator re-eval or form remoteSyncKey. */
+  /** Called after a cache patch — e.g. orchestrator re-eval or form formReloadKey bump. */
   onNoteChange?: (payload: RealtimeNoteChangePayload) => void;
 }
 

@@ -29,9 +29,10 @@ Consumers (Notes page, Home strip, drawer) are **read models and UI**, not separ
 | `starred` | Membership in Home starred strip |
 | `isImportant` | Calendar **cell** border only |
 | `isQuick` | Exclusive Home quick slot |
-| `lastEditedAt` | Ordering + newer-wins gates (realtime / stale PATCH) |
+| `lastEditedAt` | Display + sort ordering |
+| `revision` | Monotonic concurrency token (PATCH `expectedRevision`) |
 
-DB columns are snake_case (`is_important`, `is_quick`, `last_edited_at`); `mapNoteRow` maps to camelCase.
+DB columns are snake_case (`is_important`, `is_quick`, `last_edited_at`, `revision`); `mapNoteRow` maps to camelCase.
 
 ---
 

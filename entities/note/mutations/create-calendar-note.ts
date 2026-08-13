@@ -63,7 +63,7 @@ export async function createCalendarNote(
 
   if (conflicting) {
     if (!replaceExistingOnDate) {
-      throw new NoteDateConflictError(payload.date, conflicting.id);
+      throw new NoteDateConflictError(payload.date, conflicting);
     }
 
     await deleteNoteById(userId, conflicting.id);
