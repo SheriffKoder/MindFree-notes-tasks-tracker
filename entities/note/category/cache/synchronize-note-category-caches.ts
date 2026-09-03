@@ -64,6 +64,34 @@ function removeCategoryFromList(
 }
 
 /**
+ * Patches denormalized strip fields on the Home read model when a category updates.
+ */
+function patchHomeStripFromCategory(
+  current: HomeNotesResponse | undefined,
+  category: NoteCategory,
+): HomeNotesResponse | undefined {
+  if (!current) {
+    return current;
+  }
+
+  const index = current.strips.findIndex(
+    (strip) => strip.categoryId === category.id,
+  );
+
+  if (index === -1) {
+    return current;
+  }
+
+  const strips = [...current.strips];
+  strips[index] = {
+    ...strips[index],
+    categoryName: category.name,
+  };
+
+  return { strips };
+}
+
+/**
  * Drops the Home strip for a category id when present.
  */
 function removeHomeStrip(
@@ -137,8 +165,27 @@ export function applyCategoryUpdateToCaches(
       current ? upsertCategoryInList(current, category) : current,
   );
 
-  // Home strips depend on showOnHome + name denormalization
-  void queryClient.invalidateQueries({ queryKey: homeNotesQueryKey });
+  if (!category.showOnHome || category.deletedAt != null) {
+    queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) =>
+      removeHomeStrip(current, category.id),
+    );
+    return;
+  }
+
+  let needsHomeRebuild = false;
+
+  queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
+    if (!current?.strips.some((strip) => strip.categoryId === category.id)) {
+      needsHomeRebuild = true;
+      return current;
+    }
+
+    return patchHomeStripFromCategory(current, category);
+  });
+
+  if (needsHomeRebuild) {
+    void queryClient.invalidateQueries({ queryKey: homeNotesQueryKey });
+  }
 }
 
 /**

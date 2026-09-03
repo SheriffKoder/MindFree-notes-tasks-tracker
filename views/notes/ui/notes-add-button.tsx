@@ -6,6 +6,7 @@
  * Used in: views/notes/ui/notes-client.tsx
  * Used for: Lazy general-note create — drawer opens with a default category;
  *           the user can change category in the editor before the first save.
+ *           Disabled when no active category exists (empty-categories case).
  */
 
 "use client";
@@ -18,6 +19,8 @@ import { cn } from "@/lib/utils";
 export interface NotesAddButtonProps {
   /** Opens the drawer in general-note create mode. */
   onClick: () => void;
+  /** When false, the control is inert — no active category to attach a note to. */
+  disabled?: boolean;
   className?: string;
 }
 
@@ -26,7 +29,15 @@ export interface NotesAddButtonProps {
  * Chrome matches {@link ViewSwitcherDesktop} — bordered surface pill, ghost icon.
  * No visible label — `aria-label` carries the accessible name.
  */
-export function NotesAddButton({ onClick, className }: NotesAddButtonProps) {
+export function NotesAddButton({
+  onClick,
+  disabled = false,
+  className,
+}: NotesAddButtonProps) {
+  const addLabel = disabled
+    ? "Add note unavailable until a category exists"
+    : "Add note";
+
   return (
     <div
       className={cn(
@@ -35,10 +46,11 @@ export function NotesAddButton({ onClick, className }: NotesAddButtonProps) {
       )}
     >
       <Button
-        aria-label="Add note"
+        aria-label={addLabel}
         className="shrink-0"
+        disabled={disabled}
         size="icon"
-        title="Add note"
+        title={addLabel}
         type="button"
         variant="ghost"
         onClick={onClick}

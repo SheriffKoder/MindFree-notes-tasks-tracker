@@ -5,7 +5,7 @@ Home composes consumers without forking their caches or workflows.
 
 | Doc | Topic |
 | --- | ----- |
-| [notes-strip.md](./notes-strip.md) | Quick slot + starred carousel |
+| [notes-strip.md](./notes-strip.md) | Category switcher, quick slot + starred carousel |
 | [today-list.md](./today-list.md) | Today's task join + inline record controls |
 
 **ADRs:** [0010](../../../docs/adr/0010-one-domain-multiple-consumers.md) —

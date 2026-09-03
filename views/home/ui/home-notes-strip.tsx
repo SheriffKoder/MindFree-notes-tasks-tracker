@@ -50,6 +50,7 @@ const HomeStripNoteCard = memo(function HomeStripNoteCard({
 interface HomeStripQuickSlotProps {
   quickNote: Note | null;
   categoryId: string;
+  categoryName: string;
   onNoteClick: (note: Note) => void;
   onQuickPlaceholderClick: (categoryId: string) => void;
 }
@@ -57,6 +58,7 @@ interface HomeStripQuickSlotProps {
 const HomeStripQuickSlot = memo(function HomeStripQuickSlot({
   quickNote,
   categoryId,
+  categoryName,
   onNoteClick,
   onQuickPlaceholderClick,
 }: HomeStripQuickSlotProps) {
@@ -74,8 +76,9 @@ const HomeStripQuickSlot = memo(function HomeStripQuickSlot({
         />
       ) : (
         <button
-          aria-label={`Create quick note in ${categoryId}`}
+          aria-label={`Create quick note in ${categoryName}`}
           className="group flex h-40 w-full cursor-pointer flex-col text-left md:h-56"
+          title={`Create quick note in ${categoryName}`}
           type="button"
           onClick={() => onQuickPlaceholderClick(categoryId)}
         >
@@ -120,12 +123,19 @@ export const HomeNotesStrip = memo(function HomeNotesStrip({
       <HomeStripQuickSlot
         key="quick"
         categoryId={strip.categoryId}
+        categoryName={strip.categoryName}
         quickNote={strip.quickNote}
         onNoteClick={onNoteClick}
         onQuickPlaceholderClick={onQuickPlaceholderClick}
       />
     ),
-    [onNoteClick, onQuickPlaceholderClick, strip.categoryId, strip.quickNote],
+    [
+      onNoteClick,
+      onQuickPlaceholderClick,
+      strip.categoryId,
+      strip.categoryName,
+      strip.quickNote,
+    ],
   );
 
   const rows = useMemo(() => {

@@ -1,6 +1,6 @@
 /**
  * @file entities/note/category/editor/ui/note-category-form.tsx
- * Plain category editor — name + show-on-home checkbox.
+ * Plain category editor — name + Home visibility checkbox.
  *
  * Purpose: Dumb editor shell; delegates save routing to the manage drawer.
  * Used in: features/notes/note-category-drawer/ui/category-edit-form.tsx

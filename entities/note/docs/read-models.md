@@ -16,7 +16,7 @@ Each surface asks a different question:
 | ------- | -------- | ----- |
 | Calendar / month list | What’s on this month’s days? | One `YYYY-MM` |
 | General list | What undated notes do I have? | All time; not month-scoped |
-| Home strip | What’s my quick slot + starred set? | One quick + starred subset |
+| Home strips | What’s my quick slot + starred set **per showOnHome category**? | One strip each; Diary also gets starred calendar notes |
 
 If month navigation refetched general notes every time, general list would flash and waste work. If Home reused calendar month payloads, starring across months would be awkward. Separate caches keep each consumer coherent.
 
@@ -81,22 +81,26 @@ Month param does **not** apply. Quick notes are excluded by design.
 
 ---
 
-## Home (quick + starred)
+## Home (strips: quick + starred per category)
 
 ```text
 GET /api/notes/home
-→ HomeNotesResponse
+→ HomeNotesResponse { strips: HomeNotesStrip[] }
 TanStack key: ["homeNotes"]
 ```
 
-| Field | Purpose |
-| ----- | ------- |
-| `quickNote` | The single `is_quick = true` note, or `null` before lazy create |
-| `starredNotes` | `starred = true` and **not** quick; most recently edited first |
+Each strip is one active category with `showOnHome`. Home shows **one selected strip** at a time; titles in the header switch between them. Empty Home (`strips.length === 0`) is valid when every category has the flag off.
 
-**Who uses it:** Home notes strip only. Opening a card still uses the shared `NoteDrawer` — writes are domain mutations, not a Home-specific save path.
+| Field (per strip) | Purpose |
+| ----------------- | ------- |
+| `categoryId` / `categoryName` | Owner of the undated quick + starred cards |
+| `isDefault` | Diary strip — also receives starred calendar notes |
+| `quickNote` | That category’s `is_quick` note, or `null` (empty placeholder) |
+| `starredNotes` | `starred` and **not** quick for this strip; most recently edited first |
 
-POST on `/api/notes/home` supports lazy quick-note create when the slot is empty.
+**Who uses it:** Home notes section only. Opening a card still uses the shared `NoteDrawer` — writes are domain mutations, not a Home-specific save path.
+
+POST on `/api/notes/home` supports lazy quick-note create for a given `categoryId` when that strip’s slot is empty.
 
 ---
 
@@ -123,7 +127,7 @@ Any create / update / delete (mutation, realtime, offline flush) should update *
 
 - Calendar month of old/new date
 - General list (enter/leave undated non-quick)
-- Home (quick slot, starred membership)
+- Home (per-category quick slot, starred membership, strip presence)
 
 That is the job of `cache/synchronize-note-caches.ts`. Callers map their event
 into a `NoteChange` and call the hub once — they do not scatter `setQueryData`

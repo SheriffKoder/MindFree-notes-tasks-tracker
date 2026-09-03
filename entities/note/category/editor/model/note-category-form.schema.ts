@@ -1,6 +1,6 @@
 /**
  * @file entities/note/category/editor/model/note-category-form.schema.ts
- * Zod schema for the note-category editor form (name + showOnHome).
+ * Zod schema for the note-category editor form (name + show on Home).
  *
  * Purpose: Client validation for the manage-drawer form — no save routing.
  * Used in: useNoteCategoryForm, NoteCategoryForm

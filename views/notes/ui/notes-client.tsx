@@ -194,7 +194,10 @@ export function NotesClient() {
             onCycleView={cycleView}
           />
           <NotesManageCategoriesButton onClick={handleOpenCategories} />
-          <NotesAddButton onClick={handleAddNote} />
+          <NotesAddButton
+            disabled={!addNoteCategoryId}
+            onClick={handleAddNote}
+          />
         </div>
       </section>
 
