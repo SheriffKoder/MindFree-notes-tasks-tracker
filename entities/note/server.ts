@@ -25,6 +25,7 @@ export {
   seedHomeNotesCache,
   seedNotesPageCache,
 } from "@/entities/note/hydration";
+export { seedNoteCategoriesCache } from "@/entities/note/category/hydration/seed-note-categories-cache";
 export {
   createCalendarNote,
   createGeneralNote,

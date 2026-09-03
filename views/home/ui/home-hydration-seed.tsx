@@ -19,7 +19,9 @@ import {
 } from "@/entities/activity/server";
 import {
   getHomeNotesResponse,
+  getNoteCategoriesResponse,
   seedHomeNotesCache,
+  seedNoteCategoriesCache,
 } from "@/entities/note/server";
 import { getAuthenticatedDemoSession } from "@/shared/lib/auth/get-demo-session";
 import { getQueryClient, QueryHydration } from "@/shared/react-query";
@@ -37,13 +39,17 @@ export async function HomeHydrationSeed() {
 
   const { userId, isDemoUser } = await getAuthenticatedDemoSession();
 
-  const [homeNotes, activityData] = await Promise.all([
+  // Parallel: home strips + categories (picker/names) + activity
+  const [homeNotes, categoriesResponse, activityData] = await Promise.all([
     getHomeNotesResponse(userId),
+    getNoteCategoriesResponse(userId),
     getHomeActivityInitialData(userId, { isDemoUser }),
   ]);
 
   const queryClient = getQueryClient();
   seedHomeNotesCache(queryClient, homeNotes);
+  // Seed categories so Home strips / add actions resolve Diary without a flash
+  seedNoteCategoriesCache(queryClient, categoriesResponse.categories);
   seedHomeActivityCaches(queryClient, activityData);
 
   return <QueryHydration state={dehydrate(queryClient)}>{null}</QueryHydration>;

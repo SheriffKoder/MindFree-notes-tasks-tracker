@@ -24,6 +24,8 @@ function buildDeleteNoteFromPayload(payload: NoteOfflinePayload): Note {
     isQuick: payload.isQuick ?? false,
     lastEditedAt: payload.savedAt,
     revision: payload.expectedRevision ?? 1,
+    // Calendar deletes keep null; undated use payload category when present
+    categoryId: payload.date ? null : (payload.categoryId ?? null),
   };
 }
 

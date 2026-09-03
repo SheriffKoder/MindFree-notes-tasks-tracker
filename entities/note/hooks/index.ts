@@ -17,7 +17,10 @@
 
 export { useCalendarNotesQuery } from "@/entities/note/hooks/use-calendar-notes-query";
 export { useGeneralNotesQuery } from "@/entities/note/hooks/use-general-notes-query";
-export { useNoteCategoriesQuery } from "@/entities/note/hooks/use-note-categories-query";
+export {
+  useNoteCategoriesQuery,
+  type UseNoteCategoriesQueryOptions,
+} from "@/entities/note/hooks/use-note-categories-query";
 export { useHomeNotesQuery } from "@/entities/note/hooks/use-home-notes-query";
 export { useCreateCalendarNoteMutation } from "@/entities/note/hooks/use-create-calendar-note-mutation";
 export type { CreateCalendarNoteMutationInput } from "@/entities/note/hooks/use-create-calendar-note-mutation";

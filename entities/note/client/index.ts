@@ -16,6 +16,8 @@ export {
   generalNotesQueryKey,
   homeNotesQueryKey,
   noteCategoriesQueryKey,
+  noteCategoriesWithDeletedQueryKey,
+  noteCategoriesKeyFor,
 } from "@/entities/note/client/query-keys";
 export {
   calendarNotesQueryOptions,

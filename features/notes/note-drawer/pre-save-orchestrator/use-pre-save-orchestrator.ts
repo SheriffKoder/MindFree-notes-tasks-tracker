@@ -396,12 +396,14 @@ export function usePreSaveOrchestrator({
           saveNoteOfflinePending(userId, queryClient, {
             kind: "create-general",
             values: pending.values,
+            categoryId: pending.categoryId,
           });
           break;
         case "create-quick":
           saveNoteOfflinePending(userId, queryClient, {
             kind: "create-quick",
             values: pending.values,
+            categoryId: pending.categoryId,
           });
           break;
         case "delete":
