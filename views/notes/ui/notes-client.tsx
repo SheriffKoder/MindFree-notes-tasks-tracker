@@ -9,7 +9,7 @@ import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { CalendarDay, Note } from "@/entities/note";
-import { useNotesRealtimeSync } from "@/entities/note/client";
+import { useNoteCategoriesQuery, useNotesRealtimeSync } from "@/entities/note/client";
 import { createNotesOfflineSyncAdapter } from "@/entities/note/offline";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
@@ -49,6 +49,12 @@ export function NotesClient() {
   
   // Drawer options
   const drawer = useNotesDrawer();
+  const { data: categoriesData } = useNoteCategoriesQuery();
+
+  const defaultCategoryId =
+    categoriesData?.categories.find((category) => category.isDefault)?.id ??
+    categoriesData?.categories[0]?.id ??
+    "";
 
   useNotesRealtimeSync({
     onNoteChange: notifyNoteDrawerRealtime,
@@ -86,8 +92,13 @@ export function NotesClient() {
 
   const handleAddNote = useCallback(() => {
     clearSelection();
-    drawer.openCreateGeneral();
-  }, [clearSelection, drawer.openCreateGeneral]);
+
+    if (!defaultCategoryId) {
+      return;
+    }
+
+    drawer.openCreateGeneral(defaultCategoryId);
+  }, [clearSelection, defaultCategoryId, drawer.openCreateGeneral]);
 
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">

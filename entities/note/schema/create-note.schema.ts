@@ -35,9 +35,11 @@ export type CreateCalendarNoteBody = z.infer<
 >;
 
 /**
- * Body for creating a general note (`date IS NULL`).
+ * Body for creating a general or quick note (`date IS NULL`).
  */
-export const createGeneralNoteBodySchema = noteFormSchema;
+export const createGeneralNoteBodySchema = noteFormSchema.extend({
+  categoryId: z.string().uuid(),
+});
 
 export type CreateGeneralNoteBody = z.infer<
   typeof createGeneralNoteBodySchema

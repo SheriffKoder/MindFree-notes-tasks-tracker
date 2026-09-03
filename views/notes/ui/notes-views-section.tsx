@@ -10,6 +10,7 @@ import { memo, useCallback, useEffect, useMemo } from "react";
 import {
   useCalendarNotesQuery,
   useGeneralNotesQuery,
+  useNoteCategoriesQuery,
   type Note,
   type CalendarDay,
 } from "@/entities/note/client";
@@ -71,7 +72,12 @@ export const NotesViewsSection = memo(function NotesViewsSection({
 
   // Queries
   const calendarQuery = useCalendarNotesQuery(month);
-  const generalQuery = useGeneralNotesQuery();
+  const { data: categoriesData } = useNoteCategoriesQuery();
+  const defaultCategoryId =
+    categoriesData?.categories.find((category) => category.isDefault)?.id ??
+    categoriesData?.categories[0]?.id ??
+    "";
+  const generalQuery = useGeneralNotesQuery(defaultCategoryId);
   const { data: calendarNotes } = calendarQuery;
   const { data: generalNotes } = generalQuery;
 

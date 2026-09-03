@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { synchronizeNoteCaches } from "@/entities/note/cache/synchronize-note-caches";
+import type { HomeNotesResponse } from "@/entities/note/model/read-models";
 import type { Note } from "@/entities/note/model/types";
 import {
   calendarNotesQueryKey,
@@ -9,8 +10,10 @@ import {
   homeNotesQueryKey,
 } from "@/entities/note/client/query-keys";
 
+const TEST_CATEGORY_ID = "00000000-0000-4000-8000-000000000001";
+
 function buildNote(overrides: Partial<Note> = {}): Note {
-  return {
+  const note: Note = {
     id: "note-1",
     date: null,
     title: "Title",
@@ -20,7 +23,31 @@ function buildNote(overrides: Partial<Note> = {}): Note {
     isQuick: false,
     lastEditedAt: "2024-06-01T12:00:00.000Z",
     revision: 1,
+    categoryId: TEST_CATEGORY_ID,
     ...overrides,
+  };
+
+  if (note.date) {
+    note.categoryId = null;
+  }
+
+  return note;
+}
+
+function buildHomeCache(
+  overrides: Partial<HomeNotesResponse["strips"][number]> = {},
+): HomeNotesResponse {
+  return {
+    strips: [
+      {
+        categoryId: TEST_CATEGORY_ID,
+        categoryName: "Diary",
+        isDefault: true,
+        quickNote: null,
+        starredNotes: [],
+        ...overrides,
+      },
+    ],
   };
 }
 
@@ -37,27 +64,22 @@ describe("synchronizeNoteCaches", () => {
     const previous = buildNote();
     const next = buildNote({ starred: true, lastEditedAt: "2024-06-02T12:00:00.000Z" });
 
-    queryClient.setQueryData(homeNotesQueryKey, {
-      quickNote: null,
-      starredNotes: [],
-    });
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(homeNotesQueryKey, buildHomeCache());
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [previous],
     });
 
     synchronizeNoteCaches(queryClient, { type: "update", previous, next });
 
-    const home = queryClient.getQueryData<{
-      quickNote: Note | null;
-      starredNotes: Note[];
-    }>(homeNotesQueryKey);
+    const home = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
 
-    expect(home?.starredNotes).toHaveLength(1);
-    expect(home?.starredNotes[0]?.id).toBe("note-1");
-    expect(home?.starredNotes[0]?.starred).toBe(true);
+    expect(home?.strips[0]?.starredNotes).toHaveLength(1);
+    expect(home?.strips[0]?.starredNotes[0]?.id).toBe("note-1");
+    expect(home?.strips[0]?.starredNotes[0]?.starred).toBe(true);
 
     const general = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
     expect(general?.generalNotes[0]?.starred).toBe(true);
   });
@@ -71,26 +93,24 @@ describe("synchronizeNoteCaches", () => {
       lastEditedAt: "2024-06-02T12:00:00.000Z",
     });
 
-    queryClient.setQueryData(homeNotesQueryKey, {
-      quickNote: null,
-      starredNotes: [previous],
-    });
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(
+      homeNotesQueryKey,
+      buildHomeCache({ starredNotes: [previous] }),
+    );
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [previous],
     });
 
     synchronizeNoteCaches(queryClient, { type: "update", previous, next });
 
-    const home = queryClient.getQueryData<{
-      quickNote: Note | null;
-      starredNotes: Note[];
-    }>(homeNotesQueryKey);
+    const home = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
 
-    expect(home?.quickNote?.isQuick).toBe(true);
-    expect(home?.starredNotes).toHaveLength(0);
+    expect(home?.strips[0]?.quickNote?.isQuick).toBe(true);
+    expect(home?.strips[0]?.starredNotes).toHaveLength(0);
 
     const general = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
     expect(general?.generalNotes).toHaveLength(0);
   });
@@ -103,25 +123,20 @@ describe("synchronizeNoteCaches", () => {
       lastEditedAt: "2024-06-01T12:00:00.000Z",
     });
 
-    queryClient.setQueryData(homeNotesQueryKey, {
-      quickNote: null,
-      starredNotes: [],
-    });
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(homeNotesQueryKey, buildHomeCache());
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [],
     });
 
     synchronizeNoteCaches(queryClient, { type: "create", note: quickNote });
 
-    const home = queryClient.getQueryData<{
-      quickNote: Note | null;
-      starredNotes: Note[];
-    }>(homeNotesQueryKey);
+    const home = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
 
-    expect(home?.quickNote?.id).toBe("quick-1");
+    expect(home?.strips[0]?.quickNote?.id).toBe("quick-1");
 
     const general = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
     expect(general?.generalNotes).toHaveLength(0);
   });
@@ -129,24 +144,22 @@ describe("synchronizeNoteCaches", () => {
   it("removes a note from home and owner caches on delete", () => {
     const note = buildNote({ starred: true });
 
-    queryClient.setQueryData(homeNotesQueryKey, {
-      quickNote: null,
-      starredNotes: [note],
-    });
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(
+      homeNotesQueryKey,
+      buildHomeCache({ starredNotes: [note] }),
+    );
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [note],
     });
 
     synchronizeNoteCaches(queryClient, { type: "delete", note });
 
-    const home = queryClient.getQueryData<{
-      quickNote: Note | null;
-      starredNotes: Note[];
-    }>(homeNotesQueryKey);
-    expect(home?.starredNotes).toHaveLength(0);
+    const home = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
+    expect(home?.strips[0]?.starredNotes).toHaveLength(0);
 
     const general = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
     expect(general?.generalNotes).toHaveLength(0);
   });
@@ -171,10 +184,7 @@ describe("synchronizeNoteCaches", () => {
       monthNotes: [],
       calendarDays: [],
     });
-    queryClient.setQueryData(homeNotesQueryKey, {
-      quickNote: null,
-      starredNotes: [],
-    });
+    queryClient.setQueryData(homeNotesQueryKey, buildHomeCache());
 
     synchronizeNoteCaches(queryClient, { type: "update", previous, next });
 

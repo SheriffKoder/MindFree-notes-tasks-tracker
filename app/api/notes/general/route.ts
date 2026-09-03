@@ -14,15 +14,25 @@ import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authentica
  *
  * @returns general notes payload
  */
-export async function GET() {
+export async function GET(request: Request) {
   const userId = await requireAuthenticatedUserId();
 
   if (!userId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const categoryId = searchParams.get("categoryId");
+
+  if (!categoryId) {
+    return Response.json(
+      { error: "categoryId query parameter is required." },
+      { status: 400 },
+    );
+  }
+
   try {
-    const response = await getGeneralNotesResponse(userId);
+    const response = await getGeneralNotesResponse(userId, categoryId);
 
     return Response.json(response);
   } catch (error) {

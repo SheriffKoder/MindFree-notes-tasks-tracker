@@ -17,8 +17,10 @@ import {
 } from "@/entities/note/hooks/note-mutation-pending";
 import type { Note, NoteRow } from "@/entities/note/model/types";
 
+const TEST_CATEGORY_ID = "00000000-0000-4000-8000-000000000001";
+
 function buildNote(overrides: Partial<Note> = {}): Note {
-  return {
+  const note: Note = {
     id: "note-1",
     date: null,
     title: "Title",
@@ -28,8 +30,15 @@ function buildNote(overrides: Partial<Note> = {}): Note {
     isQuick: false,
     lastEditedAt: "2024-06-01T12:00:00.000Z",
     revision: 1,
+    categoryId: TEST_CATEGORY_ID,
     ...overrides,
   };
+
+  if (note.date) {
+    note.categoryId = null;
+  }
+
+  return note;
 }
 
 function buildRow(
@@ -45,6 +54,7 @@ function buildRow(
     is_quick: false,
     last_edited_at: "2024-06-01T12:00:00.000Z",
     revision: 1,
+    category_id: TEST_CATEGORY_ID,
     created_at: "2024-06-01T12:00:00.000Z",
     ...overrides,
   };
@@ -92,7 +102,8 @@ describe("applyRealtimeNoteChange", () => {
   });
 
   it("UPDATE patches when remote revision is higher", () => {
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [buildNote({ revision: 1, title: "Local" })],
     });
 
@@ -111,7 +122,7 @@ describe("applyRealtimeNoteChange", () => {
     expect(result.applied).toBe(true);
 
     const cached = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
 
     expect(cached?.generalNotes[0]?.title).toBe("Remote");
@@ -119,7 +130,8 @@ describe("applyRealtimeNoteChange", () => {
   });
 
   it("UPDATE skips when remote revision is stale or equal", () => {
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [
         buildNote({
           revision: 3,
@@ -144,7 +156,7 @@ describe("applyRealtimeNoteChange", () => {
     expect(result.applied).toBe(false);
 
     const cached = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
 
     expect(cached?.generalNotes[0]?.title).toBe("Local");
@@ -152,7 +164,8 @@ describe("applyRealtimeNoteChange", () => {
   });
 
   it("UPDATE skips while a local mutation is pending", () => {
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [buildNote({ revision: 1 })],
     });
     markNoteMutationPending("note-1");
@@ -172,14 +185,15 @@ describe("applyRealtimeNoteChange", () => {
     expect(result.applied).toBe(false);
 
     const cached = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
 
     expect(cached?.generalNotes[0]?.title).toBe("Title");
   });
 
   it("DELETE removes a cached note when no mutation is pending", () => {
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [buildNote()],
     });
 
@@ -193,7 +207,7 @@ describe("applyRealtimeNoteChange", () => {
     expect(result.applied).toBe(true);
 
     const cached = queryClient.getQueryData<{ generalNotes: Note[] }>(
-      generalNotesQueryKey,
+      generalNotesQueryKey(TEST_CATEGORY_ID),
     );
 
     expect(cached?.generalNotes).toHaveLength(0);

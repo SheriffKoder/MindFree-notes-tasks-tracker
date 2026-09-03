@@ -23,6 +23,7 @@ export { getGeneralNotes } from "@/entities/note/repository/get-general-notes";
 export { getAllNotes } from "@/entities/note/repository/get-all-notes";
 export { getQuickNote } from "@/entities/note/repository/get-quick-note";
 export { getStarredNotes } from "@/entities/note/repository/get-starred-notes";
+export { getStarredNotesForHomeStrip } from "@/entities/note/repository/get-starred-notes-for-home-strip";
 export { createCalendarNote } from "@/entities/note/repository/create-calendar-note";
 export {
   createGeneralNote,

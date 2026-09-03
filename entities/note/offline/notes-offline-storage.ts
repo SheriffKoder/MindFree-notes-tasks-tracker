@@ -255,9 +255,12 @@ function resolveCachedNoteForPayload(
   }
 
   if (payload.operation === "create-quick") {
+    const homeData = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
+
     return (
       findNoteByIdInCache(queryClient, "optimistic-quick") ??
-      queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey)?.quickNote ??
+      homeData?.strips.find((strip) => strip.quickNote?.id === "optimistic-quick")
+        ?.quickNote ??
       null
     );
   }

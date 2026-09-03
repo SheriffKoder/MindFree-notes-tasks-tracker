@@ -9,8 +9,10 @@ import {
   homeNotesQueryKey,
 } from "@/entities/note/client/query-keys";
 
+const TEST_CATEGORY_ID = "00000000-0000-4000-8000-000000000001";
+
 function buildNote(overrides: Partial<Note> = {}): Note {
-  return {
+  const note: Note = {
     id: "note-1",
     date: null,
     title: "Title",
@@ -20,8 +22,15 @@ function buildNote(overrides: Partial<Note> = {}): Note {
     isQuick: false,
     lastEditedAt: "2024-06-01T12:00:00.000Z",
     revision: 1,
+    categoryId: TEST_CATEGORY_ID,
     ...overrides,
   };
+
+  if (note.date) {
+    note.categoryId = null;
+  }
+
+  return note;
 }
 
 function buildPayload(
@@ -59,7 +68,8 @@ describe("noteChangeFromOfflineFlush", () => {
       lastEditedAt: "2024-06-03T12:00:00.000Z",
     });
 
-    queryClient.setQueryData(generalNotesQueryKey, {
+    queryClient.setQueryData(generalNotesQueryKey(TEST_CATEGORY_ID), {
+      categoryId: TEST_CATEGORY_ID,
       generalNotes: [previous],
     });
 
@@ -90,8 +100,15 @@ describe("noteChangeFromOfflineFlush", () => {
     });
 
     queryClient.setQueryData(homeNotesQueryKey, {
-      quickNote: previous,
-      starredNotes: [],
+      strips: [
+        {
+          categoryId: TEST_CATEGORY_ID,
+          categoryName: "Diary",
+          isDefault: true,
+          quickNote: previous,
+          starredNotes: [],
+        },
+      ],
     });
 
     const change = noteChangeFromOfflineFlush(

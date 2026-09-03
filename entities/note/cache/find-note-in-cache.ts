@@ -13,38 +13,42 @@ import type {
 import type { Note } from "@/entities/note/model/types";
 import {
   calendarNotesQueryKey,
-  generalNotesQueryKey,
   homeNotesQueryKey,
 } from "@/entities/note/client/query-keys";
 
 /**
- * Finds a note by id across general and any cached calendar month buckets.
+ * Finds a note by id across general, home strips, and cached calendar months.
  */
 export function findNoteByIdInCache(
   queryClient: QueryClient,
   noteId: string,
 ): Note | null {
-  const generalData = queryClient.getQueryData<GeneralNotesResponse>(
-    generalNotesQueryKey,
-  );
-  const generalMatch = generalData?.generalNotes.find(
-    (note) => note.id === noteId,
-  );
+  const generalQueries = queryClient.getQueriesData<GeneralNotesResponse>({
+    queryKey: ["generalNotes"],
+  });
 
-  if (generalMatch) {
-    return generalMatch;
+  for (const [, data] of generalQueries) {
+    const generalMatch = data?.generalNotes.find((note) => note.id === noteId);
+
+    if (generalMatch) {
+      return generalMatch;
+    }
   }
 
   const homeData = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
 
-  if (homeData?.quickNote?.id === noteId) {
-    return homeData.quickNote;
-  }
+  if (homeData) {
+    for (const strip of homeData.strips) {
+      if (strip.quickNote?.id === noteId) {
+        return strip.quickNote;
+      }
 
-  const starredMatch = homeData?.starredNotes.find((note) => note.id === noteId);
+      const starredMatch = strip.starredNotes.find((note) => note.id === noteId);
 
-  if (starredMatch) {
-    return starredMatch;
+      if (starredMatch) {
+        return starredMatch;
+      }
+    }
   }
 
   const calendarQueries = queryClient.getQueriesData<CalendarNotesResponse>({

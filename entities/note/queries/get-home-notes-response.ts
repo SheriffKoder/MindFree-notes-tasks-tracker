@@ -1,28 +1,45 @@
 /**
  * @file entities/note/queries/get-home-notes-response.ts
- * Read use-case: quick note slot and starred carousel for the Home page.
+ * Read use-case: Home category strips (quick slot + starred per showOnHome category).
  */
 
-import type { HomeNotesResponse } from "@/entities/note/model/read-models";
+import { ensureDefaultCategory, getCategories } from "@/entities/note/category/repository";
+import type {
+  HomeNotesResponse,
+  HomeNotesStrip,
+} from "@/entities/note/model/read-models";
 import {
   getQuickNote,
-  getStarredNotes,
+  getStarredNotesForHomeStrip,
 } from "@/entities/note/repository";
 
 /**
- * Fetches the home notes payload in parallel.
- *
- * Used by `GET /api/notes/home` and SSR hydration on `/`.
- *
- * @returns quick note slot plus starred notes (quick excluded from starred list)
+ * Fetches one Home strip per active showOnHome category (including empty quick slots).
  */
 export async function getHomeNotesResponse(
   userId: string,
 ): Promise<HomeNotesResponse> {
-  const [quickNote, starredNotes] = await Promise.all([
-    getQuickNote(userId),
-    getStarredNotes(userId),
-  ]);
+  await ensureDefaultCategory(userId);
+  const categories = (await getCategories(userId)).filter(
+    (category) => category.showOnHome,
+  );
 
-  return { quickNote, starredNotes };
+  const strips: HomeNotesStrip[] = await Promise.all(
+    categories.map(async (category) => {
+      const [quickNote, starredNotes] = await Promise.all([
+        getQuickNote(userId, category.id),
+        getStarredNotesForHomeStrip(userId, category),
+      ]);
+
+      return {
+        categoryId: category.id,
+        categoryName: category.name,
+        isDefault: category.isDefault,
+        quickNote,
+        starredNotes,
+      };
+    }),
+  );
+
+  return { strips };
 }

@@ -25,6 +25,8 @@ export interface Note {
   lastEditedAt: string;
   /** Monotonic concurrency token; advanced only by the server on successful UPDATE. */
   revision: number;
+  /** Null for calendar notes; required for undated/quick. */
+  categoryId: string | null;
 }
 
 /**
@@ -41,5 +43,6 @@ export interface NoteRow {
   is_quick: boolean;
   last_edited_at: string;
   revision: number;
+  category_id: string | null;
   created_at: string;
 }

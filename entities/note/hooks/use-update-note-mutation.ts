@@ -100,10 +100,13 @@ function snapshotOwningCaches(
       snapshots.push({ queryKey, data });
     }
 
-    snapshots.push({
-      queryKey: generalNotesQueryKey,
-      data: queryClient.getQueryData<GeneralNotesResponse>(generalNotesQueryKey),
+    const generalQueries = queryClient.getQueriesData<GeneralNotesResponse>({
+      queryKey: ["generalNotes"],
     });
+
+    for (const [queryKey, data] of generalQueries) {
+      snapshots.push({ queryKey, data });
+    }
 
     snapshots.push({
       queryKey: homeNotesQueryKey,

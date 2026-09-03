@@ -56,8 +56,11 @@ export function useDeleteNoteMutation() {
 
       const previousCalendarData =
         queryClient.getQueryData<CalendarNotesResponse>(queryKey);
-      const previousGeneralData =
-        queryClient.getQueryData<GeneralNotesResponse>(generalNotesQueryKey);
+      const previousGeneralData = note.categoryId
+        ? queryClient.getQueryData<GeneralNotesResponse>(
+            generalNotesQueryKey(note.categoryId),
+          )
+        : undefined;
       const previousHomeData =
         queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
 
@@ -82,9 +85,9 @@ export function useDeleteNoteMutation() {
         queryClient.setQueryData(context.queryKey, context.previousCalendarData);
       }
 
-      if (context.previousGeneralData !== undefined) {
+      if (context.previousGeneralData !== undefined && _variables.note.categoryId) {
         queryClient.setQueryData(
-          generalNotesQueryKey,
+          generalNotesQueryKey(_variables.note.categoryId),
           context.previousGeneralData,
         );
       }

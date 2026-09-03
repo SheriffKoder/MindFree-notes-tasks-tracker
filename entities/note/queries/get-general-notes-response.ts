@@ -1,22 +1,19 @@
 /**
  * @file entities/note/queries/get-general-notes-response.ts
- * Read use-case: all general notes for the authenticated user.
+ * Read use-case: undated notes for one category.
  */
 
 import type { GeneralNotesResponse } from "@/entities/note/model/read-models";
 import { getGeneralNotes } from "@/entities/note/repository";
 
 /**
- * Fetches every general note (`date IS NULL`, `is_quick = false`).
- *
- * Used by `GET /api/notes/general` and any server code that needs the same payload.
- *
- * @returns general notes response
+ * Fetches general notes for one category (`date IS NULL`, `is_quick = false`).
  */
 export async function getGeneralNotesResponse(
   userId: string,
+  categoryId: string,
 ): Promise<GeneralNotesResponse> {
-  const generalNotes = await getGeneralNotes(userId);
+  const generalNotes = await getGeneralNotes(userId, categoryId);
 
-  return { generalNotes };
+  return { categoryId, generalNotes };
 }

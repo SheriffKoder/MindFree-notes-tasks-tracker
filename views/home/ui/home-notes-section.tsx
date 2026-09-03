@@ -1,15 +1,6 @@
 /**
  * @file views/home/ui/home-notes-section.tsx
- * Client island for the Home starred-notes card — header actions, strip, drawer.
- *
- * Purpose: Wire home read model UI to the existing Notes editor.
- * Used in: views/home/index.tsx
- * Used for: Header general-create + quick placeholder / card clicks open NoteDrawer.
- *
- * Steps:
- * 1. Mount notes realtime + offline sync for Home writes.
- * 2. Own drawer controller (strip + header share one instance).
- * 3. Render header (title + payment + add-note) → strip → NoteDrawer.
+ * Client island for the Home starred-notes card — header actions, strips, drawer.
  */
 
 "use client";
@@ -21,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   useHomeNotesQuery,
+  useNoteCategoriesQuery,
   useNotesRealtimeSync,
   type Note,
 } from "@/entities/note/client";
@@ -29,6 +21,8 @@ import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { cn } from "@/lib/utils";
 import { useAuthUserId, useOfflineSync } from "@/shared/offline-queue";
+import { QueryStatePanel } from "@/shared/react-query";
+import { selectDiaryStrip } from "@/views/home/lib/select-diary-strip";
 import { HOME_SECTION_HEADER_CLASS } from "@/views/home/lib/section-header-class";
 import { HomeNotesStrip } from "@/views/home/ui/home-notes-strip";
 import { HomePaymentQuickAdd } from "@/views/home/ui/home-payment-quick-add";
@@ -37,23 +31,34 @@ import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 
 interface HomeNotesStripAreaProps {
   onNoteClick: (note: Note) => void;
-  onQuickPlaceholderClick: () => void;
+  onQuickPlaceholderClick: (categoryId: string) => void;
   onAddNote: () => void;
 }
 
-/**
- * Header + strip only — owns two-row toggle so drawer stays out of that render path.
- */
 function HomeNotesStripArea({
   onNoteClick,
   onQuickPlaceholderClick,
   onAddNote,
 }: HomeNotesStripAreaProps) {
   const [isTwoRows, setIsTwoRows] = useState(false);
+  const { data, isPending, isError, error } = useHomeNotesQuery();
 
   const toggleRowLayout = useCallback(() => {
     setIsTwoRows((current) => !current);
   }, []);
+
+  if (isError) {
+    return (
+      <QueryStatePanel
+        message={error?.message ?? "Failed to load starred notes."}
+        variant="error"
+      />
+    );
+  }
+
+  if (isPending && !data) {
+    return <QueryStatePanel message="Loading notes…" />;
+  }
 
   return (
     <>
@@ -74,7 +79,11 @@ function HomeNotesStripArea({
           onClick={toggleRowLayout}
         >
           Starred Notes
-          {isTwoRows ? <ChevronUp aria-hidden className="h-4 w-4" /> : <ChevronDown aria-hidden className="h-4 w-4" />}
+          {isTwoRows ? (
+            <ChevronUp aria-hidden className="h-4 w-4" />
+          ) : (
+            <ChevronDown aria-hidden className="h-4 w-4" />
+          )}
         </button>
         <div className="flex shrink-0 items-center gap-0.5">
           <HomePaymentQuickAdd />
@@ -97,21 +106,28 @@ function HomeNotesStripArea({
         </div>
       </div>
 
-      <HomeNotesStrip
-        isTwoRows={isTwoRows}
-        onNoteClick={onNoteClick}
-        onQuickPlaceholderClick={onQuickPlaceholderClick}
-      />
+      <div className="flex flex-col gap-6">
+        {data?.strips.map((strip) => (
+          <div key={strip.categoryId}>
+            {data.strips.length > 1 ? (
+              <p className="mb-2 text-sm font-medium text-body-muted">
+                {strip.categoryName}
+              </p>
+            ) : null}
+            <HomeNotesStrip
+              isTwoRows={isTwoRows}
+              strip={strip}
+              onNoteClick={onNoteClick}
+              onQuickPlaceholderClick={onQuickPlaceholderClick}
+            />
+          </div>
+        ))}
+      </div>
     </>
   );
 }
 
-/**
- * Starred Notes section — header quick-adds, horizontal strip, and editor drawer.
- */
 export function HomeNotesSection() {
-  /////////////////////////////////
-  // 1. Offline + realtime — notes writes from Home
   const queryClient = useQueryClient();
   const userId = useAuthUserId();
   const notesOfflineAdapter = useMemo(
@@ -125,11 +141,19 @@ export function HomeNotesSection() {
 
   useOfflineSync(userId, [notesOfflineAdapter]);
 
-  /////////////////////////////////
-  // 2. Drawer — strip clicks + header add-note share one controller
   const drawer = useNotesDrawer();
   const { openCreateGeneral, openCreateQuick, openEdit } = drawer;
   const { data: homeNotes } = useHomeNotesQuery();
+  const { data: categoriesData } = useNoteCategoriesQuery();
+
+  const defaultCategoryId = useMemo(
+    () =>
+      categoriesData?.categories.find((category) => category.isDefault)?.id ??
+      categoriesData?.categories[0]?.id ??
+      selectDiaryStrip(homeNotes ?? undefined)?.categoryId ??
+      "",
+    [categoriesData?.categories, homeNotes],
+  );
 
   const handleNoteClick = useCallback(
     (note: Note) => {
@@ -138,28 +162,31 @@ export function HomeNotesSection() {
     [openEdit],
   );
 
-  /** Header add — new general note (does not fight the one-quick slot). */
   const handleAddNote = useCallback(() => {
-    openCreateGeneral();
-  }, [openCreateGeneral]);
-
-  /**
-   * Empty quick placeholder → create-quick.
-   * If the slot is already filled (stale UI), edit the existing quick note.
-   */
-  const handleQuickPlaceholderClick = useCallback(() => {
-    const existingQuickId = homeNotes?.quickNote?.id;
-
-    if (existingQuickId) {
-      openEdit(existingQuickId);
+    if (!defaultCategoryId) {
       return;
     }
 
-    openCreateQuick();
-  }, [homeNotes?.quickNote?.id, openCreateQuick, openEdit]);
+    openCreateGeneral(defaultCategoryId);
+  }, [defaultCategoryId, openCreateGeneral]);
 
-  /////////////////////////////////
-  // 3. Strip area (toggle state) + drawer (stable sibling)
+  const handleQuickPlaceholderClick = useCallback(
+    (categoryId: string) => {
+      const strip =
+        homeNotes?.strips.find((entry) => entry.categoryId === categoryId) ??
+        null;
+      const existingQuickId = strip?.quickNote?.id;
+
+      if (existingQuickId) {
+        openEdit(existingQuickId);
+        return;
+      }
+
+      openCreateQuick(categoryId);
+    },
+    [homeNotes?.strips, openCreateQuick, openEdit],
+  );
+
   return (
     <>
       <HomeNotesStripArea

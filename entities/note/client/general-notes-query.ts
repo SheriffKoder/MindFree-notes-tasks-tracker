@@ -1,8 +1,6 @@
 /**
  * @file entities/note/client/general-notes-query.ts
  * Client read cache for general notes — fetcher + query options.
- *
- * The hook lives in hooks/use-general-notes-query (one responsibility per file).
  */
 
 import { queryOptions } from "@tanstack/react-query";
@@ -11,12 +9,17 @@ import { generalNotesQueryKey } from "@/entities/note/client/query-keys";
 import type { GeneralNotesResponse } from "@/entities/note/model/read-models";
 
 /**
- * Fetches all general notes from the API route.
+ * Fetches undated notes for one category from the API route.
  */
-export async function fetchGeneralNotes(): Promise<GeneralNotesResponse> {
-  const response = await fetch("/api/notes/general", {
-    credentials: "same-origin",
-  });
+export async function fetchGeneralNotes(
+  categoryId: string,
+): Promise<GeneralNotesResponse> {
+  const response = await fetch(
+    `/api/notes/general?categoryId=${encodeURIComponent(categoryId)}`,
+    {
+      credentials: "same-origin",
+    },
+  );
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {
@@ -29,12 +32,13 @@ export async function fetchGeneralNotes(): Promise<GeneralNotesResponse> {
 }
 
 /**
- * TanStack Query options for general notes — used by SSR prefetch and hooks.
+ * TanStack Query options for one category's general notes.
  */
-export function generalNotesQueryOptions() {
+export function generalNotesQueryOptions(categoryId: string) {
   return queryOptions({
-    queryKey: generalNotesQueryKey,
-    queryFn: fetchGeneralNotes,
+    queryKey: generalNotesQueryKey(categoryId),
+    queryFn: () => fetchGeneralNotes(categoryId),
+    enabled: Boolean(categoryId),
     retry: 1,
   });
 }

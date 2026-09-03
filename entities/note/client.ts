@@ -20,6 +20,9 @@ export {
   generalNotesQueryOptions,
   homeNotesQueryKey,
   homeNotesQueryOptions,
+  noteCategoriesQueryKey,
+  noteCategoriesQueryOptions,
+  fetchNoteCategories,
   prefetchAdjacentCalendarMonths,
   prefetchCalendarMonth,
 } from "@/entities/note/client/index";
@@ -31,6 +34,7 @@ export {
   useDeleteNoteMutation,
   useGeneralNotesQuery,
   useHomeNotesQuery,
+  useNoteCategoriesQuery,
   useNotesRealtimeSync,
   useUpdateNoteMutation,
 } from "@/entities/note/hooks";
@@ -49,4 +53,5 @@ export type {
   CalendarNotesResponse,
   GeneralNotesResponse,
   HomeNotesResponse,
+  HomeNotesStrip,
 } from "@/entities/note/model/read-models";

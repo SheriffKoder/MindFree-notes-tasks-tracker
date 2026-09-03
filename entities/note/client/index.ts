@@ -15,6 +15,7 @@ export {
   calendarNotesQueryKey,
   generalNotesQueryKey,
   homeNotesQueryKey,
+  noteCategoriesQueryKey,
 } from "@/entities/note/client/query-keys";
 export {
   calendarNotesQueryOptions,
@@ -24,6 +25,10 @@ export {
   generalNotesQueryOptions,
   fetchGeneralNotes,
 } from "@/entities/note/client/general-notes-query";
+export {
+  noteCategoriesQueryOptions,
+  fetchNoteCategories,
+} from "@/entities/note/client/note-categories-query";
 export {
   homeNotesQueryOptions,
   fetchHomeNotes,

@@ -22,6 +22,7 @@ function buildNote(overrides: Partial<Note> = {}): Note {
     date: "2024-06-15",
     lastEditedAt: "2024-06-15T12:00:00.000Z",
     revision: 2,
+    categoryId: null,
     ...overrides,
   };
 }

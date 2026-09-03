@@ -13,13 +13,17 @@ import { createClient } from "@/shared/lib/supabase/server";
  *
  * @returns quick note row, or `null` when the slot is empty
  */
-export async function getQuickNote(userId: string): Promise<Note | null> {
+export async function getQuickNote(
+  userId: string,
+  categoryId: string,
+): Promise<Note | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from(NOTES_TABLE)
     .select("*")
     .eq("user_id", userId)
+    .eq("category_id", categoryId)
     .is("date", null)
     .eq("is_quick", true)
     .maybeSingle();

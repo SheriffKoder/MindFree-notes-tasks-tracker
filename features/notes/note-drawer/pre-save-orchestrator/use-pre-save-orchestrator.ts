@@ -97,8 +97,8 @@ type PendingMutation =
       values: NoteFormValues;
       replaceExistingOnDate: boolean;
     }
-  | { kind: "create-general"; values: NoteFormValues }
-  | { kind: "create-quick"; values: NoteFormValues }
+  | { kind: "create-general"; categoryId: string; values: NoteFormValues }
+  | { kind: "create-quick"; categoryId: string; values: NoteFormValues }
   | { kind: "delete"; note: Note };
 
 function formValuesFromPayload(payload: NoteSavePayload): NoteFormValues {
@@ -515,7 +515,7 @@ export function usePreSaveOrchestrator({
         return;
       case "create-general":
         createGeneralNote(
-          { values: pending.values },
+          { categoryId: pending.categoryId, values: pending.values },
           {
             onSuccess: (serverNote) => {
               confirmedRevisionRef.current = serverNote.revision;
@@ -531,7 +531,7 @@ export function usePreSaveOrchestrator({
         return;
       case "create-quick":
         createQuickNote(
-          { values: pending.values },
+          { categoryId: pending.categoryId, values: pending.values },
           {
             onSuccess: (serverNote) => {
               confirmedRevisionRef.current = serverNote.revision;
@@ -622,10 +622,26 @@ export function usePreSaveOrchestrator({
           return;
         }
         case "create-general":
-          scheduleMutation({ kind: "create-general", values });
+          if (request?.mode !== "create" || !("general" in request)) {
+            return;
+          }
+
+          scheduleMutation({
+            kind: "create-general",
+            categoryId: request.categoryId,
+            values,
+          });
           return;
         case "create-quick":
-          scheduleMutation({ kind: "create-quick", values });
+          if (request?.mode !== "create" || !("quick" in request)) {
+            return;
+          }
+
+          scheduleMutation({
+            kind: "create-quick",
+            categoryId: request.categoryId,
+            values,
+          });
           return;
         case "delete":
           if (!note) {
@@ -639,7 +655,7 @@ export function usePreSaveOrchestrator({
           clearDebounceTimer();
       }
     },
-    [clearDebounceTimer, markSaveError, note, scheduleMutation],
+    [clearDebounceTimer, markSaveError, note, request, scheduleMutation],
   );
 
   const evaluate = useCallback(
