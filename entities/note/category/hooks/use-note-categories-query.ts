@@ -16,17 +16,24 @@ import { noteCategoriesQueryOptions } from "@/entities/note/category/client/cate
 export interface UseNoteCategoriesQueryOptions {
   /** When true, includes soft-deleted categories (manage drawer). */
   includeDeleted?: boolean;
+  /** When false, skip the network/cache subscription (drawer closed). */
+  enabled?: boolean;
 }
 
 /**
  * Reads note categories from the TanStack cache.
  *
  * @param options.includeDeleted - manage drawer uses true; default active-only
+ * @param options.enabled - manage drawer sets false until the panel opens
  */
 export function useNoteCategoriesQuery(
   options: UseNoteCategoriesQueryOptions = {},
 ) {
   const includeDeleted = options.includeDeleted ?? false;
+  const enabled = options.enabled ?? true;
 
-  return useQuery(noteCategoriesQueryOptions(includeDeleted));
+  return useQuery({
+    ...noteCategoriesQueryOptions(includeDeleted),
+    enabled,
+  });
 }

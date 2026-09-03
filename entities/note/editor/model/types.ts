@@ -75,6 +75,12 @@ export interface NoteFormProps {
   isQuickNote?: boolean;
   /** Promotes a persisted note into the home quick slot (house-plus). */
   onSetQuick?: () => void;
+  /** Active categories for the title-row picker (undated notes only). */
+  categories?: Array<{ id: string; name: string }>;
+  /** Prefill when creating an undated note (view category or Diary). */
+  defaultCategoryId?: string | null;
+  /** When false, calendar notes hide the category picker. */
+  showCategorySelect?: boolean;
 }
 
 export interface UseNoteFormOptions {
@@ -87,6 +93,8 @@ export interface UseNoteFormOptions {
   calendarDate?: string | null;
   /** Bumped when the form should reload field values from the cached note. */
   formReloadKey?: number;
+  /** Prefill category for undated create drafts. */
+  defaultCategoryId?: string | null;
   onChange?: (values: NoteFormValues, meta: NoteFormChangeMeta) => void;
 }
 
@@ -100,4 +108,5 @@ export interface UseNoteFormResult {
   setContent: (content: string) => void;
   toggleStarred: () => void;
   toggleImportant: () => void;
+  setCategoryId: (categoryId: string) => void;
 }

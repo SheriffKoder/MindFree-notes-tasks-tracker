@@ -154,7 +154,7 @@ function syncOwnerOnUpdate(
     return;
   }
 
-  if (previous.date !== next.date) {
+  if (previous.date !== next.date || previous.categoryId !== next.categoryId) {
     relocateNoteInCache(queryClient, previous, next);
     return;
   }

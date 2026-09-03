@@ -50,6 +50,11 @@ export function mergeFormValuesIntoNote(
     isImportant: values.isImportant,
     date: options?.date !== undefined ? options.date : note.date,
     isQuick: options?.isQuick !== undefined ? options.isQuick : note.isQuick,
+    categoryId: options?.date
+      ? null
+      : values.categoryId !== undefined
+        ? values.categoryId
+        : note.categoryId,
     lastEditedAt: new Date().toISOString(),
   };
 }

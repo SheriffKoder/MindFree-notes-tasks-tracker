@@ -89,8 +89,9 @@ function snapshotOwningCaches(
   queryClient: ReturnType<typeof useQueryClient>,
   note: Note,
   datePatch: string | null | undefined,
+  categoryChanged: boolean,
 ): CacheSnapshot[] {
-  if (datePatch !== undefined) {
+  if (datePatch !== undefined || categoryChanged) {
     const snapshots: CacheSnapshot[] = [];
     const calendarQueries = queryClient.getQueriesData<CalendarNotesResponse>({
       queryKey: ["calendarNotes"],
@@ -194,10 +195,12 @@ export function useUpdateNoteMutation() {
       markNoteMutationPending(note.id);
 
       const datePatch = resolveDatePatch(note, date);
+      const categoryChanged = values.categoryId !== note.categoryId;
       const previousSnapshots = snapshotOwningCaches(
         queryClient,
         note,
         datePatch,
+        categoryChanged,
       );
       const optimisticNote = buildOptimisticNote(
         note,

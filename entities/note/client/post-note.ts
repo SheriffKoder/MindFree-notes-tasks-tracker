@@ -36,10 +36,11 @@ export async function fetchPostCalendarNote(
   values: NoteFormValues,
   replaceExistingOnDate?: boolean,
 ): Promise<PostNoteResponse> {
-  const body: NoteFormValues & {
+  const { categoryId: _categoryId, ...calendarFields } = values;
+  const body: Omit<NoteFormValues, "categoryId"> & {
     date: string;
     replaceExistingOnDate?: boolean;
-  } = { date, ...values };
+  } = { date, ...calendarFields };
 
   if (replaceExistingOnDate) {
     body.replaceExistingOnDate = true;
@@ -102,7 +103,7 @@ export async function fetchPostGeneralNote(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ categoryId, ...values }),
+    body: JSON.stringify({ ...values, categoryId }),
   });
 
   if (!response.ok) {
@@ -131,7 +132,7 @@ export async function fetchPostQuickNote(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ categoryId, ...values }),
+    body: JSON.stringify({ ...values, categoryId }),
   });
 
   if (!response.ok) {

@@ -45,6 +45,7 @@ function buildPayload(
       content: "Content",
       starred: false,
       isImportant: false,
+      categoryId: TEST_CATEGORY_ID,
     },
     replaceExistingOnDate: false,
     savedAt: "2024-06-02T12:00:00.000Z",

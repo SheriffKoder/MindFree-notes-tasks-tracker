@@ -13,9 +13,10 @@ import type { NoteFormFooterMeta } from "@/entities/note/editor/model/types";
 import {
   calendarNotesQueryOptions,
   useDeleteNoteMutation,
+  useNoteCategoriesQuery,
 } from "@/entities/note/client";
 import { isOptimisticNoteId } from "@/entities/note";
-import { AppDrawer, DrawerTitle } from "@/shared/drawer";
+import { AppDrawer } from "@/shared/drawer";
 import { useAuthUserId } from "@/shared/offline-queue";
 import { findNoteOnDateInCache } from "@/features/notes/note-drawer/lib/find-note-in-cache";
 import { monthOfIsoDate } from "@/features/notes/note-drawer/lib/month-of-iso-date";
@@ -53,6 +54,8 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
   const userId = useAuthUserId();
   const queryClient = useQueryClient();
   const deleteNoteMutation = useDeleteNoteMutation();
+  const { data: categoriesData } = useNoteCategoriesQuery();
+  const categories = categoriesData?.categories ?? [];
   const [footerMeta, setFooterMeta] =
     useState<NoteFormFooterMeta>(INITIAL_FOOTER_META);
 
@@ -209,6 +212,18 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
     return resolveOpeningCalendarDate(activeDate, request);
   }, [activeDate, note?.date, request]);
 
+  const isCalendarCreate =
+    request?.mode === "create" && "date" in request;
+  const showCategorySelect = !isDateNavEnabled && !isCalendarCreate;
+
+  const defaultCategoryId =
+    request?.mode === "create" && "categoryId" in request
+      ? request.categoryId
+      : (note?.categoryId ??
+        categories.find((category) => category.isDefault)?.id ??
+        categories[0]?.id ??
+        null);
+
   const handleFooterMetaChange = useCallback((meta: NoteFormFooterMeta) => {
     setFooterMeta(meta);
   }, []);
@@ -263,13 +278,12 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
   }, [deleteNoteMutation, note, onDismiss, setOpen]);
 
   /////////////////////////////////
-  // Title — create draft vs persisted edit
+  // Accessible name only — category/calendar live in the form title row.
   const title = request?.mode === "edit" ? "Edit note" : "New note";
 
   return (
     <AppDrawer
       ariaLabel={title}
-      header={<DrawerTitle>{title}</DrawerTitle>}
       open={isOpen}
       resizable
       onOpenChange={handleOpenChange}
@@ -277,12 +291,15 @@ export function NoteDrawer({ drawer, onDismiss }: NoteDrawerProps) {
       <div className="relative flex min-h-full flex-col">
         <NoteForm
           calendarDate={prefillCalendarDate}
+          categories={categories}
           commitKey={commitKey}
+          defaultCategoryId={defaultCategoryId}
           isQuickNote={isQuickNoteContext}
           note={note}
           formReloadKey={formReloadKey}
           resetKey={resetKey}
           saveStatus={saveStatus}
+          showCategorySelect={showCategorySelect}
           showContentLastSaved={false}
           onChange={handleChangeWithDirty}
           onDatePick={handleDatePick}

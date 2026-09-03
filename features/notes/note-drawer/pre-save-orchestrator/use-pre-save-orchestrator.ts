@@ -415,6 +415,7 @@ export function usePreSaveOrchestrator({
               content: pending.note.content,
               starred: pending.note.starred,
               isImportant: pending.note.isImportant,
+              categoryId: pending.note.categoryId,
             },
           });
           break;
@@ -623,28 +624,38 @@ export function usePreSaveOrchestrator({
           });
           return;
         }
-        case "create-general":
-          if (request?.mode !== "create" || !("general" in request)) {
+        case "create-general": {
+          const categoryId =
+            values.categoryId ??
+            (request && "categoryId" in request ? request.categoryId : null);
+
+          if (!categoryId) {
             return;
           }
 
           scheduleMutation({
             kind: "create-general",
-            categoryId: request.categoryId,
+            categoryId,
             values,
           });
           return;
-        case "create-quick":
-          if (request?.mode !== "create" || !("quick" in request)) {
+        }
+        case "create-quick": {
+          const categoryId =
+            values.categoryId ??
+            (request && "categoryId" in request ? request.categoryId : null);
+
+          if (!categoryId) {
             return;
           }
 
           scheduleMutation({
             kind: "create-quick",
-            categoryId: request.categoryId,
+            categoryId,
             values,
           });
           return;
+        }
         case "delete":
           if (!note) {
             return;

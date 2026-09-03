@@ -4,7 +4,8 @@
  *
  * Purpose: Primary create entry on the Notes page toolbar.
  * Used in: views/notes/ui/notes-client.tsx
- * Used for: Lazy general-note create for the selected category — drawer opens; row is created on first save.
+ * Used for: Lazy general-note create — drawer opens with a default category;
+ *           the user can change category in the editor before the first save.
  */
 
 "use client";

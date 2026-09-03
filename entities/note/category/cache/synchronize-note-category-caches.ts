@@ -154,9 +154,12 @@ export function applyCategorySoftDeleteToCaches(
     (current) => removeCategoryFromList(current, category.id),
   );
 
+  // Only patch when the manage-drawer cache exists — avoid seeding a
+  // partial withDeleted list that would skip the full includeDeleted fetch
   queryClient.setQueryData<NoteCategoriesResponse>(
     noteCategoriesWithDeletedQueryKey,
-    (current) => upsertCategoryInList(current, category),
+    (current) =>
+      current ? upsertCategoryInList(current, category) : current,
   );
 
   // Hide Home strip immediately; keep generalNotes for potential restore

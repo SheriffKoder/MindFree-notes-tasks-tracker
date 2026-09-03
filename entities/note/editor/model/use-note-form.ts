@@ -32,11 +32,13 @@ const EMPTY_VALUES: NoteFormValues = {
   content: "",
   starred: false,
   isImportant: false,
+  categoryId: null,
 };
 
 function noteToFormValues(
   note: Note | null,
   calendarDate: string | null,
+  defaultCategoryId: string | null,
 ): NoteFormValues {
   if (calendarDate) {
     return {
@@ -44,11 +46,15 @@ function noteToFormValues(
       content: note?.content ?? "",
       starred: note?.starred ?? false,
       isImportant: note?.isImportant ?? false,
+      categoryId: null,
     };
   }
 
   if (!note) {
-    return EMPTY_VALUES;
+    return {
+      ...EMPTY_VALUES,
+      categoryId: defaultCategoryId,
+    };
   }
 
   return {
@@ -56,6 +62,7 @@ function noteToFormValues(
     content: note.content,
     starred: note.starred,
     isImportant: note.isImportant,
+    categoryId: note.categoryId,
   };
 }
 
@@ -64,14 +71,23 @@ function valuesAreEqual(left: NoteFormValues, right: NoteFormValues): boolean {
     left.title === right.title &&
     left.content === right.content &&
     left.starred === right.starred &&
-    left.isImportant === right.isImportant
+    left.isImportant === right.isImportant &&
+    left.categoryId === right.categoryId
   );
 }
 
-function getFieldErrors(values: NoteFormValues): NoteFormFieldErrors {
+function getFieldErrors(
+  values: NoteFormValues,
+  calendarDate: string | null,
+): NoteFormFieldErrors {
   const result = noteFormSchema.safeParse(values);
 
   if (result.success) {
+    // Undated notes need a category before the first save
+    if (!calendarDate && !values.categoryId) {
+      return { categoryId: "Choose a category." };
+    }
+
     return {};
   }
 
@@ -85,7 +101,8 @@ function getFieldErrors(values: NoteFormValues): NoteFormFieldErrors {
       (field === "title" ||
         field === "content" ||
         field === "starred" ||
-        field === "isImportant")
+        field === "isImportant" ||
+        field === "categoryId")
     ) {
       errors[field] ??= issue.message;
     }
@@ -106,12 +123,13 @@ export function useNoteForm({
   commitKey = 0,
   calendarDate = null,
   formReloadKey = 0,
+  defaultCategoryId = null,
   onChange,
 }: UseNoteFormOptions): UseNoteFormResult {
   const noteKey = note?.id ?? "draft";
   const initialValues = useMemo(
-    () => noteToFormValues(note, calendarDate),
-    [calendarDate, noteKey, resetKey],
+    () => noteToFormValues(note, calendarDate, defaultCategoryId),
+    [calendarDate, defaultCategoryId, noteKey, resetKey],
   );
 
   const [baselineValues, setBaselineValues] =
@@ -128,13 +146,16 @@ export function useNoteForm({
   const calendarDateRef = useRef(calendarDate);
   calendarDateRef.current = calendarDate;
 
+  const defaultCategoryIdRef = useRef(defaultCategoryId);
+  defaultCategoryIdRef.current = defaultCategoryId;
+
   // Context switch — reload fields from the resolved note or empty draft.
   useEffect(() => {
-    const nextValues = noteToFormValues(note, calendarDate);
+    const nextValues = noteToFormValues(note, calendarDate, defaultCategoryId);
     setBaselineValues(nextValues);
     setValues(nextValues);
     setErrors({});
-  }, [calendarDate, noteKey, resetKey]);
+  }, [calendarDate, defaultCategoryId, noteKey, resetKey]);
 
   /////////////////////////////////
   // Form reload — pull cached note fields only when formReloadKey bumps (not on every cache write).
@@ -146,6 +167,7 @@ export function useNoteForm({
     const nextValues = noteToFormValues(
       noteRef.current,
       calendarDateRef.current,
+      defaultCategoryIdRef.current,
     );
     setBaselineValues(nextValues);
     setValues(nextValues);
@@ -166,10 +188,18 @@ export function useNoteForm({
     [baselineValues, values],
   );
 
-  const isValid = useMemo(
-    () => noteFormSchema.safeParse(values).success,
-    [values],
-  );
+  const isValid = useMemo(() => {
+    if (!noteFormSchema.safeParse(values).success) {
+      return false;
+    }
+
+    // Calendar drafts keep categoryId null; undated drafts need a category
+    if (!calendarDate && !values.categoryId) {
+      return false;
+    }
+
+    return true;
+  }, [calendarDate, values]);
 
   const formattedLastEditedAt = useMemo(
     () => formatNoteLastEditedAt(note?.lastEditedAt),
@@ -178,7 +208,7 @@ export function useNoteForm({
 
   const updateValues = useCallback((nextValues: NoteFormValues) => {
     setValues(nextValues);
-    setErrors(getFieldErrors(nextValues));
+    setErrors(getFieldErrors(nextValues, calendarDateRef.current));
   }, []);
 
   useEffect(() => {
@@ -207,6 +237,13 @@ export function useNoteForm({
     updateValues({ ...values, isImportant: !values.isImportant });
   }, [updateValues, values]);
 
+  const setCategoryId = useCallback(
+    (categoryId: string) => {
+      updateValues({ ...values, categoryId });
+    },
+    [updateValues, values],
+  );
+
   return {
     values,
     errors,
@@ -217,5 +254,6 @@ export function useNoteForm({
     setContent,
     toggleStarred,
     toggleImportant,
+    setCategoryId,
   };
 }

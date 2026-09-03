@@ -2,25 +2,27 @@
  * @file views/notes/ui/notes-client.tsx
  * Client boundary for the Notes page — layout, URL state, and TanStack query islands.
  *
- * Purpose: Compose month/view controls, category picker, and hydrated query panes.
+ * Purpose: Compose month/view controls and hydrated query panes.
  * Used in: views/notes (Notes page shell)
  * Used for: Dynamic category views + add-note with selected categoryId.
  *
  * Steps:
  * 1. Load active categories (SSR-seeded)
  * 2. Build view config + resolve URL state
- * 3. Derive add-note category (view category or Diary)
- * 4. Render toolbar + views + drawer
+ * 3. Derive add-note default category (view category or Diary)
+ * 4. Render toolbar + views + note drawer + category manage drawer
+ *    Category for a new note is chosen inside the editor drawer.
  */
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { CalendarDay, Note } from "@/entities/note";
 import { useNoteCategoriesQuery, useNotesRealtimeSync } from "@/entities/note/client";
 import { createNotesOfflineSyncAdapter } from "@/entities/note/offline";
+import { NoteCategoryDrawer } from "@/features/notes/note-category-drawer";
 import { NoteDrawer } from "@/features/notes/note-drawer";
 import { notifyNoteDrawerRealtime } from "@/features/notes/note-drawer/model/note-realtime-drawer-bridge";
 import { MonthNavigator } from "@/shared/month-navigator";
@@ -35,11 +37,12 @@ import {
   buildNotesViewConfig,
   parseCategoryViewId,
 } from "@/views/notes/lib/notes-views";
+import { useNoteCategoriesDrawer } from "@/views/notes/model/editor/use-note-categories-drawer";
 import { useNotesDrawer } from "@/views/notes/model/editor/use-notes-drawer";
 import { useNotesPageSelection } from "@/views/notes/model/use-notes-page-selection";
 import { useNotesUrlState } from "@/views/notes/model/use-notes-url-state";
 import { NotesAddButton } from "@/views/notes/ui/notes-add-button";
-import { NotesCategorySelect } from "@/views/notes/ui/notes-category-select";
+import { NotesManageCategoriesButton } from "@/views/notes/ui/notes-manage-categories-button";
 import { NotesViewsSection } from "@/views/notes/ui/notes-views-section";
 
 /**
@@ -75,9 +78,20 @@ export function NotesClient() {
 
   // Drawer options
   const drawer = useNotesDrawer();
+  const categoriesDrawer = useNoteCategoriesDrawer();
 
   /////////////////////////////////////////////////////////////
-  // Add-note category: follow category view, else Diary / first
+  // Opening the note editor closes the category manager (one overlay)
+  /////////////////////////////////////////////////////////////
+  useEffect(function closeCategoriesWhenNoteDrawerOpen() {
+    if (drawer.isOpen) {
+      categoriesDrawer.close();
+    }
+  }, [categoriesDrawer.close, drawer.isOpen]);
+
+  /////////////////////////////////////////////////////////////
+  // Add-note default category: follow category view, else Diary / first
+  // The drawer picker can still change this before the first save.
   /////////////////////////////////////////////////////////////
   const defaultCategoryId =
     categories.find((category) => category.isDefault)?.id ??
@@ -86,22 +100,7 @@ export function NotesClient() {
 
   const viewCategoryId = parseCategoryViewId(view);
 
-  // Null means "no user override" — derive from view or Diary
-  const [overrideCategoryId, setOverrideCategoryId] = useState<string | null>(
-    null,
-  );
-
-  // When the URL view changes, drop the override so the new view / Diary wins
-  useEffect(function resetCategoryOverrideOnViewChange() {
-    setOverrideCategoryId(null);
-  }, [view]);
-
-  const effectiveCategoryId =
-    overrideCategoryId ?? viewCategoryId ?? defaultCategoryId;
-
-  const handleCategorySelectChange = useCallback((categoryId: string) => {
-    setOverrideCategoryId(categoryId);
-  }, []);
+  const addNoteCategoryId = viewCategoryId ?? defaultCategoryId;
 
   useNotesRealtimeSync({
     onNoteChange: notifyNoteDrawerRealtime,
@@ -141,12 +140,28 @@ export function NotesClient() {
   const handleAddNote = useCallback(() => {
     clearSelection();
 
-    if (!effectiveCategoryId) {
+    if (!addNoteCategoryId) {
       return;
     }
 
-    drawer.openCreateGeneral(effectiveCategoryId);
-  }, [clearSelection, drawer.openCreateGeneral, effectiveCategoryId]);
+    drawer.openCreateGeneral(addNoteCategoryId);
+  }, [addNoteCategoryId, clearSelection, drawer.openCreateGeneral]);
+
+  const handleOpenCategories = useCallback(() => {
+    // Close the note editor first so only this manager is open
+    drawer.close();
+    categoriesDrawer.open();
+  }, [categoriesDrawer.open, drawer.close]);
+
+  const handleCategoryRemoved = useCallback(
+    (categoryId: string) => {
+      // Archived / hard-deleted categories leave the switcher
+      if (parseCategoryViewId(view) === categoryId) {
+        changeView("calendar");
+      }
+    },
+    [changeView, view],
+  );
 
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-4">
@@ -178,12 +193,7 @@ export function NotesClient() {
             onViewChange={changeView}
             onCycleView={cycleView}
           />
-          <NotesCategorySelect
-            categories={categories}
-            value={effectiveCategoryId}
-            onValueChange={handleCategorySelectChange}
-            disabled={!defaultCategoryId}
-          />
+          <NotesManageCategoriesButton onClick={handleOpenCategories} />
           <NotesAddButton onClick={handleAddNote} />
         </div>
       </section>
@@ -208,6 +218,11 @@ export function NotesClient() {
       </div>
 
       <NoteDrawer drawer={drawer} onDismiss={clearSelection} />
+      <NoteCategoryDrawer
+        open={categoriesDrawer.isOpen}
+        onCategoryRemoved={handleCategoryRemoved}
+        onClose={categoriesDrawer.close}
+      />
     </div>
   );
 }
