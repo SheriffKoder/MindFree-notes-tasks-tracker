@@ -1,6 +1,6 @@
 # Note read models
 
-Why Notes exposes **three** API payloads (and three TanStack caches) instead of one “all notes” response.
+Why Notes exposes **several** API payloads (and TanStack caches) instead of one “all notes” response.
 
 - **Domain and DB-row types:** `entities/note/model/types.ts`
 - **Response types:** `entities/note/model/read-models.ts`
@@ -15,10 +15,11 @@ Each surface asks a different question:
 | Surface | Question | Scope |
 | ------- | -------- | ----- |
 | Calendar / month list | What’s on this month’s days? | One `YYYY-MM` |
-| General list | What undated notes do I have? | All time; not month-scoped |
-| Home strip | What’s my quick slot + starred set? | One quick + starred subset |
+| Undated list | What undated notes are in this category? | One `categoryId`; not month-scoped |
+| Home strips | What’s my quick slot + starred set **per showOnHome category**? | One strip each; Diary also gets starred calendar notes |
+| Categories | Which buckets exist / are archived? | Active vs include-deleted lists |
 
-If month navigation refetched general notes every time, general list would flash and waste work. If Home reused calendar month payloads, starring across months would be awkward. Separate caches keep each consumer coherent.
+If month navigation refetched undated lists every time, those panes would flash and waste work. If Home reused calendar month payloads, starring across months would be awkward. Separate caches keep each consumer coherent. Categories nest under `entities/note/category/` and re-export through the same `client.ts` / `server.ts`.
 
 Writes still go through one domain (mutations + `synchronizeNoteCaches`) so all caches stay aligned.
 
@@ -63,40 +64,58 @@ Server aggregates: month length, leap years, one-note-per-day layout. The client
 
 ---
 
-## General list
+## Undated list (per category)
 
 ```text
-GET /api/notes/general
-→ GeneralNotesResponse
-TanStack key: ["generalNotes"]
+GET /api/notes/general?categoryId=<uuid>
+→ GeneralNotesResponse { categoryId, generalNotes }
+TanStack key: ["generalNotes", categoryId]
 ```
 
 | Field | Purpose |
 | ----- | ------- |
-| `generalNotes` | Notes with `date IS NULL` and `is_quick = false` |
+| `categoryId` | Owner of this undated list |
+| `generalNotes` | Notes with `date IS NULL`, `is_quick = false`, this category |
 
 Month param does **not** apply. Quick notes are excluded by design.
 
-**Who uses it:** Notes `?view=general-notes`, drawer when editing a general note (cache lookup by id).
+**Who uses it:** Notes `?view=category:<uuid>` (legacy `?view=general-notes` remaps to Diary). Drawer cache lookup by id scans all `["generalNotes", …]` prefixes.
 
 ---
 
-## Home (quick + starred)
+## Home (strips: quick + starred per category)
 
 ```text
 GET /api/notes/home
-→ HomeNotesResponse
+→ HomeNotesResponse { strips: HomeNotesStrip[] }
 TanStack key: ["homeNotes"]
 ```
 
-| Field | Purpose |
-| ----- | ------- |
-| `quickNote` | The single `is_quick = true` note, or `null` before lazy create |
-| `starredNotes` | `starred = true` and **not** quick; most recently edited first |
+Each strip is one active category with `showOnHome`. Home shows **one selected strip** at a time; titles in the header switch between them. Empty Home (`strips.length === 0`) is valid when every category has the flag off.
 
-**Who uses it:** Home notes strip only. Opening a card still uses the shared `NoteDrawer` — writes are domain mutations, not a Home-specific save path.
+| Field (per strip) | Purpose |
+| ----------------- | ------- |
+| `categoryId` / `categoryName` | Owner of the undated quick + starred cards |
+| `isDefault` | Diary strip — also receives starred calendar notes |
+| `quickNote` | That category’s `is_quick` note, or `null` (empty placeholder) |
+| `starredNotes` | `starred` and **not** quick for this strip; most recently edited first |
 
-POST on `/api/notes/home` supports lazy quick-note create when the slot is empty.
+**Who uses it:** Home notes section only. Opening a card still uses the shared `NoteDrawer` — writes are domain mutations, not a Home-specific save path.
+
+POST on `/api/notes/home` supports lazy quick-note create for a given `categoryId` when that strip’s slot is empty.
+
+---
+
+## Categories
+
+```text
+GET /api/notes/categories
+GET /api/notes/categories?includeDeleted=1
+→ NoteCategoriesResponse
+TanStack keys: ["noteCategories"] / ["noteCategories", "withDeleted"]
+```
+
+Owned by `entities/note/category/`. Writes (create, patch, archive, restore, hard delete) go through `/api/notes/categories` and `synchronizeNoteCategoryCaches`.
 
 ---
 
@@ -104,7 +123,7 @@ POST on `/api/notes/home` supports lazy quick-note create when the slot is empty
 
 | Page | Seed |
 | ---- | ---- |
-| `/notes` | Current calendar month + general → `hydration/seed-notes-page-cache.ts` |
+| `/notes` | Current calendar month + categories + per-category undated lists → `hydration/seed-notes-page-cache.ts` |
 | `/` (Home) | Home payload → `hydration/seed-home-notes-cache.ts` |
 
 Hydration seeds TanStack so the first paint doesn’t wait for a client round-trip
@@ -122,8 +141,8 @@ Details: [docs/architecture/caching.md](../../../docs/architecture/caching.md), 
 Any create / update / delete (mutation, realtime, offline flush) should update **every read model that cares** about membership:
 
 - Calendar month of old/new date
-- General list (enter/leave undated non-quick)
-- Home (quick slot, starred membership)
+- Undated list for old/new `categoryId` (enter/leave non-quick)
+- Home (per-category quick slot, starred membership, strip presence)
 
 That is the job of `cache/synchronize-note-caches.ts`. Callers map their event
 into a `NoteChange` and call the hub once — they do not scatter `setQueryData`

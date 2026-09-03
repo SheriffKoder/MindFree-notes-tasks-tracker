@@ -25,16 +25,24 @@ export interface CalendarNotesResponse {
   monthNotes: Note[];
 }
 
-/** All general notes for the authenticated user. */
+/** Undated non-quick notes for one category. */
 export interface GeneralNotesResponse {
+  categoryId: string;
   /** Notes where `date IS NULL` and `is_quick = false`. */
   generalNotes: Note[];
 }
 
-/** Home dashboard payload — quick-note slot plus starred carousel. */
-export interface HomeNotesResponse {
-  /** Single quick note, or `null` before lazy creation. */
+/** One Home strip — quick slot + starred for a showOnHome category. */
+export interface HomeNotesStrip {
+  categoryId: string;
+  /** Denormalized for UI; also available from categories query. */
+  categoryName: string;
+  /** Seeded Diary strip — receives starred calendar notes. */
+  isDefault: boolean;
   quickNote: Note | null;
-  /** Starred non-quick notes, most recently edited first. */
   starredNotes: Note[];
+}
+
+export interface HomeNotesResponse {
+  strips: HomeNotesStrip[];
 }

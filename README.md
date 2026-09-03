@@ -22,9 +22,9 @@ The UX is meant to feel calm — inspired by Notion and Material Design 3 — wh
 
 | Question | Answer |
 | -------- | ------ |
-| I want a **quick note on the go** | Home quick slot — one scratchpad per user, always visible |
+| I want a **quick note on the go** | Home quick slot — one scratchpad per category |
 | I want to **journal on a calendar** | Calendar view on `/notes` — one entry per day, open in the drawer |
-| I have a **project** to write about | General notes — undated, long-form, on the Notes page |
+| I have a **project** to write about | Undated notes in a category (Diary, or one you create) on `/notes` |
 | Can Home be **easy access** to specific notes? | Star notes → they appear in the Home starred strip |
 | Some days are **important** | Flag as important → dark red border on that calendar day |
 | I want to **build habits**, not just check boxes | Tasks with scheduling, count/duration tracking, and daily or period goals |
@@ -35,7 +35,7 @@ The UX is meant to feel calm — inspired by Notion and Material Design 3 — wh
 | Phone and laptop **without refreshing**? | Live sync via Supabase Realtime into shared TanStack caches |
 | Two tabs on **different pages**? | Same caches + Realtime; offline tabs merge when you reconnect |
 | I went **offline** — is my edit saved? | Per-user browser queue; flushes when you're back online |
-| Will the **database stay clean**? | Empty calendar notes auto-delete; general notes stay until you delete them |
+| Will the **database stay clean**? | Empty calendar notes auto-delete; undated notes stay until you delete them |
 | Can someone **try it** without signing up? | Demo login with pre-loaded sample data (June 2026) |
 | Extra **privacy** on a shared device? | App lock — a second password after login (Profile) |
 
@@ -48,8 +48,8 @@ The UX is meant to feel calm — inspired by Notion and Material Design 3 — wh
 Write in three ways, all from one notes system:
 
 - **Calendar notes** — one journal entry per day; browse by month grid or list on `/notes`
-- **General notes** — undated project docs and long-form writing
-- **Quick note** — a always-visible scratchpad on Home
+- **Undated notes** — category lists (Diary plus any you add) for long-form writing
+- **Quick notes** — one scratchpad per category on Home
 
 Star notes to pin them on Home. Mark a calendar day as **important** for visual emphasis. Everything autosaves in a shared drawer — no Save button.
 

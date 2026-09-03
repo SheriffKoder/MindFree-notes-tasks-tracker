@@ -23,21 +23,25 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /**
  * Body for creating a calendar note on a specific day.
  */
-export const createCalendarNoteBodySchema = noteFormSchema.extend({
-  date: z
-    .string()
-    .regex(ISO_DATE_PATTERN, "Date must be YYYY-MM-DD."),
-  replaceExistingOnDate: z.boolean().optional(),
-});
+export const createCalendarNoteBodySchema = noteFormSchema
+  .omit({ categoryId: true })
+  .extend({
+    date: z
+      .string()
+      .regex(ISO_DATE_PATTERN, "Date must be YYYY-MM-DD."),
+    replaceExistingOnDate: z.boolean().optional(),
+  });
 
 export type CreateCalendarNoteBody = z.infer<
   typeof createCalendarNoteBodySchema
 >;
 
 /**
- * Body for creating a general note (`date IS NULL`).
+ * Body for creating a general or quick note (`date IS NULL`).
  */
-export const createGeneralNoteBodySchema = noteFormSchema;
+export const createGeneralNoteBodySchema = noteFormSchema.extend({
+  categoryId: z.string().uuid(),
+});
 
 export type CreateGeneralNoteBody = z.infer<
   typeof createGeneralNoteBodySchema

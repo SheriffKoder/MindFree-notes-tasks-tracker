@@ -103,7 +103,7 @@ No network call when the drawer opens — reads TanStack cache only.
 | Drawer context | Cache key | Lookup |
 | -------------- | --------- | ------ |
 | Calendar date mode (`activeDate` set) | `["calendarNotes", monthOf(activeDate)]` | Note where `note.date === activeDate`, or `null` (empty draft) |
-| General edit (`mode: "edit"`, no date nav) | `["generalNotes"]` | Note by `noteId` |
+| General edit (`mode: "edit"`, no date nav) | `["generalNotes", categoryId]` (or scan prefix `["generalNotes"]`) | Note by `noteId` |
 
 Drawer `activeDate` navigation does **not** update page URL `month` or page calendar highlight.
 

@@ -9,8 +9,11 @@
 /** MindFree table prefix — keep in sync with SQL migrations. */
 export const TABLE_PREFIX = "mf_";
 
-/** Notes table: calendar, general, and quick note rows. */
+/** Notes table: calendar, general, and quick note rows (`category_id` for undated/quick). */
 export const NOTES_TABLE = `${TABLE_PREFIX}notes`;
+
+/** Note categories: undated/quick grouping; Home strips; manage drawer. */
+export const NOTE_CATEGORIES_TABLE = `${TABLE_PREFIX}note_categories`;
 
 /** Activity definitions table: tasks and reminders share one model. */
 export const ACTIVITIES_TABLE = `${TABLE_PREFIX}task`;

@@ -26,6 +26,7 @@ export async function createGeneralNote(
     .insert({
       user_id: userId,
       date: null,
+      category_id: payload.categoryId,
       title: payload.title,
       content: payload.content,
       starred: payload.starred,
@@ -59,6 +60,7 @@ export async function createQuickNote(
     .insert({
       user_id: userId,
       date: null,
+      category_id: payload.categoryId,
       title: "",
       content: payload.content,
       starred: payload.starred,

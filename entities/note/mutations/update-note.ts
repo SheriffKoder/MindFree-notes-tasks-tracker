@@ -36,7 +36,7 @@ import {
 
 type NoteFieldPatch = Pick<
   UpdateNoteBody,
-  "title" | "content" | "starred" | "isImportant" | "date" | "isQuick"
+  "title" | "content" | "starred" | "isImportant" | "date" | "isQuick" | "categoryId"
 >;
 
 function splitUpdateBody(data: UpdateNoteBody): {

@@ -1,6 +1,6 @@
 # Note entity (`entities/note`)
 
-Business logic for calendar, general, and quick notes. **One domain** — Notes page and Home are consumers, not forks ([ADR 0010](../../docs/adr/0010-one-domain-multiple-consumers.md)).
+Business logic for calendar, undated, and quick notes (plus nested **categories**). **One domain** — Notes page and Home are consumers, not forks ([ADR 0010](../../docs/adr/0010-one-domain-multiple-consumers.md), [ADR 0017](../../docs/adr/0017-note-categories.md)).
 
 The entity is organized by responsibility so database access, server use-cases,
 browser requests, React behavior, cache policy, and SSR hydration can change
@@ -14,6 +14,7 @@ without becoming one mixed client or repository layer.
 | APIs, read payloads, keys, and hydration | [`docs/read-models.md`](./docs/read-models.md) |
 | Autosave / create / delete | [`docs/writes-and-autosave.md`](./docs/writes-and-autosave.md) |
 | Quick slot | [`docs/quick-note.md`](./docs/quick-note.md) |
+| Categories nest | [`category/README.md`](./category/README.md) |
 | Realtime / offline / form snap | [`docs/realtime.md`](./docs/realtime.md), [`offline.md`](./docs/offline.md), [`optimistic-updates.md`](./docs/optimistic-updates.md) |
 | File lookup by responsibility | [`RESPONSIBILITIES.md`](./RESPONSIBILITIES.md) |
 | Glossary | [`docs/concepts/glossary.md`](../../docs/concepts/glossary.md) |
@@ -68,6 +69,7 @@ entities/note/
 ├── hydration/       # SSR QueryClient seeders
 ├── offline/         # Offline queue and flush adapters into the cache hub
 ├── editor/          # Reusable form (no save routing)
+├── category/        # Nested categories — import via server.ts / client.ts
 └── docs/            # WHY (domain, read models, writes, sync)
 ```
 
@@ -89,6 +91,7 @@ Orchestrator WHY: [`features/notes/note-drawer/pre-save-orchestrator/README.md`]
 | `app/api/notes/*` | `server.ts` |
 | `views/notes`, `views/home` (client) | `client.ts` |
 | `features/notes/note-drawer` | `client.ts`, `editor/` |
+| `features/notes/note-category-drawer` | `client.ts`, `category/editor/` |
 | Shared types and pure month helpers | `index.ts` |
 
 Home strip WHY: [`views/home/docs/notes-strip.md`](../../views/home/docs/notes-strip.md)

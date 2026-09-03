@@ -3,6 +3,9 @@
  * Read use-case: SSR initial payloads for the Notes page.
  */
 
+import type { NoteCategory } from "@/entities/note/category/model/types";
+import { getCategories } from "@/entities/note/category/repository";
+import { ensureDefaultCategory } from "@/entities/note/category/repository";
 import { parseMonthParam, type ParseMonthParamOptions } from "@/entities/note/lib/parse-month";
 import type {
   CalendarNotesResponse,
@@ -19,16 +22,14 @@ export interface NotesPageInitialData {
   month: string;
   /** Calendar notes aggregated for the month. */
   calendarNotes: CalendarNotesResponse;
-  /** All general notes (month-independent). */
-  generalNotes: GeneralNotesResponse;
+  /** Active note categories for the user. */
+  categories: NoteCategory[];
+  /** Undated lists — one payload per active category. */
+  generalByCategory: GeneralNotesResponse[];
 }
 
 /**
- * Fetches calendar and general note payloads in parallel for SSR.
- *
- * @param monthParam - raw `month` search param (defaults to current month)
- * @param parseOptions - optional demo-session flags for fallback resolution
- * @returns both initial payloads for hydration
+ * Fetches calendar, categories, and per-category undated lists for SSR.
  */
 export async function getNotesPageInitialData(
   userId: string,
@@ -37,14 +38,20 @@ export async function getNotesPageInitialData(
 ): Promise<NotesPageInitialData> {
   const month = parseMonthParam(monthParam, parseOptions);
 
-  const [calendarNotes, generalNotes] = await Promise.all([
+  await ensureDefaultCategory(userId);
+  const categories = await getCategories(userId);
+
+  const [calendarNotes, ...generalByCategory] = await Promise.all([
     getCalendarNotesResponse(userId, month),
-    getGeneralNotesResponse(userId),
+    ...categories.map((category) =>
+      getGeneralNotesResponse(userId, category.id),
+    ),
   ]);
 
   return {
     month,
     calendarNotes,
-    generalNotes,
+    categories,
+    generalByCategory,
   };
 }

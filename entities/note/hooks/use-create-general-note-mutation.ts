@@ -18,34 +18,36 @@ import type { GeneralNotesResponse } from "@/entities/note/model/read-models";
 import { generalNotesQueryKey } from "@/entities/note/client/query-keys";
 
 export interface CreateGeneralNoteMutationInput {
+  /** Target category for the undated note. */
+  categoryId: string;
   /** Editable form snapshot sent to the API. */
   values: NoteFormValues;
 }
 
 interface CreateGeneralNoteMutationContext {
   previousData: GeneralNotesResponse | undefined;
-  queryKey: typeof generalNotesQueryKey;
+  queryKey: ReturnType<typeof generalNotesQueryKey>;
 }
 
 /**
- * POST general note — optimistically inserts into `["generalNotes"]`.
+ * POST general note — optimistically inserts into the category general cache.
  */
 export function useCreateGeneralNoteMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ values }: CreateGeneralNoteMutationInput) => {
-      const response = await fetchPostGeneralNote(values);
+    mutationFn: async ({ categoryId, values }: CreateGeneralNoteMutationInput) => {
+      const response = await fetchPostGeneralNote(categoryId, values);
       return response.note;
     },
-    onMutate: async ({ values }) => {
-      const queryKey = generalNotesQueryKey;
+    onMutate: async ({ categoryId, values }) => {
+      const queryKey = generalNotesQueryKey(categoryId);
 
       await queryClient.cancelQueries({ queryKey });
 
       const previousData =
         queryClient.getQueryData<GeneralNotesResponse>(queryKey);
-      const optimisticNote = buildOptimisticGeneralNote(values);
+      const optimisticNote = buildOptimisticGeneralNote(values, categoryId);
 
       queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
         current
@@ -63,8 +65,12 @@ export function useCreateGeneralNoteMutation() {
       queryClient.setQueryData(context.queryKey, context.previousData);
     },
     onSuccess: (serverNote) => {
+      if (!serverNote.categoryId) {
+        return;
+      }
+
       queryClient.setQueryData<GeneralNotesResponse>(
-        generalNotesQueryKey,
+        generalNotesQueryKey(serverNote.categoryId),
         (current) =>
           current ? upsertGeneralNoteInCache(current, serverNote) : current,
       );

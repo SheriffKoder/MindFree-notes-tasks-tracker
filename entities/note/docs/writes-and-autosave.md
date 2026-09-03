@@ -40,7 +40,7 @@ Without meaningful content, lazy create stays `noop`.
 | `patch` | Existing id, dirty, valid, not auto-delete |
 | `delete` | Existing **calendar** note, dirty, content cleared |
 
-**General notes never auto-delete** on empty fields — user uses the trash control.
+**Undated notes never auto-delete** on empty fields — user uses the trash control.
 
 **Same-day conflict:** another note occupies the target date → banner + save blocked until replace confirmed (or user picks another day / dismisses and edits again).
 

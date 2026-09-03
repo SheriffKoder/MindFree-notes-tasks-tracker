@@ -1,10 +1,6 @@
 /**
  * @file entities/note/cache/synchronize-note-caches.ts
  * Source-agnostic TanStack cache synchronization hub for note read models.
- *
- * Purpose: Apply one normalized note change to owner + home caches.
- * Used in: mutation hooks, realtime adapter, offline replay reconciliation.
- * Used for: create / update / delete writes from any source adapter.
  */
 
 import type { QueryClient } from "@tanstack/react-query";
@@ -42,6 +38,21 @@ export type NoteChange =
   | { type: "update"; previous: Note; next: Note }
   | { type: "delete"; note: Note };
 
+function removeNoteFromAllGeneralCaches(
+  queryClient: QueryClient,
+  noteId: string,
+): void {
+  const generalQueries = queryClient.getQueriesData<GeneralNotesResponse>({
+    queryKey: ["generalNotes"],
+  });
+
+  for (const [queryKey] of generalQueries) {
+    queryClient.setQueryData<GeneralNotesResponse>(queryKey, (current) =>
+      current ? removeGeneralNoteFromCache(current, noteId) : current,
+    );
+  }
+}
+
 function removeNoteFromOwnerCachesById(
   queryClient: QueryClient,
   noteId: string,
@@ -56,9 +67,7 @@ function removeNoteFromOwnerCachesById(
     );
   }
 
-  queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-    current ? removeGeneralNoteFromCache(current, noteId) : current,
-  );
+  removeNoteFromAllGeneralCaches(queryClient, noteId);
 }
 
 function removeNoteFromOwnerCaches(queryClient: QueryClient, note: Note): void {
@@ -71,16 +80,18 @@ function removeNoteFromOwnerCaches(queryClient: QueryClient, note: Note): void {
     return;
   }
 
-  if (!note.isQuick) {
-    queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-      current ? removeGeneralNoteFromCache(current, note.id) : current,
+  if (!note.isQuick && note.categoryId) {
+    queryClient.setQueryData<GeneralNotesResponse>(
+      generalNotesQueryKey(note.categoryId),
+      (current) =>
+        current ? removeGeneralNoteFromCache(current, note.id) : current,
     );
   }
 }
 
 function syncHomeOnCreate(queryClient: QueryClient, note: Note): void {
   queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
-    const base = current ?? { quickNote: null, starredNotes: [] };
+    const base = current ?? { strips: [] };
     return applyHomeNoteCreate(base, note);
   });
 }
@@ -91,18 +102,18 @@ function syncHomeOnUpdate(
   next: Note,
 ): void {
   queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
-    const base = current ?? { quickNote: null, starredNotes: [] };
+    const base = current ?? { strips: [] };
     return applyHomeNoteUpdate(base, previous, next);
   });
 }
 
-function syncHomeOnDelete(queryClient: QueryClient, noteId: string): void {
+function syncHomeOnDelete(queryClient: QueryClient, note: Note): void {
   queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
     if (!current) {
       return current;
     }
 
-    return applyHomeNoteDelete(current, noteId);
+    return applyHomeNoteDelete(current, note);
   });
 }
 
@@ -122,8 +133,14 @@ function syncOwnerOnCreate(queryClient: QueryClient, note: Note): void {
     return;
   }
 
-  queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-    current ? upsertGeneralNoteInCache(current, note) : current,
+  if (!note.categoryId) {
+    return;
+  }
+
+  queryClient.setQueryData<GeneralNotesResponse>(
+    generalNotesQueryKey(note.categoryId),
+    (current) =>
+      current ? upsertGeneralNoteInCache(current, note) : current,
   );
 }
 
@@ -137,7 +154,7 @@ function syncOwnerOnUpdate(
     return;
   }
 
-  if (previous.date !== next.date) {
+  if (previous.date !== next.date || previous.categoryId !== next.categoryId) {
     relocateNoteInCache(queryClient, previous, next);
     return;
   }
@@ -151,15 +168,22 @@ function syncOwnerOnUpdate(
     return;
   }
 
-  queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) => {
-    if (!current) {
-      return current;
-    }
+  if (!next.categoryId) {
+    return;
+  }
 
-    return previous.isQuick
-      ? upsertGeneralNoteInCache(current, next)
-      : patchGeneralNotesCache(current, next);
-  });
+  queryClient.setQueryData<GeneralNotesResponse>(
+    generalNotesQueryKey(next.categoryId),
+    (current) => {
+      if (!current) {
+        return current;
+      }
+
+      return previous.isQuick
+        ? upsertGeneralNoteInCache(current, next)
+        : patchGeneralNotesCache(current, next);
+    },
+  );
 }
 
 function syncOwnerOnDelete(queryClient: QueryClient, note: Note): void {
@@ -198,7 +222,7 @@ export function synchronizeNoteCaches(
       break;
     case "delete":
       syncOwnerOnDelete(queryClient, change.note);
-      syncHomeOnDelete(queryClient, change.note.id);
+      syncHomeOnDelete(queryClient, change.note);
       break;
   }
 }

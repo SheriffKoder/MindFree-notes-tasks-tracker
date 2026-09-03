@@ -8,5 +8,5 @@ aside shell.
 
 | Doc | Topic |
 | --- | ----- |
-| [docs/notes-strip.md](./docs/notes-strip.md) | Home as a Notes consumer — quick + starred row |
+| [docs/notes-strip.md](./docs/notes-strip.md) | Home as a Notes consumer — category switcher, quick + starred carousel |
 | [docs/today-list.md](./docs/today-list.md) | Home as an Activity consumer — Today join + inline recording |

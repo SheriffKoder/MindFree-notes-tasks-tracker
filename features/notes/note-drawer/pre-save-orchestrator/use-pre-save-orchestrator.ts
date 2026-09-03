@@ -97,8 +97,8 @@ type PendingMutation =
       values: NoteFormValues;
       replaceExistingOnDate: boolean;
     }
-  | { kind: "create-general"; values: NoteFormValues }
-  | { kind: "create-quick"; values: NoteFormValues }
+  | { kind: "create-general"; categoryId: string; values: NoteFormValues }
+  | { kind: "create-quick"; categoryId: string; values: NoteFormValues }
   | { kind: "delete"; note: Note };
 
 function formValuesFromPayload(payload: NoteSavePayload): NoteFormValues {
@@ -396,12 +396,14 @@ export function usePreSaveOrchestrator({
           saveNoteOfflinePending(userId, queryClient, {
             kind: "create-general",
             values: pending.values,
+            categoryId: pending.categoryId,
           });
           break;
         case "create-quick":
           saveNoteOfflinePending(userId, queryClient, {
             kind: "create-quick",
             values: pending.values,
+            categoryId: pending.categoryId,
           });
           break;
         case "delete":
@@ -413,6 +415,7 @@ export function usePreSaveOrchestrator({
               content: pending.note.content,
               starred: pending.note.starred,
               isImportant: pending.note.isImportant,
+              categoryId: pending.note.categoryId,
             },
           });
           break;
@@ -515,7 +518,7 @@ export function usePreSaveOrchestrator({
         return;
       case "create-general":
         createGeneralNote(
-          { values: pending.values },
+          { categoryId: pending.categoryId, values: pending.values },
           {
             onSuccess: (serverNote) => {
               confirmedRevisionRef.current = serverNote.revision;
@@ -531,7 +534,7 @@ export function usePreSaveOrchestrator({
         return;
       case "create-quick":
         createQuickNote(
-          { values: pending.values },
+          { categoryId: pending.categoryId, values: pending.values },
           {
             onSuccess: (serverNote) => {
               confirmedRevisionRef.current = serverNote.revision;
@@ -621,12 +624,38 @@ export function usePreSaveOrchestrator({
           });
           return;
         }
-        case "create-general":
-          scheduleMutation({ kind: "create-general", values });
+        case "create-general": {
+          const categoryId =
+            values.categoryId ??
+            (request && "categoryId" in request ? request.categoryId : null);
+
+          if (!categoryId) {
+            return;
+          }
+
+          scheduleMutation({
+            kind: "create-general",
+            categoryId,
+            values,
+          });
           return;
-        case "create-quick":
-          scheduleMutation({ kind: "create-quick", values });
+        }
+        case "create-quick": {
+          const categoryId =
+            values.categoryId ??
+            (request && "categoryId" in request ? request.categoryId : null);
+
+          if (!categoryId) {
+            return;
+          }
+
+          scheduleMutation({
+            kind: "create-quick",
+            categoryId,
+            values,
+          });
           return;
+        }
         case "delete":
           if (!note) {
             return;
@@ -639,7 +668,7 @@ export function usePreSaveOrchestrator({
           clearDebounceTimer();
       }
     },
-    [clearDebounceTimer, markSaveError, note, scheduleMutation],
+    [clearDebounceTimer, markSaveError, note, request, scheduleMutation],
   );
 
   const evaluate = useCallback(

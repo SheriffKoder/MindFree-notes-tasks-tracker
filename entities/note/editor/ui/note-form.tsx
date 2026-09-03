@@ -22,7 +22,7 @@ import { NoteFormTitleRow } from "@/entities/note/editor/ui/note-form-title-row"
  * Controlled note editor for the drawer shell.
  *
  * Layout:
- * - Row 1: plain title + star / important toggles
+ * - Row 1: title + category / calendar / star / important toggles
  * - Row 2: plain scrollable description (optional overlaid last-saved)
  */
 export function NoteForm({
@@ -39,6 +39,9 @@ export function NoteForm({
   onDelete,
   isQuickNote = false,
   onSetQuick,
+  categories = [],
+  defaultCategoryId = null,
+  showCategorySelect = false,
   className,
 }: NoteFormProps) {
   const {
@@ -49,7 +52,16 @@ export function NoteForm({
     setContent,
     toggleStarred,
     toggleImportant,
-  } = useNoteForm({ note, resetKey, commitKey, calendarDate, formReloadKey, onChange });
+    setCategoryId,
+  } = useNoteForm({
+    note,
+    resetKey,
+    commitKey,
+    calendarDate,
+    formReloadKey,
+    defaultCategoryId,
+    onChange,
+  });
 
   const handleDatePick = useCallback(
     (isoDate: string) => {
@@ -77,9 +89,13 @@ export function NoteForm({
       onSubmit={(event) => event.preventDefault()}
     >
       <NoteFormTitleRow
+        categories={categories}
+        categoryId={values.categoryId}
         errors={errors}
         isQuickNote={isQuickNote}
+        showCategorySelect={showCategorySelect}
         values={values}
+        onCategoryChange={setCategoryId}
         onDatePick={onDatePick ? handleDatePick : undefined}
         onSetQuick={onSetQuick}
         selectedDate={note?.date ?? calendarDate}

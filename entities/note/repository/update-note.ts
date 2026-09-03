@@ -15,7 +15,7 @@ const UUID_PATTERN =
 
 type NoteFieldPatch = Pick<
   UpdateNoteBody,
-  "title" | "content" | "starred" | "isImportant" | "date" | "isQuick"
+  "title" | "content" | "starred" | "isImportant" | "date" | "isQuick" | "categoryId"
 >;
 
 /**
@@ -67,7 +67,13 @@ export async function updateNoteById(
   const dbPatch: Partial<
     Pick<
       NoteRow,
-      "title" | "content" | "starred" | "is_important" | "date" | "is_quick"
+      | "title"
+      | "content"
+      | "starred"
+      | "is_important"
+      | "date"
+      | "is_quick"
+      | "category_id"
     >
   > = {};
 
@@ -93,6 +99,13 @@ export async function updateNoteById(
 
   if (patch.isQuick !== undefined) {
     dbPatch.is_quick = patch.isQuick;
+  }
+
+  // Calendar notes never keep a category; undated notes persist the picker value
+  if (patch.date) {
+    dbPatch.category_id = null;
+  } else if (patch.categoryId !== undefined) {
+    dbPatch.category_id = patch.categoryId;
   }
 
   const { data, error } = await supabase

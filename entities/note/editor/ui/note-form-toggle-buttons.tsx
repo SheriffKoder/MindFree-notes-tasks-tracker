@@ -1,10 +1,10 @@
 /**
  * @file entities/note/editor/ui/note-form-toggle-buttons.tsx
- * Star, important, and calendar date-picker toggles for the title row.
+ * Star, important, category, and calendar date-picker toggles for the title row.
  *
  * Purpose: Dumb action buttons — picker records intent; orchestrator saves later.
  * Used in: entities/note/editor/ui/note-form-title-row.tsx
- * Used for: Star/important toggles and optional NoteDatePickerTrigger (Step 11).
+ * Used for: Category dropdown left of calendar, then star/important (Step 11).
  */
 
 import { Bookmark, HousePlus, Star, Trash2 } from "lucide-react";
@@ -12,6 +12,10 @@ import { Bookmark, HousePlus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { NoteFormValues } from "@/entities/note/editor/model/types";
+import {
+  NoteFormCategorySelect,
+  type NoteFormCategoryOption,
+} from "@/entities/note/editor/ui/note-form-category-select";
 import { NoteDatePickerTrigger } from "@/entities/note/editor/ui/note-date-picker-trigger";
 
 export interface NoteFormToggleButtonsProps {
@@ -28,10 +32,20 @@ export interface NoteFormToggleButtonsProps {
   isQuickNote?: boolean;
   /** When set, shows house-plus to promote this note into the quick slot. */
   onSetQuick?: () => void;
+  /** Active categories for the in-header picker (undated notes only). */
+  categories?: NoteFormCategoryOption[];
+  /** Selected undated category id. */
+  categoryId?: string | null;
+  /** Validation message for a missing category. */
+  categoryError?: string;
+  /** When false, calendar notes hide the category picker. */
+  showCategorySelect?: boolean;
+  /** Persists the chosen category in local form state. */
+  onCategoryChange?: (categoryId: string) => void;
 }
 
 /**
- * Renders star and important icon toggles beside the title field.
+ * Renders category left of calendar, then star / important / delete on the title row.
  */
 export function NoteFormToggleButtons({
   values,
@@ -42,9 +56,23 @@ export function NoteFormToggleButtons({
   onDelete,
   isQuickNote = false,
   onSetQuick,
+  categories = [],
+  categoryId = null,
+  categoryError,
+  showCategorySelect = false,
+  onCategoryChange,
 }: NoteFormToggleButtonsProps) {
   return (
     <div className="flex shrink-0 items-center gap-0.5">
+      {showCategorySelect && onCategoryChange ? (
+        <NoteFormCategorySelect
+          categories={categories}
+          error={categoryError}
+          value={categoryId}
+          onValueChange={onCategoryChange}
+        />
+      ) : null}
+
       {onDatePick ? (
         <NoteDatePickerTrigger
           currentTitle={values.title}

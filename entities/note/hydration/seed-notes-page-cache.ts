@@ -2,13 +2,14 @@
  * @file entities/note/hydration/seed-notes-page-cache.ts
  * Writes SSR Notes-page payloads into a QueryClient (no dehydrate).
  *
- * Composable seeder: the entity owns its cache keys; the caller (a seed
- * component) dehydrates once after all entities have written. Reuses data
- * already fetched on the server — no duplicate repository calls.
+ * Purpose: Seed calendar, categories, and per-category general lists before hydrate.
+ * Used in: views/notes/ui/notes-hydration-seed.tsx
+ * Used for: First-paint switcher + undated lists without a client round-trip.
  */
 
 import type { QueryClient } from "@tanstack/react-query";
 
+import { seedNoteCategoriesCache } from "@/entities/note/category/hydration/seed-note-categories-cache";
 import type { NotesPageInitialData } from "@/entities/note/queries";
 import {
   calendarNotesQueryKey,
@@ -16,15 +17,26 @@ import {
 } from "@/entities/note/client/query-keys";
 
 /**
- * Seeds the calendar + general notes caches from an SSR payload.
- *
- * @param queryClient - per-request server QueryClient
- * @param data - SSR note payloads (resolved month + calendar/general notes)
+ * Seeds calendar, categories, and per-category general note caches from SSR.
  */
 export function seedNotesPageCache(
   queryClient: QueryClient,
-  data: Pick<NotesPageInitialData, "month" | "calendarNotes" | "generalNotes">,
+  data: Pick<
+    NotesPageInitialData,
+    "month" | "calendarNotes" | "categories" | "generalByCategory"
+  >,
 ): void {
+  // Calendar month payload
   queryClient.setQueryData(calendarNotesQueryKey(data.month), data.calendarNotes);
-  queryClient.setQueryData(generalNotesQueryKey, data.generalNotes);
+
+  // Active categories — owned seeder from the category nest
+  seedNoteCategoriesCache(queryClient, data.categories);
+
+  // One generalNotes cache entry per active category
+  for (const payload of data.generalByCategory) {
+    queryClient.setQueryData(
+      generalNotesQueryKey(payload.categoryId),
+      payload,
+    );
+  }
 }

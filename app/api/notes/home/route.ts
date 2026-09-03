@@ -1,15 +1,19 @@
 /**
  * @file app/api/notes/home/route.ts
- * GET home notes — quick note slot and starred carousel.
+ * GET home notes strips; POST quick-note create (per category).
+ *
+ * Purpose: Home strip read model + lazy quick create.
+ * Used in: home notes query / create-quick mutation
+ * Used for: `{ strips }` payload; POST body requires `categoryId`.
  */
 
 import { createQuickNote, getHomeNotesResponse } from "@/entities/note/server";
 import { requireAuthenticatedUserId } from "@/shared/lib/auth/require-authenticated-user";
 
 /**
- * Returns the quick note and starred notes for the authenticated user.
+ * Returns Home category strips (quick + starred per showOnHome category).
  *
- * @returns home notes payload
+ * @returns home notes payload `{ strips }`
  */
 export async function GET() {
   const userId = await requireAuthenticatedUserId();
@@ -31,9 +35,9 @@ export async function GET() {
 }
 
 /**
- * Creates a quick note (lazy create from the home strip).
+ * Creates a quick note for one category (lazy create from a Home strip).
  *
- * @param request - JSON body with editable fields
+ * @param request - JSON body with `categoryId` + editable fields
  * @returns created note payload
  */
 export async function POST(request: Request) {
@@ -44,6 +48,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Body must include categoryId — enforced by createGeneralNoteBodySchema
     const body = await request.json();
     const note = await createQuickNote(userId, body);
 

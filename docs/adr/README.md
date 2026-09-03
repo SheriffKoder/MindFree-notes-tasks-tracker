@@ -22,6 +22,7 @@ Records of significant technical decisions. Each ADR is one decision — context
 | [0014](./0014-flat-records-client-side-join.md) | Ship flat activity records, join on the client (vs. Notes) | Accepted |
 | [0015](./0015-record-configuration-snapshots.md) | Record configuration snapshots on first insert | Accepted |
 | [0016](./0016-app-lock-session-cookie.md) | App lock via session cookie and scrypt hash | Accepted |
+| [0017](./0017-note-categories.md) | Note categories nested in the note entity | Accepted |
 
 ## Template
 

@@ -50,6 +50,11 @@ export function mergeFormValuesIntoNote(
     isImportant: values.isImportant,
     date: options?.date !== undefined ? options.date : note.date,
     isQuick: options?.isQuick !== undefined ? options.isQuick : note.isQuick,
+    categoryId: options?.date
+      ? null
+      : values.categoryId !== undefined
+        ? values.categoryId
+        : note.categoryId,
     lastEditedAt: new Date().toISOString(),
   };
 }
@@ -93,19 +98,23 @@ export function patchGeneralNotesCache(
       right.lastEditedAt.localeCompare(left.lastEditedAt),
     );
 
-  return { generalNotes };
+  return {
+    categoryId: data.categoryId,
+    generalNotes,
+  };
 }
 
 /**
  * Resolves the TanStack query key that owns a note row.
- *
- * @param note - note being edited
- * @returns calendar month key or general notes key
  */
 export function resolveOwningQueryKey(note: Note) {
   if (note.date) {
     return calendarNotesQueryKey(note.date.slice(0, 7));
   }
 
-  return generalNotesQueryKey;
+  if (note.categoryId) {
+    return generalNotesQueryKey(note.categoryId);
+  }
+
+  return generalNotesQueryKey("");
 }

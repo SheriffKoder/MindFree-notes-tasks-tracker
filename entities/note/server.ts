@@ -25,6 +25,7 @@ export {
   seedHomeNotesCache,
   seedNotesPageCache,
 } from "@/entities/note/hydration";
+export { seedNoteCategoriesCache } from "@/entities/note/category/hydration/seed-note-categories-cache";
 export {
   createCalendarNote,
   createGeneralNote,
@@ -37,3 +38,20 @@ export {
   NoteStaleWriteError,
 } from "@/entities/note/errors";
 export { getAuthenticatedUserId } from "@/entities/note/repository";
+export {
+  getNoteCategoriesResponse,
+  createNoteCategory,
+  updateNoteCategory,
+  softDeleteNoteCategory,
+  restoreNoteCategory,
+  hardDeleteNoteCategory,
+  ensureDefaultCategory,
+  DefaultCategoryProtectedError,
+  CategoryNameConflictError,
+  createNoteCategoryBodySchema,
+  updateNoteCategoryBodySchema,
+  type NoteCategory,
+  type NoteCategoriesResponse,
+  type CreateNoteCategoryBody,
+  type UpdateNoteCategoryBody,
+} from "@/entities/note/category/server";

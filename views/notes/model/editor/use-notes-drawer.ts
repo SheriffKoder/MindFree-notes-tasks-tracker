@@ -22,10 +22,10 @@ export interface UseNotesDrawerResult {
   openEdit: (noteId: string) => void;
   /** Opens a lazy create flow for a calendar day with no note yet. */
   openCreateForDate: (date: string) => void;
-  /** Opens a lazy create flow for a new general note. */
-  openCreateGeneral: () => void;
-  /** Opens a lazy create flow for the home quick-note slot. */
-  openCreateQuick: () => void;
+  /** Opens a lazy create flow for a new general note in one category. */
+  openCreateGeneral: (categoryId: string) => void;
+  /** Opens a lazy create flow for one category's quick-note slot. */
+  openCreateQuick: (categoryId: string) => void;
   /** Closes the drawer without clearing the last request. */
   close: () => void;
   /** Maps to `AppDrawer` `onOpenChange` — closes when `open === false`. */
@@ -57,17 +57,17 @@ export function useNotesDrawer(): UseNotesDrawerResult {
     });
   }, []);
 
-  const openCreateGeneral = useCallback(() => {
+  const openCreateGeneral = useCallback((categoryId: string) => {
     setState({
       isOpen: true,
-      request: { mode: "create", general: true },
+      request: { mode: "create", general: true, categoryId },
     });
   }, []);
 
-  const openCreateQuick = useCallback(() => {
+  const openCreateQuick = useCallback((categoryId: string) => {
     setState({
       isOpen: true,
-      request: { mode: "create", quick: true },
+      request: { mode: "create", quick: true, categoryId },
     });
   }, []);
 

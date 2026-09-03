@@ -17,6 +17,8 @@ import type { HomeNotesResponse } from "@/entities/note/model/read-models";
 import { homeNotesQueryKey } from "@/entities/note/client/query-keys";
 
 export interface CreateQuickNoteMutationInput {
+  /** Target category for the quick note slot. */
+  categoryId: string;
   /** Editable form snapshot sent to the API. */
   values: NoteFormValues;
 }
@@ -27,24 +29,24 @@ interface CreateQuickNoteMutationContext {
 }
 
 /**
- * POST quick note — optimistically sets `["homeNotes"].quickNote`.
+ * POST quick note — optimistically updates the matching home strip quick slot.
  */
 export function useCreateQuickNoteMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ values }: CreateQuickNoteMutationInput) => {
-      const response = await fetchPostQuickNote(values);
+    mutationFn: async ({ categoryId, values }: CreateQuickNoteMutationInput) => {
+      const response = await fetchPostQuickNote(categoryId, values);
       return response.note;
     },
-    onMutate: async ({ values }) => {
+    onMutate: async ({ categoryId, values }) => {
       const queryKey = homeNotesQueryKey;
 
       await queryClient.cancelQueries({ queryKey });
 
       const previousData =
         queryClient.getQueryData<HomeNotesResponse>(queryKey);
-      const optimisticNote = buildOptimisticQuickNote(values);
+      const optimisticNote = buildOptimisticQuickNote(values, categoryId);
 
       synchronizeNoteCaches(queryClient, {
         type: "create",

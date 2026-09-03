@@ -1,6 +1,15 @@
 /**
  * @file views/notes/model/use-notes-url-state.ts
  * Notes page URL state and navigation — reads `month`/`view` and mutates via the router.
+ *
+ * Purpose: Resolve month + dynamic view (including `category:<uuid>`) from the URL.
+ * Used in: views/notes/ui/notes-client.tsx
+ * Used for: Month navigator + view switcher without a server round-trip.
+ *
+ * Steps:
+ * 1. Parse month (demo-aware)
+ * 2. Normalize legacy `general-notes` → Diary category view
+ * 3. Parse view against the dynamic config from active categories
  */
 
 "use client";
@@ -14,9 +23,13 @@ import {
   useCanonicalDemoMonthUrl,
   useMonthNavigation,
 } from "@/shared/month-navigator";
-import { parseViewParam, useViewNavigation } from "@/shared/view-switcher";
 import {
-  NOTES_VIEW_CONFIG,
+  parseViewParam,
+  useViewNavigation,
+  type ViewConfig,
+} from "@/shared/view-switcher";
+import {
+  normalizeNotesViewParam,
   type NotesViewId,
 } from "@/views/notes/lib/notes-views";
 
@@ -38,28 +51,38 @@ export interface UseNotesUrlStateResult {
 /**
  * Resolves Notes page URL state and exposes navigation actions without a server round-trip.
  *
- * Composes shared month/view navigation hooks so `NotesClient` only needs one URL hook.
+ * @param viewConfig - dynamic config from {@link buildNotesViewConfig} (active categories)
+ * @param categories - used to remap legacy `general-notes` URLs
  */
-export function useNotesUrlState(): UseNotesUrlStateResult {
+export function useNotesUrlState(
+  viewConfig: ViewConfig<NotesViewId>,
+  categories: Array<{ id: string; isDefault?: boolean }> = [],
+): UseNotesUrlStateResult {
   const searchParams = useSearchParams();
   const demoMonthOptions = useDemoMonthParseOptions();
   useCanonicalDemoMonthUrl();
 
   const { month, view } = useMemo(() => {
+    // 1. Month from URL (demo session may clamp)
     const resolvedMonth = parseMonthParam(
       searchParams.get("month"),
       demoMonthOptions,
     );
-    const resolvedView = parseViewParam(
-      searchParams.get("view") ?? undefined,
-      NOTES_VIEW_CONFIG,
+
+    // 2. Remap legacy general-notes → Diary category:<id>
+    const normalizedView = normalizeNotesViewParam(
+      searchParams.get("view"),
+      categories,
     );
 
+    // 3. Validate against dynamic config — unknown/archived category → default calendar
+    const resolvedView = parseViewParam(normalizedView, viewConfig);
+
     return { month: resolvedMonth, view: resolvedView };
-  }, [demoMonthOptions, searchParams]);
+  }, [categories, demoMonthOptions, searchParams, viewConfig]);
 
   const { navigateToMonth, onPrevious, onNext } = useMonthNavigation(month);
-  const { onViewChange, onCycleView } = useViewNavigation(view, NOTES_VIEW_CONFIG);
+  const { onViewChange, onCycleView } = useViewNavigation(view, viewConfig);
 
   return {
     month,

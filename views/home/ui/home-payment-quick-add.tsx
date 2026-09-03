@@ -3,7 +3,7 @@
  * Home quick-add control — bill icon opens the payment create drawer.
  *
  * Purpose: Let users record a payment from Home without visiting `/payments`.
- * Used in: views/home/index.tsx (Starred Notes header row)
+ * Used in: views/home/ui/home-notes-section.tsx (notes toolbar / empty-Home toolbar)
  * Used for: openCreate → PaymentDrawer; month = current YYYY-MM for cache subscribe.
  *
  * Function Index:

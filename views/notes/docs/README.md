@@ -4,8 +4,8 @@ View-layer documentation for `/notes` — composition and drawer behavior. Domai
 
 | Doc | Status | Topic |
 | --- | ------ | ----- |
-| [data-flow.md](./data-flow.md) | Current | SSR → caches → views → drawer → write hub |
-| [drawer-navigation.md](./drawer-navigation.md) | Phase 2 | Selected date, prefetch, page vs drawer |
-| [page-composition.md](./page-composition.md) | Later | Month navigator, three views, layout |
+| [data-flow.md](./data-flow.md) | Current | SSR → caches → views → drawers → write hub |
+| [categories.md](./categories.md) | Current | Manage drawer + `?view=category:<id>` |
+| [drawer-navigation.md](./drawer-navigation.md) | Current | Selected date, prefetch, page vs drawer |
 
-**ADRs:** [0004](../../../docs/adr/0004-url-owned-application-state.md), [0005](../../../docs/adr/0005-selected-date-not-selected-note.md)
+**ADRs:** [0004](../../../docs/adr/0004-url-owned-application-state.md), [0005](../../../docs/adr/0005-selected-date-not-selected-note.md), [0017](../../../docs/adr/0017-note-categories.md)

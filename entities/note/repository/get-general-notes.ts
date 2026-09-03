@@ -13,13 +13,17 @@ import { createClient } from "@/shared/lib/supabase/server";
  *
  * @returns general notes ordered by most recently edited
  */
-export async function getGeneralNotes(userId: string): Promise<Note[]> {
+export async function getGeneralNotes(
+  userId: string,
+  categoryId: string,
+): Promise<Note[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from(NOTES_TABLE)
     .select("*")
     .eq("user_id", userId)
+    .eq("category_id", categoryId)
     .is("date", null)
     .eq("is_quick", false)
     .order("last_edited_at", { ascending: false });

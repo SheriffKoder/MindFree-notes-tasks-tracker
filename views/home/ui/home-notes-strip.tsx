@@ -1,10 +1,6 @@
 /**
  * @file views/home/ui/home-notes-strip.tsx
- * Horizontal quick-note + starred carousel for the Home dashboard.
- *
- * Purpose: Render home read-model cards with reserved labels.
- * Used in: views/home/ui/home-notes-section.tsx
- * Used for: Drag-scroll row — quick slot first, starred notes follow.
+ * Horizontal quick-note + starred carousel for one Home category strip.
  */
 
 "use client";
@@ -12,23 +8,19 @@
 import { memo, useCallback, useMemo, type ReactNode } from "react";
 
 import { DragHorizontalScroll } from "@/components/drag-horizontal/drag-horizontal-scroll";
-import { useHomeNotesQuery, type Note } from "@/entities/note/client";
+import type { HomeNotesStrip as HomeNotesStripModel, Note } from "@/entities/note/client";
 import { NoteListCard } from "@/features/notes/note-list-card";
 import { cn } from "@/lib/utils";
-import { QueryStatePanel } from "@/shared/react-query";
 import { getReservedMeta } from "@/views/notes/lib/reserved-meta";
 
-/** Home strip card shell — narrower on phone, full width at md+. */
 const HOME_STRIP_CARD_SHELL_CLASS =
   "w-[min(220px,30vw)] shrink-0 md:w-[min(280px,70vw)]";
 
 export interface HomeNotesStripProps {
-  /** When true, cards wrap into two horizontal rows inside the scroll area. */
+  strip: HomeNotesStripModel;
   isTwoRows?: boolean;
-  /** Opens the drawer for an existing note. */
   onNoteClick: (note: Note) => void;
-  /** Opens lazy create for the empty quick-note slot. */
-  onQuickPlaceholderClick: () => void;
+  onQuickPlaceholderClick: (categoryId: string) => void;
 }
 
 interface HomeStripNoteCardProps {
@@ -57,12 +49,16 @@ const HomeStripNoteCard = memo(function HomeStripNoteCard({
 
 interface HomeStripQuickSlotProps {
   quickNote: Note | null;
+  categoryId: string;
+  categoryName: string;
   onNoteClick: (note: Note) => void;
-  onQuickPlaceholderClick: () => void;
+  onQuickPlaceholderClick: (categoryId: string) => void;
 }
 
 const HomeStripQuickSlot = memo(function HomeStripQuickSlot({
   quickNote,
+  categoryId,
+  categoryName,
   onNoteClick,
   onQuickPlaceholderClick,
 }: HomeStripQuickSlotProps) {
@@ -80,10 +76,11 @@ const HomeStripQuickSlot = memo(function HomeStripQuickSlot({
         />
       ) : (
         <button
-          aria-label="Create quick note"
+          aria-label={`Create quick note in ${categoryName}`}
           className="group flex h-40 w-full cursor-pointer flex-col text-left md:h-56"
+          title={`Create quick note in ${categoryName}`}
           type="button"
-          onClick={onQuickPlaceholderClick}
+          onClick={() => onQuickPlaceholderClick(categoryId)}
         >
           <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-surface)_88%,transparent)] p-3 transition-colors duration-200 group-hover:border-[color-mix(in_srgb,var(--color-accent)_30%,var(--color-border))] group-hover:bg-[var(--note-card-hover-light)] dark:group-hover:bg-[var(--note-card-hover-dark)]">
             <p className="text-sm font-medium">Quick note</p>
@@ -108,16 +105,12 @@ function HomeStripRow({
   return <div className={cn("flex flex-row gap-3", className)}>{children}</div>;
 }
 
-/**
- * Scrollable row of note cards — quick note (or placeholder) then starred notes.
- */
 export const HomeNotesStrip = memo(function HomeNotesStrip({
+  strip,
   isTwoRows = false,
   onNoteClick,
   onQuickPlaceholderClick,
 }: HomeNotesStripProps) {
-  const { data, isPending, isError, error } = useHomeNotesQuery();
-
   const renderStarredNote = useCallback(
     (note: Note) => (
       <HomeStripNoteCard key={note.id} note={note} onNoteClick={onNoteClick} />
@@ -125,23 +118,28 @@ export const HomeNotesStrip = memo(function HomeNotesStrip({
     [onNoteClick],
   );
 
-  const quickNote = data?.quickNote ?? null;
-  const starredNotes = data?.starredNotes ?? [];
-
   const quickSlot = useMemo(
     () => (
       <HomeStripQuickSlot
         key="quick"
-        quickNote={quickNote}
+        categoryId={strip.categoryId}
+        categoryName={strip.categoryName}
+        quickNote={strip.quickNote}
         onNoteClick={onNoteClick}
         onQuickPlaceholderClick={onQuickPlaceholderClick}
       />
     ),
-    [onNoteClick, onQuickPlaceholderClick, quickNote],
+    [
+      onNoteClick,
+      onQuickPlaceholderClick,
+      strip.categoryId,
+      strip.categoryName,
+      strip.quickNote,
+    ],
   );
 
   const rows = useMemo(() => {
-    const starredCards = starredNotes.map(renderStarredNote);
+    const starredCards = strip.starredNotes.map(renderStarredNote);
 
     if (!isTwoRows) {
       return { row1: [quickSlot, ...starredCards], row2: [] as ReactNode[] };
@@ -154,20 +152,7 @@ export const HomeNotesStrip = memo(function HomeNotesStrip({
       row1: allCards.slice(0, splitAt),
       row2: allCards.slice(splitAt),
     };
-  }, [isTwoRows, quickSlot, renderStarredNote, starredNotes]);
-
-  if (isError) {
-    return (
-      <QueryStatePanel
-        message={error?.message ?? "Failed to load starred notes."}
-        variant="error"
-      />
-    );
-  }
-
-  if (isPending && !data) {
-    return <QueryStatePanel message="Loading notes…" />;
-  }
+  }, [isTwoRows, quickSlot, renderStarredNote, strip.starredNotes]);
 
   return (
     <div className="relative -mx-1">
@@ -177,7 +162,7 @@ export const HomeNotesStrip = memo(function HomeNotesStrip({
       />
       <DragHorizontalScroll
         className="px-1 pb-1"
-        id="home-starred-notes-strip"
+        id={`home-starred-notes-strip-${strip.categoryId}`}
       >
         {isTwoRows ? (
           <div className="flex w-max flex-col gap-3">

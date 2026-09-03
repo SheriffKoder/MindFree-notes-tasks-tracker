@@ -1,6 +1,10 @@
 /**
  * @file views/notes/ui/notes-views-section.tsx
- * Notes page views container (calendar grid, month notes list, general notes list).
+ * Notes page views container (calendar grid, month notes list, category undated lists).
+ *
+ * Purpose: Fetch calendar + category-scoped undated notes and render the active pane.
+ * Used in: views/notes/ui/notes-client.tsx
+ * Used for: `calendar` / `month-notes` / `category:<uuid>` views.
  */
 
 "use client";
@@ -32,7 +36,11 @@ import {
 import { ListView } from "@/shared/list-view";
 import { QueryStatePanel } from "@/shared/react-query";
 import { usePrefetchAdjacentCalendarMonths } from "@/views/notes/model/use-prefetch-adjacent-calendar-months";
-import type { NotesViewId } from "@/views/notes/lib/notes-views";
+import {
+  isCategoryNotesView,
+  parseCategoryViewId,
+  type NotesViewId,
+} from "@/views/notes/lib/notes-views";
 import { resolveViewQueryState } from "@/views/notes/lib/resolve-view-query-state";
 import { getReservedMeta } from "@/views/notes/lib/reserved-meta";
 
@@ -55,7 +63,7 @@ function getNoteKey(note: Note): string {
 }
 
 /**
- * Fetches calendar + general notes, resolves per-pane query state, and renders the
+ * Fetches calendar + category undated notes, resolves per-pane query state, and renders the
  * responsive calendar/list body (mirrors Tasks calendar + sidebar layout).
  *
  * Memoized so drawer open/close in NotesClient (useNotesDrawer state) does not
@@ -69,9 +77,12 @@ export const NotesViewsSection = memo(function NotesViewsSection({
   onNoteClick,
 }: NotesViewsSectionProps) {
 
-  // Queries
+  // Queries — category undated list only when a category view is active
   const calendarQuery = useCalendarNotesQuery(month);
-  const generalQuery = useGeneralNotesQuery();
+  const categoryId = parseCategoryViewId(view);
+  const generalQuery = useGeneralNotesQuery(categoryId ?? "", {
+    enabled: categoryId != null,
+  });
   const { data: calendarNotes } = calendarQuery;
   const { data: generalNotes } = generalQuery;
 
@@ -186,9 +197,10 @@ export const NotesViewsSection = memo(function NotesViewsSection({
     [onNoteClick],
   );
 
-  const renderGeneralNote = useCallback(
+  const renderCategoryNote = useCallback(
     (note: Note) => {
-      const reserved = getReservedMeta("general-notes", note);
+      // Pass the live view id so reserved-meta treats category:* like undated lists
+      const reserved = getReservedMeta(view, note);
 
       return (
         <NoteListCard
@@ -199,7 +211,7 @@ export const NotesViewsSection = memo(function NotesViewsSection({
         />
       );
     },
-    [onNoteClick],
+    [onNoteClick, view],
   );
 
   if (viewQueryState.kind !== "ready") {
@@ -264,11 +276,11 @@ export const NotesViewsSection = memo(function NotesViewsSection({
       ) : null}
 
       {/* Only one list branch mounts at a time — inactive views unmount entirely. */}
-      {view === "general-notes" && generalNotes ? (
+      {isCategoryNotesView(view) && generalNotes ? (
         <ListView
           items={generalNotes.generalNotes}
           getKey={getNoteKey}
-          renderItem={renderGeneralNote}
+          renderItem={renderCategoryNote}
         />
       ) : null}
     </section>

@@ -53,6 +53,8 @@ export interface NoteOfflinePayload {
   replaceExistingOnDate: boolean;
   /** Last server-confirmed revision for patch concurrency; omitted on legacy queue rows. */
   expectedRevision?: number;
+  /** Required for create-general / create-quick; null for calendar. */
+  categoryId?: string | null;
   savedAt: string;
 }
 
@@ -64,6 +66,8 @@ export interface NoteOfflinePendingInput {
   isQuick?: boolean;
   replaceExistingOnDate?: boolean;
   expectedRevision?: number;
+  /** Target category for undated / quick creates. */
+  categoryId?: string | null;
 }
 
 function resolveDatePatch(
@@ -92,9 +96,11 @@ export function buildNoteOfflineKey(input: NoteOfflinePendingInput): string {
     case "create-calendar":
       return `note:calendar:${input.date ?? "unknown"}`;
     case "create-general":
-      return "note:general:draft";
+      return `note:general:${input.categoryId ?? "unknown"}:draft`;
     case "create-quick":
-      return NOTE_OFFLINE_QUICK_KEY;
+      return input.categoryId
+        ? `note:quick:${input.categoryId}`
+        : NOTE_OFFLINE_QUICK_KEY;
   }
 }
 
@@ -128,6 +134,7 @@ function resolvePendingFromPayload(
     date: payload.date,
     isQuick: payload.isQuick,
     replaceExistingOnDate: payload.replaceExistingOnDate,
+    categoryId: payload.categoryId,
   };
 }
 
@@ -153,6 +160,11 @@ export function toNoteOfflineWrite(
       isQuick: input.isQuick,
       replaceExistingOnDate: input.replaceExistingOnDate ?? false,
       expectedRevision: input.expectedRevision,
+      // Persist category for undated/quick offline creates (and note's category on patch)
+      categoryId:
+        input.categoryId ??
+        input.note?.categoryId ??
+        null,
       savedAt,
     },
   };
@@ -206,7 +218,14 @@ export function applyNoteOfflinePending(
       return;
     }
     case "create-general": {
-      const optimisticNote = buildOptimisticGeneralNote(input.values);
+      if (!input.categoryId) {
+        return;
+      }
+
+      const optimisticNote = buildOptimisticGeneralNote(
+        input.values,
+        input.categoryId,
+      );
 
       synchronizeNoteCaches(queryClient, {
         type: "create",
@@ -216,7 +235,14 @@ export function applyNoteOfflinePending(
       return;
     }
     case "create-quick": {
-      const optimisticNote = buildOptimisticQuickNote(input.values);
+      if (!input.categoryId) {
+        return;
+      }
+
+      const optimisticNote = buildOptimisticQuickNote(
+        input.values,
+        input.categoryId,
+      );
 
       synchronizeNoteCaches(queryClient, {
         type: "create",
@@ -255,9 +281,12 @@ function resolveCachedNoteForPayload(
   }
 
   if (payload.operation === "create-quick") {
+    const homeData = queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey);
+
     return (
       findNoteByIdInCache(queryClient, "optimistic-quick") ??
-      queryClient.getQueryData<HomeNotesResponse>(homeNotesQueryKey)?.quickNote ??
+      homeData?.strips.find((strip) => strip.quickNote?.id === "optimistic-quick")
+        ?.quickNote ??
       null
     );
   }
@@ -345,11 +374,25 @@ async function executeNoteOfflinePayload(
       return response.note;
     }
     case "create-general": {
-      const response = await fetchPostGeneralNote(payload.values);
+      if (!payload.categoryId) {
+        return null;
+      }
+
+      const response = await fetchPostGeneralNote(
+        payload.categoryId,
+        payload.values,
+      );
       return response.note;
     }
     case "create-quick": {
-      const response = await fetchPostQuickNote(payload.values);
+      if (!payload.categoryId) {
+        return null;
+      }
+
+      const response = await fetchPostQuickNote(
+        payload.categoryId,
+        payload.values,
+      );
       return response.note;
     }
     case "delete": {

@@ -1,6 +1,6 @@
 ## Supabase Notes Table Setup
 
-Apply the notes schema from `supabase/migrations/001_notes.sql` to your hosted Supabase project.
+Apply the notes schema from `supabase/migrations/` to your hosted Supabase project (`001_notes.sql` plus later files through `042_note_categories.sql`).
 
 ### Prerequisites
 
@@ -18,7 +18,7 @@ MindFree tables use the `mf_` prefix (e.g. `public.mf_notes`).
 
 | Location | What to change |
 | -------- | -------------- |
-| `shared/config/supabase-tables.ts` | `TABLE_PREFIX` and derived constants (`NOTES_TABLE`, etc.) |
+| `shared/config/supabase-tables.ts` | `TABLE_PREFIX` and derived constants (`NOTES_TABLE`, `NOTE_CATEGORIES_TABLE`, etc.) |
 | `supabase/migrations/*.sql` | Table, index, function, trigger, and policy names |
 
 Change these **before** the first migration apply. If you already applied migrations, add a new migration to rename tables instead of editing `001_notes.sql`.
@@ -31,7 +31,7 @@ To remove the prefix entirely, set `TABLE_PREFIX = ""` and use `notes` instead o
 
 1. Open your project in [Supabase Dashboard](https://app.supabase.com).
 2. Go to **SQL Editor**.
-3. Paste the full contents of `supabase/migrations/001_notes.sql`.
+3. Paste the full contents of `supabase/migrations/001_notes.sql`, then run later note migrations in order (especially `042_note_categories.sql`).
 4. Run the script.
 
 **Option B — Supabase CLI**
@@ -43,25 +43,39 @@ npx supabase db push
 
 ### What gets created
 
+**`001_notes.sql`**
+
 | Object | Purpose |
 | ------ | ------- |
 | `public.mf_notes` | All note kinds in one table |
 | `mf_notes_user_date_unique` | One calendar note per user per day |
-| `mf_notes_user_quick_unique` | One quick note per user |
+| `mf_notes_user_quick_unique` | One quick note per user — **dropped in `042`** |
 | RLS policies | Authenticated users read/write only their rows |
 | `mf_notes_set_last_edited_at` trigger | Updates `last_edited_at` on every row update |
 
+**`042_note_categories.sql`**
+
+| Object | Purpose |
+| ------ | ------- |
+| `public.mf_note_categories` | User buckets for undated/quick notes |
+| `mf_note_categories_user_active_name_unique` | One active name per user (case-insensitive) |
+| `mf_note_categories_user_default_unique` | At most one Diary (`is_default`) per user |
+| `mf_notes.category_id` | FK; null for calendar; required for undated/quick (`mf_notes_category_matches_kind`) |
+| `mf_notes_user_category_quick_unique` | One quick note per user **per category** |
+| `mf_notes_user_category_undated_idx` | Undated list by category |
+| `mf_seed_default_note_category` | Seeds Diary on new `auth.users` rows |
+
 ### Note kinds (column rules)
 
-| Kind | `date` | `is_quick` |
-| ---- | ------ | ---------- |
-| Calendar | set | `false` |
-| General | `NULL` | `false` |
-| Quick (Home) | `NULL` | `true` |
+| Kind | `date` | `category_id` | `is_quick` |
+| ---- | ------ | ------------- | ---------- |
+| Calendar | set | `NULL` | `false` |
+| Undated | `NULL` | set | `false` |
+| Quick (Home) | `NULL` | set | `true` |
 
 Flags:
 
-- `starred` — Home carousel
+- `starred` — matching Home strip carousel
 - `is_important` — dark red border on calendar cell
 
 ### Manual verification
@@ -83,22 +97,22 @@ values ('<user_id>', '2026-07-15', 'Duplicate');
 -- expect: unique violation on mf_notes_user_date_unique
 ```
 
-**3. Insert general and quick notes**
+**3. Insert undated and quick notes (after `042`; replace `<category_id>` with that user’s Diary id)**
 
 ```sql
-insert into public.mf_notes (user_id, title)
-values ('<user_id>', 'General note');
+insert into public.mf_notes (user_id, title, category_id)
+values ('<user_id>', 'Undated note', '<category_id>');
 
-insert into public.mf_notes (user_id, title, is_quick)
-values ('<user_id>', 'Quick note', true);
+insert into public.mf_notes (user_id, title, is_quick, category_id)
+values ('<user_id>', 'Quick note', true, '<category_id>');
 ```
 
-**4. Second quick note should fail**
+**4. Second quick note in the same category should fail**
 
 ```sql
-insert into public.mf_notes (user_id, title, is_quick)
-values ('<user_id>', 'Another quick', true);
--- expect: unique violation on mf_notes_user_quick_unique
+insert into public.mf_notes (user_id, title, is_quick, category_id)
+values ('<user_id>', 'Another quick', true, '<category_id>');
+-- expect: unique violation on mf_notes_user_category_quick_unique
 ```
 
 **5. RLS from the app**
@@ -107,7 +121,7 @@ After migration, sign in through the app and confirm requests to `public.mf_note
 
 ### Security notes
 
-- RLS is enabled on `public.mf_notes`; all four policies scope access to `auth.uid() = user_id`.
+- RLS is enabled on `public.mf_notes` and `public.mf_note_categories`; policies scope access to `auth.uid() = user_id`.
 - UPDATE requires both `USING` and `WITH CHECK` so rows cannot be reassigned to another user.
 - Do not expose the `service_role` key in the Next.js app.
 

@@ -17,6 +17,8 @@ export const noteFormSchema = z.object({
     .max(10_000, "Content must be 10,000 characters or fewer."),
   starred: z.boolean(),
   isImportant: z.boolean(),
+  /** Required for undated/quick notes; always null for calendar notes. */
+  categoryId: z.string().uuid().nullable(),
 });
 
 /**

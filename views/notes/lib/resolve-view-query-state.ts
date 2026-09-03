@@ -1,6 +1,10 @@
 /**
  * @file views/notes/lib/resolve-view-query-state.ts
  * Maps the active notes view to a loading or error state when query data is unavailable.
+ *
+ * Purpose: Block the pane with QueryStatePanel until the owning query is ready.
+ * Used in: views/notes/ui/notes-views-section.tsx
+ * Used for: Calendar / month / category:<id> undated lists.
  */
 
 import type {
@@ -8,7 +12,10 @@ import type {
   GeneralNotesResponse,
 } from "@/entities/note";
 import type { QueryStatePanelVariant } from "@/shared/react-query";
-import type { NotesViewId } from "@/views/notes/lib/notes-views";
+import {
+  isCategoryNotesView,
+  type NotesViewId,
+} from "@/views/notes/lib/notes-views";
 
 interface QuerySlice<TData> {
   data: TData | undefined;
@@ -30,9 +37,9 @@ const MONTH_NOTES_VIEW_MESSAGES = {
   loading: "Loading month notes…",
 } as const;
 
-const GENERAL_NOTES_VIEW_MESSAGES = {
-  error: "Could not load general notes.",
-  loading: "Loading general notes…",
+const CATEGORY_NOTES_VIEW_MESSAGES = {
+  error: "Could not load category notes.",
+  loading: "Loading notes…",
 } as const;
 
 /**
@@ -67,13 +74,14 @@ export function resolveViewQueryState(
     return { kind: "ready" };
   }
 
-  if (view === "general-notes") {
+  // Undated category panes — same loading gate as former general-notes
+  if (isCategoryNotesView(view)) {
     if (general.isError) {
-      return { kind: "error", message: GENERAL_NOTES_VIEW_MESSAGES.error };
+      return { kind: "error", message: CATEGORY_NOTES_VIEW_MESSAGES.error };
     }
 
     if (general.isPending && !general.data) {
-      return { kind: "loading", message: GENERAL_NOTES_VIEW_MESSAGES.loading };
+      return { kind: "loading", message: CATEGORY_NOTES_VIEW_MESSAGES.loading };
     }
   }
 

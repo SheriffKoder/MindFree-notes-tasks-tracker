@@ -18,6 +18,7 @@ import type {
   CalendarNotesResponse,
   GeneralNotesResponse,
   HomeNotesResponse,
+  HomeNotesStrip,
 } from "@/entities/note/model/read-models";
 import type { Note } from "@/entities/note/model/types";
 import {
@@ -48,6 +49,7 @@ export function buildOptimisticCalendarNote(
     isQuick: false,
     lastEditedAt: new Date().toISOString(),
     revision: 1,
+    categoryId: null,
   };
 }
 
@@ -57,7 +59,10 @@ export function buildOptimisticCalendarNote(
  * @param values - editable form snapshot
  * @returns optimistic note placeholder
  */
-export function buildOptimisticGeneralNote(values: NoteFormValues): Note {
+export function buildOptimisticGeneralNote(
+  values: NoteFormValues,
+  categoryId: string,
+): Note {
   return {
     id: "optimistic-general",
     date: null,
@@ -68,6 +73,7 @@ export function buildOptimisticGeneralNote(values: NoteFormValues): Note {
     isQuick: false,
     lastEditedAt: new Date().toISOString(),
     revision: 1,
+    categoryId,
   };
 }
 
@@ -125,7 +131,7 @@ export function upsertGeneralNoteInCache(
     right.lastEditedAt.localeCompare(left.lastEditedAt),
   );
 
-  return { generalNotes };
+  return { categoryId: data.categoryId, generalNotes };
 }
 
 /** Max starred rows kept in the home read cache (matches repository fetch cap). */
@@ -137,80 +143,130 @@ function sortStarredNotesByLastEdited(notes: Note[]): Note[] {
   );
 }
 
+function findDiaryStrip(data: HomeNotesResponse): HomeNotesStrip | undefined {
+  return data.strips.find((strip) => strip.isDefault) ?? data.strips[0];
+}
+
+function resolveHomeStripCategoryId(
+  data: HomeNotesResponse,
+  note: Note,
+): string | null {
+  if (note.isQuick && note.categoryId) {
+    return note.categoryId;
+  }
+
+  if (note.date) {
+    return findDiaryStrip(data)?.categoryId ?? null;
+  }
+
+  return note.categoryId;
+}
+
 /**
  * Applies an update to the home read cache from a previous → next note transition.
- *
- * @param data - cached home payload
- * @param previous - note row before the write
- * @param next - optimistic or server-confirmed note after the write
  */
 export function applyHomeNoteUpdate(
   data: HomeNotesResponse,
   previous: Note,
   next: Note,
 ): HomeNotesResponse {
-  let quickNote = data.quickNote;
-  let starredNotes = data.starredNotes;
+  const strips = data.strips.map((strip) => ({
+    ...strip,
+    quickNote: strip.quickNote?.id === previous.id ? null : strip.quickNote,
+    starredNotes: strip.starredNotes.filter(
+      (entry) => entry.id !== previous.id && entry.id !== next.id,
+    ),
+  }));
 
-  if (next.isQuick) {
-    quickNote = next;
-  } else if (quickNote?.id === previous.id || quickNote?.id === next.id) {
-    quickNote = null;
+  const targetCategoryId = resolveHomeStripCategoryId({ strips }, next);
+
+  if (!targetCategoryId) {
+    return { strips };
   }
 
-  starredNotes = starredNotes.filter(
-    (entry) => entry.id !== previous.id && entry.id !== next.id,
+  const stripIndex = strips.findIndex(
+    (strip) => strip.categoryId === targetCategoryId,
   );
 
-  if (next.starred && !next.isQuick) {
-    starredNotes = sortStarredNotesByLastEdited([next, ...starredNotes]).slice(
-      0,
-      HOME_STARRED_CACHE_LIMIT,
-    );
+  if (stripIndex === -1) {
+    return { strips };
   }
 
-  return { quickNote, starredNotes };
+  const strip = { ...strips[stripIndex] };
+
+  if (next.isQuick) {
+    strip.quickNote = next;
+  } else if (strip.quickNote?.id === next.id) {
+    strip.quickNote = null;
+  }
+
+  if (next.starred && !next.isQuick) {
+    strip.starredNotes = sortStarredNotesByLastEdited([
+      next,
+      ...strip.starredNotes,
+    ]).slice(0, HOME_STARRED_CACHE_LIMIT);
+  }
+
+  strips[stripIndex] = strip;
+
+  return { strips };
 }
 
 /**
  * Applies a create write to the home read cache.
- *
- * @param data - cached home payload
- * @param note - created note row
  */
 export function applyHomeNoteCreate(
   data: HomeNotesResponse,
   note: Note,
 ): HomeNotesResponse {
+  if (note.date && !note.starred) {
+    return data;
+  }
+
+  const targetCategoryId = resolveHomeStripCategoryId(data, note);
+
+  if (!targetCategoryId) {
+    return data;
+  }
+
+  const stripIndex = data.strips.findIndex(
+    (strip) => strip.categoryId === targetCategoryId,
+  );
+
+  if (stripIndex === -1) {
+    return data;
+  }
+
+  const strip = { ...data.strips[stripIndex] };
+
   if (note.isQuick) {
-    return { ...data, quickNote: note };
+    strip.quickNote = note;
+  } else if (note.starred) {
+    strip.starredNotes = sortStarredNotesByLastEdited([
+      note,
+      ...strip.starredNotes.filter((entry) => entry.id !== note.id),
+    ]).slice(0, HOME_STARRED_CACHE_LIMIT);
   }
 
-  let starredNotes = data.starredNotes.filter((entry) => entry.id !== note.id);
+  const strips = [...data.strips];
+  strips[stripIndex] = strip;
 
-  if (note.starred) {
-    starredNotes = sortStarredNotesByLastEdited([note, ...starredNotes]).slice(
-      0,
-      HOME_STARRED_CACHE_LIMIT,
-    );
-  }
-
-  return { quickNote: data.quickNote, starredNotes };
+  return { strips };
 }
 
 /**
- * Removes one note from the home quick slot and starred carousel.
- *
- * @param data - cached home payload
- * @param noteId - row id to remove
+ * Removes one note from the matching home strip quick slot and starred carousel.
  */
 export function applyHomeNoteDelete(
   data: HomeNotesResponse,
-  noteId: string,
+  note: Note,
 ): HomeNotesResponse {
   return {
-    quickNote: data.quickNote?.id === noteId ? null : data.quickNote,
-    starredNotes: data.starredNotes.filter((note) => note.id !== noteId),
+    strips: data.strips.map((strip) => ({
+      ...strip,
+      quickNote: strip.quickNote?.id === note.id ? null : strip.quickNote,
+      starredNotes: strip.starredNotes.filter((entry) => entry.id !== note.id),
+    })),
   };
 }
 
@@ -223,7 +279,7 @@ export function patchHomeNotesCache(
   next: Note,
 ): void {
   queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
-    const base = current ?? { quickNote: null, starredNotes: [] };
+    const base = current ?? { strips: [] };
     return applyHomeNoteUpdate(base, previous, next);
   });
 }
@@ -233,7 +289,7 @@ export function patchHomeNotesCache(
  */
 export function upsertHomeNoteInCache(queryClient: QueryClient, note: Note): void {
   queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
-    const base = current ?? { quickNote: null, starredNotes: [] };
+    const base = current ?? { strips: [] };
     return applyHomeNoteCreate(base, note);
   });
 }
@@ -243,21 +299,24 @@ export function upsertHomeNoteInCache(queryClient: QueryClient, note: Note): voi
  */
 export function removeHomeNoteFromCacheQuery(
   queryClient: QueryClient,
-  noteId: string,
+  note: Note,
 ): void {
   queryClient.setQueryData<HomeNotesResponse>(homeNotesQueryKey, (current) => {
     if (!current) {
       return current;
     }
 
-    return applyHomeNoteDelete(current, noteId);
+    return applyHomeNoteDelete(current, note);
   });
 }
 
 /**
  * Builds an optimistic quick note before the server assigns an id.
  */
-export function buildOptimisticQuickNote(values: NoteFormValues): Note {
+export function buildOptimisticQuickNote(
+  values: NoteFormValues,
+  categoryId: string,
+): Note {
   return {
     id: "optimistic-quick",
     date: null,
@@ -268,6 +327,7 @@ export function buildOptimisticQuickNote(values: NoteFormValues): Note {
     isQuick: true,
     lastEditedAt: new Date().toISOString(),
     revision: 1,
+    categoryId,
   };
 }
 
@@ -303,6 +363,7 @@ export function removeGeneralNoteFromCache(
   noteId: string,
 ): GeneralNotesResponse {
   return {
+    categoryId: data.categoryId,
     generalNotes: data.generalNotes.filter((note) => note.id !== noteId),
   };
 }
@@ -331,11 +392,15 @@ export function relocateNoteInCache(
     );
   }
 
-  queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-    current
-      ? removeGeneralNoteFromCache(current, previousNote.id)
-      : current,
-  );
+  if (previousNote.categoryId) {
+    queryClient.setQueryData<GeneralNotesResponse>(
+      generalNotesQueryKey(previousNote.categoryId),
+      (current) =>
+        current
+          ? removeGeneralNoteFromCache(current, previousNote.id)
+          : current,
+    );
+  }
 
   if (updatedNote.date) {
     const nextMonth = updatedNote.date.slice(0, 7);
@@ -352,7 +417,11 @@ export function relocateNoteInCache(
     return;
   }
 
-  queryClient.setQueryData<GeneralNotesResponse>(generalNotesQueryKey, (current) =>
-    current ? upsertGeneralNoteInCache(current, updatedNote) : current,
-  );
+  if (updatedNote.categoryId) {
+    queryClient.setQueryData<GeneralNotesResponse>(
+      generalNotesQueryKey(updatedNote.categoryId),
+      (current) =>
+        current ? upsertGeneralNoteInCache(current, updatedNote) : current,
+    );
+  }
 }

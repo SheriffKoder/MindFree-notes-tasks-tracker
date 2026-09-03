@@ -36,10 +36,11 @@ export async function fetchPostCalendarNote(
   values: NoteFormValues,
   replaceExistingOnDate?: boolean,
 ): Promise<PostNoteResponse> {
-  const body: NoteFormValues & {
+  const { categoryId: _categoryId, ...calendarFields } = values;
+  const body: Omit<NoteFormValues, "categoryId"> & {
     date: string;
     replaceExistingOnDate?: boolean;
-  } = { date, ...values };
+  } = { date, ...calendarFields };
 
   if (replaceExistingOnDate) {
     body.replaceExistingOnDate = true;
@@ -93,6 +94,7 @@ export async function fetchPostCalendarNote(
  * @returns server-confirmed note
  */
 export async function fetchPostGeneralNote(
+  categoryId: string,
   values: NoteFormValues,
 ): Promise<PostNoteResponse> {
   const response = await fetch("/api/notes/general", {
@@ -101,7 +103,7 @@ export async function fetchPostGeneralNote(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(values),
+    body: JSON.stringify({ ...values, categoryId }),
   });
 
   if (!response.ok) {
@@ -121,6 +123,7 @@ export async function fetchPostGeneralNote(
  * @returns server-confirmed note
  */
 export async function fetchPostQuickNote(
+  categoryId: string,
   values: NoteFormValues,
 ): Promise<PostNoteResponse> {
   const response = await fetch("/api/notes/home", {
@@ -129,7 +132,7 @@ export async function fetchPostQuickNote(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(values),
+    body: JSON.stringify({ ...values, categoryId }),
   });
 
   if (!response.ok) {

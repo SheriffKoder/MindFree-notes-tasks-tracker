@@ -11,7 +11,7 @@ Notes is the first full example; the same split applies as Tasks and other domai
 | Bucket | Owner | Examples (Notes) | Survives refresh? |
 | ------ | ----- | ---------------- | ----------------- |
 | **Application / URL** | Search params | `?month=2026-07`, `?view=calendar` | Yes — shareable, back-button friendly |
-| **Server state** | TanStack Query (hydrated from SSR) | `["calendarNotes", month]`, `["generalNotes"]`, `["homeNotes"]` | Cache may be warm; authoritative row data is in Supabase |
+| **Server state** | TanStack Query (hydrated from SSR) | `["calendarNotes", month]`, `["generalNotes", categoryId]`, `["homeNotes"]`, `["noteCategories"]` | Cache may be warm; authoritative row data is in Supabase |
 | **Ephemeral UI** | Feature / view islands | Drawer `isOpen`, editor request, drawer `activeDate` | No |
 
 Keep each bucket at the **closest boundary** that needs it. The calendar does not own drawer open state; the drawer does not own URL month.
@@ -23,7 +23,7 @@ Keep each bucket at the **closest boundary** that needs it. The calendar does no
 ```text
 /notes?month=2026-07&view=calendar
 /notes?month=2026-07&view=month-notes
-/notes?month=2026-07&view=general-notes
+/notes?month=2026-07&view=category:<uuid>
 ```
 
 **Why URL, not React state alone:** bookmarking, reload, and browser history match what the user was looking at. Changing `month` or `view` is client-side URL work so the server page does not re-run on every toggle (see caching / routing docs).

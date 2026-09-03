@@ -168,6 +168,7 @@ function normalizePayload(
       ...values,
       title: formatCalendarNoteTitle(date),
       date,
+      categoryId: null,
     };
   }
 
