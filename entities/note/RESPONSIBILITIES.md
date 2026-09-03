@@ -23,8 +23,8 @@ between responsibility groups without exposing every implementation globally.
   beside the domain type makes the mapping boundary explicit without mixing
   prepared response payloads into persistence types.
 - `model/read-models.ts` — `CalendarDay`, `CalendarNotesResponse`,
-  `GeneralNotesResponse`, and `HomeNotesResponse`; these describe consumer-ready
-  read payloads rather than database records.
+  `GeneralNotesResponse` (per `categoryId`), and `HomeNotesResponse` (`strips`);
+  these describe consumer-ready read payloads rather than database records.
 - `schema/create-note.schema.ts` — Zod bodies for calendar/general creation and
   the shared create response; quick creation intentionally reuses the general
   body because both are undated form payloads.
@@ -50,9 +50,9 @@ inside a monolithic CRUD file. Import repository functions through
 
 - `repository/get-authenticated-user-id.ts` — resolves the authenticated user id
 - `repository/get-calendar-notes.ts` — reads one calendar month
-- `repository/get-general-notes.ts` — reads undated, non-quick notes
-- `repository/get-quick-note.ts` — reads the single quick-note slot
-- `repository/get-starred-notes.ts` — reads recently edited starred, non-quick notes
+- `repository/get-general-notes.ts` — reads undated, non-quick notes for one category
+- `repository/get-quick-note.ts` — reads that category’s quick-note slot
+- `repository/get-starred-notes.ts` — reads starred, non-quick notes for a Home strip
 - `repository/create-calendar-note.ts` — inserts a dated note
 - `repository/create-general-note.ts` — inserts general and quick undated notes
 - `repository/update-note.ts` — updates by id and handles calendar-date
@@ -63,10 +63,10 @@ inside a monolithic CRUD file. Import repository functions through
 
 - `queries/get-calendar-notes-response.ts` — month input → repository read →
   calendar transform → API/SSR payload
-- `queries/get-general-notes-response.ts` — general-notes payload
-- `queries/get-home-notes-response.ts` — quick slot + starred carousel payload
+- `queries/get-general-notes-response.ts` — per-category undated payload
+- `queries/get-home-notes-response.ts` — `strips[]` (quick + starred per showOnHome)
   for `GET /api/notes/home`
-- `queries/get-notes-page-initial-data.ts` — parallel calendar and general reads
+- `queries/get-notes-page-initial-data.ts` — calendar + categories + per-category undated reads
   for `/notes` SSR
 - `queries/index.ts` — server-read surface consumed by `server.ts`
 
@@ -88,7 +88,8 @@ operations in `repository/`; `mutations/` coordinates those responsibilities.
 
 ## Browser queries and HTTP writes
 
-- `client/query-keys.ts` — canonical calendar, general, and Home TanStack keys
+- `client/query-keys.ts` — canonical calendar, per-category general, and Home TanStack keys
+  (category keys re-exported from `category/client/query-keys.ts`)
 - `client/calendar-notes-query.ts` — calendar fetcher + reusable query options
 - `client/general-notes-query.ts` — general fetcher + reusable query options
 - `client/home-notes-query.ts` — Home fetcher + reusable query options
@@ -138,8 +139,8 @@ offline flushes do not each maintain divergent `setQueryData` logic.
 
 ## SSR hydration
 
-- `hydration/seed-notes-page-cache.ts` — writes the SSR calendar and general
-  payloads into a per-request `QueryClient`
+- `hydration/seed-notes-page-cache.ts` — writes SSR calendar, categories, and per-category
+  general payloads into a per-request `QueryClient`
 - `hydration/seed-home-notes-cache.ts` — writes the SSR Home payload
 - `hydration/index.ts` — seeder surface consumed by `server.ts`
 
@@ -172,18 +173,32 @@ normal synchronization path instead of inventing a fourth read model.
 
 ## Home read model
 
-Home combines one quick note (`is_quick = true`) with starred non-quick notes.
-The UI lives in `views/home/`; the entity owns the response, request, hooks, and
-cross-cache consistency:
+Home combines, **per showOnHome category**, one quick note (`is_quick = true`) with starred
+non-quick notes. The UI lives in `views/home/` (title switcher + one carousel); the entity
+owns the response, request, hooks, and cross-cache consistency:
 
-- `model/read-models.ts` — `HomeNotesResponse`
+- `model/read-models.ts` — `HomeNotesResponse` / `HomeNotesStrip`
 - `repository/get-quick-note.ts`, `repository/get-starred-notes.ts` — persistence reads
-- `queries/get-home-notes-response.ts` — server composition
+- `queries/get-home-notes-response.ts` — server composition (`strips[]`)
 - `client/home-notes-query.ts` — fetcher and options
 - `hooks/use-home-notes-query.ts` — React query hook
 - `hydration/seed-home-notes-cache.ts` — SSR seed
 - `cache/note-cache-mutations.ts`, `cache/synchronize-note-caches.ts` — Home
   membership updates after local, remote, or offline changes
+- `category/cache/synchronize-note-category-caches.ts` — strip add/remove/rename when
+  categories change
+
+## Category nest
+
+Navigation for `entities/note/category/` (import via `server.ts` / `client.ts`, not
+`category/repository/`):
+
+- Types: `category/model/types.ts`
+- CRUD use-cases: `category/mutations/`
+- List query: `category/queries/get-note-categories-response.ts`
+- Browser: `category/client/`, `category/hooks/`
+- Form: `category/editor/`
+- Nest README: [`category/README.md`](./category/README.md)
 
 ## Editor form
 
@@ -212,7 +227,8 @@ note resolution, navigation, and save routing remain feature responsibilities.
 | Change the calendar day grid | `transform/aggregate-month-notes.ts` |
 | Change a GET use-case | the matching file in `queries/` |
 | Change PATCH/POST/DELETE server policy | the matching file in `mutations/` |
-| Change query keys | `client/query-keys.ts` |
+| Change query keys | `client/query-keys.ts` (`["generalNotes", categoryId]`) |
+| Change category CRUD / Diary protection | `category/` via `server.ts` / `client.ts` |
 | Change browser fetch/options | `client/*-notes-query.ts` |
 | Change POST/PATCH/DELETE transport | `client/post-note.ts`, `patch-note.ts`, `delete-note.ts` |
 | Change a React read hook | `hooks/use-*-notes-query.ts` |

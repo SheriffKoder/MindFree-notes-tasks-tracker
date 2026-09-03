@@ -60,7 +60,7 @@ At minimum, complete:
 
 ## 4. Apply database migrations
 
-The app stores notes in `public.mf_notes` (MindFree `mf_` table prefix). Apply the migration once per Supabase project.
+The app stores notes in `public.mf_notes` and categories in `public.mf_note_categories` (MindFree `mf_` table prefix). Apply **all** files in `supabase/migrations/` once per Supabase project (`db push`), not only `001_notes.sql`.
 
 ### Table prefix (optional)
 
@@ -105,12 +105,12 @@ Your project ref is the segment in `https://app.supabase.com/project/<project-re
 npx supabase migration list
 ```
 
-You should see `001_notes` applied.
+You should see `001_notes` through the latest version (including `042_note_categories`) applied.
 
 ### Option B — SQL Editor (no CLI)
 
 1. Open [Supabase Dashboard](https://app.supabase.com) → **SQL Editor**
-2. Paste the full contents of [`supabase/migrations/001_notes.sql`](../../supabase/migrations/001_notes.sql)
+2. Paste migrations in order, starting with [`supabase/migrations/001_notes.sql`](../../supabase/migrations/001_notes.sql), including [`042_note_categories.sql`](../../supabase/migrations/042_note_categories.sql)
 3. Run the script
 
 More detail and verification queries: **[Supabase Notes Table Setup](./2-supabase-notes-setup.md)**

@@ -1,8 +1,8 @@
 # Notes page data flow
 
-How Notes travel from SSR hydration through three TanStack read models to the
-calendar, list views, and shared drawer island. Home reuses the same entity
-writes and cache hub through a fourth read model.
+How Notes travel from SSR hydration through calendar, per-category undated lists,
+and category caches to the views and shared drawers. Home reuses the same entity
+writes and cache hub through `["homeNotes"]` strips.
 
 **Read models:** [entities/note/docs/read-models.md](../../../entities/note/docs/read-models.md)
 **Shared ownership:** [entities/note/RESPONSIBILITIES.md](../../../entities/note/RESPONSIBILITIES.md)
@@ -17,20 +17,22 @@ flowchart TD
   subgraph ROUTES["Thin route + view wrappers"]
     NotesRoute["/notes"]
     NotesSeed["NotesHydrationSeed"]
-    NotesClient["NotesClient<br/>URL state · selection · drawer · offline"]
+    NotesClient["NotesClient<br/>URL state · selection · drawers · offline"]
   end
 
   subgraph SERVER["Server reads + hydration"]
     Initial["getNotesPageInitialData<br/>(userId, month)"]
-    CalendarRead["getCalendarNotesResponse<br/>(userId, month)"]
-    GeneralRead["getGeneralNotesResponse<br/>(userId)"]
+    CalendarRead["getCalendarNotesResponse"]
+    CategoriesRead["getCategories + ensureDefault"]
+    GeneralRead["getGeneralNotesResponse<br/>per categoryId"]
     Seed["seedNotesPageCache<br/>dehydrate → QueryHydration"]
   end
 
   subgraph CACHE["Canonical TanStack caches"]
-    CalendarCache["calendarNotes, month<br/>one bucket per YYYY-MM"]
-    GeneralCache["generalNotes<br/>stable across months"]
-    HomeCache["homeNotes<br/>quick slot + starred subset"]
+    CalendarCache["calendarNotes, month"]
+    GeneralCache["generalNotes, categoryId"]
+    CategoriesCache["noteCategories"]
+    HomeCache["homeNotes<br/>strips[]"]
   end
 
   subgraph PAGE["views/notes"]
@@ -38,22 +40,24 @@ flowchart TD
     Views["NotesViewsSection<br/>query owner · prefetch ±1 month"]
     Calendar["MonthCalendar<br/>calendarDays grid"]
     MonthList["ListView<br/>monthNotes · week grouping"]
-    GeneralList["ListView<br/>generalNotes"]
+    GeneralList["ListView<br/>category undated list"]
     CalendarCell["NoteCalendarCell"]
     ListCard["NoteListCard"]
-    NoteDrawer["NoteDrawer<br/>feature island"]
+    NoteDrawer["NoteDrawer"]
+    CategoryDrawer["NoteCategoryDrawer"]
   end
 
   subgraph HOME["views/home (related surface)"]
     HomeSeed["HomeHydrationSeed<br/>also seeds activity"]
-    HomeSection["HomeNotesSection"]
-    HomeStrip["HomeNotesStrip<br/>DragHorizontalScroll"]
+    HomeSection["HomeNotesSection<br/>title switcher"]
+    HomeStrip["HomeNotesStrip<br/>selected strip"]
   end
 
   subgraph WRITES["Write convergence"]
     Orchestrator["evaluateNoteSave<br/>pre-save orchestrator"]
     Mutations["TanStack mutations<br/>POST / PATCH / DELETE"]
-    Hub["synchronizeNoteCaches<br/>NoteChange hub"]
+    Hub["synchronizeNoteCaches"]
+    CategoryHub["synchronizeNoteCategoryCaches"]
     Realtime["useNotesRealtimeSync<br/>Supabase postgres_changes"]
     Offline["offline adapter<br/>localStorage flush"]
   end
@@ -62,17 +66,22 @@ flowchart TD
   NotesRoute --> NotesClient
   NotesSeed --> Initial
   Initial --> CalendarRead
+  Initial --> CategoriesRead
   Initial --> GeneralRead
   CalendarRead --> Seed
+  CategoriesRead --> Seed
   GeneralRead --> Seed
   Seed --> CalendarCache
   Seed --> GeneralCache
+  Seed --> CategoriesCache
 
   NotesClient --> PageClient
   PageClient --> Views
   PageClient --> NoteDrawer
+  PageClient --> CategoryDrawer
   CalendarCache --> Views
   GeneralCache --> Views
+  CategoriesCache --> PageClient
   Views --> Calendar
   Views --> MonthList
   Views --> GeneralList
@@ -95,6 +104,8 @@ flowchart TD
   Hub --> CalendarCache
   Hub --> GeneralCache
   Hub --> HomeCache
+  CategoryHub --> CategoriesCache
+  CategoryHub --> HomeCache
 ```
 
 ---
@@ -108,12 +119,13 @@ flowchart TD
   │         ├─ getCalendarNotesResponse(userId, resolvedMonth)
   │         └─ getGeneralNotesResponse(userId)
   └─ NotesClient
-       ├─ useNotesUrlState()        → ?month= · ?view=
+       ├─ useNotesUrlState()        → ?month= · ?view=calendar|month-notes|category:<id>
        ├─ useNotesPageSelection()    → highlightedDate (in-month only)
        ├─ useNotesDrawer()           → open edit / create / quick
+       ├─ useNoteCategoriesDrawer()  → manage categories overlay
        ├─ useNotesRealtimeSync()     → cache hub + drawer bridge
        ├─ useOfflineSync()           → flush pending writes
-       └─ NotesViewsSection + NoteDrawer
+       └─ NotesViewsSection + NoteDrawer + NoteCategoryDrawer
 ```
 
 The route file only composes server hydration and the client shell as parallel
@@ -122,8 +134,9 @@ not remount on every URL change.
 
 `NotesClient` owns the reusable Notes page workflow:
 
-- month/view URL state and in-month highlighted day;
-- drawer open requests (edit id, create for date, create general);
+- month/view URL state and in-month highlighted day (`category:<uuid>` views from active categories);
+- drawer open requests (edit id, create for date, create undated with `categoryId`);
+- category manage drawer (mutually exclusive with the note editor);
 - offline banner + reconnect flush;
 - realtime subscription scoped to the signed-in user;
 - responsive calendar/list composition via `NotesViewsSection`.
@@ -136,22 +149,24 @@ not remount on every URL change.
 
 ```text
 getCalendarNotesResponse(userId, resolvedMonth)
-getGeneralNotesResponse(userId)
+getCategories(userId)  // after ensureDefaultCategory
+getGeneralNotesResponse(userId, categoryId)  // one per active category
 ```
 
 `seedNotesPageCache(queryClient, data)` then writes:
 
 ```text
-["calendarNotes", data.month]   → calendarDays + monthNotes for this month
-["generalNotes"]                → undated, non-quick notes (not month-scoped)
+["calendarNotes", data.month]              → calendarDays + monthNotes
+["noteCategories"]                         → active categories
+["generalNotes", payload.categoryId]       → undated, non-quick (not month-scoped)
 ```
 
 The seed component dehydrates once into `QueryHydration`. First paint therefore
-reads canonical cache data without a client round-trip. General notes stay stable
+reads canonical cache data without a client round-trip. Undated lists stay stable
 while month navigation changes only the calendar key.
 
 Home uses the related `getHomeNotesResponse` / `seedHomeNotesCache` pair
-because it needs the quick slot and starred subset, not a full month grid.
+because it needs `strips[]` (quick + starred per `showOnHome`), not a full month grid.
 `HomeHydrationSeed` composes note + activity seeders into one dehydrate.
 
 ---
@@ -161,14 +176,15 @@ because it needs the quick slot and starred subset, not a full month grid.
 `NotesViewsSection` is the shared query owner for the Notes page body:
 
 ```text
-useCalendarNotesQuery(month)  → ["calendarNotes", month]
-useGeneralNotesQuery()        → ["generalNotes"]
-resolveViewQueryState(...)    → loading | error | ready
+useCalendarNotesQuery(month)           → ["calendarNotes", month]
+useGeneralNotesQuery(categoryId)       → ["generalNotes", categoryId]
+useNoteCategoriesQuery()               → ["noteCategories"]
+resolveViewQueryState(...)             → loading | error | ready
 usePrefetchAdjacentCalendarMonths(month)  → warm ±1 months when active month succeeds
 ```
 
 On mobile it mounts one view at a time (`calendar`, `month-notes`, or
-`general-notes`). On desktop the calendar view renders the month grid and a
+`category:<uuid>`). On desktop the calendar view renders the month grid and a
 sidebar month-notes list side by side. The component is memoized so opening the
 drawer in `NotesClient` does not re-render the calendar/list tree when props
 stay stable.
@@ -191,8 +207,8 @@ calendarNotes.calendarDays
 - Page selection (`highlightedDate`) is separate from drawer `activeDate` — the
   user can browse July on the page while editing a March day in the drawer
   ([drawer-navigation.md](./drawer-navigation.md), ADR 0005).
-- Month chevrons update URL `?month=` and swap the calendar query key; general
-  notes do not refetch.
+- Month chevrons update URL `?month=` and swap the calendar query key; undated
+  category lists do not refetch.
 
 ---
 
@@ -210,18 +226,19 @@ calendarNotes.monthNotes
 Reuses the same calendar month bucket — no second fetch. Week grouping and empty
 week copy are view preferences, not entity rules.
 
-### General notes (`?view=general-notes`)
+### Category undated list (`?view=category:<uuid>`)
 
 ```text
-generalNotes.generalNotes
+generalNotes.generalNotes   // key ["generalNotes", categoryId]
   → ListView
   → NoteListCard
   → onNoteClick(note) → drawer.openEdit
 ```
 
-The list deliberately does not subscribe to month navigation. Toggling month on
-the calendar view does not re-render general list cards when that view is
-unmounted.
+Legacy `?view=general-notes` remaps to Diary. The list does not subscribe to month
+navigation.
+
+See [categories.md](./categories.md).
 
 ---
 
@@ -253,26 +270,26 @@ form onChange
 ```
 
 A calendar create/patch/delete updates its month bucket and may also touch
-`generalNotes` and `homeNotes` membership (date moves, quick graduation,
-star/important toggles). Callers do not hand-roll three `setQueryData`s.
+per-category `generalNotes` and `homeNotes` membership (date moves, quick graduation,
+star/important toggles, category moves). Callers do not hand-roll three `setQueryData`s.
 
 ---
 
-## Home strip (fourth read model)
+## Home strips
 
 ```text
-GET /api/notes/home → HomeNotesResponse
+GET /api/notes/home → HomeNotesResponse { strips }
 TanStack key: ["homeNotes"]
 
+HomeNotesStripHeader   → tap category name to select a strip
 HomeNotesStrip
-  ├─ quickNote slot (or placeholder → openCreateQuick)
-  └─ starredNotes → NoteListCard (variant="home")
+  ├─ strip.quickNote (or placeholder → openCreateQuick(categoryId))
+  └─ strip.starredNotes → NoteListCard (variant="home")
 ```
 
-Home reads and writes through the same entity. Starring on Home updates the
-Notes page caches via `synchronizeNoteCaches`; Notes page edits update Home on
-the next hub pass. Realtime and offline adapters on Home use the same bridge as
-`NotesClient`.
+Home reads and writes through the same entity. Category `showOnHome` / archive /
+rename go through `synchronizeNoteCategoryCaches`. Starring on Home updates the
+Notes page caches via `synchronizeNoteCaches`.
 
 ---
 
@@ -281,10 +298,10 @@ the next hub pass. Realtime and offline adapters on Home use the same bridge as
 | Concern | Mechanism |
 | ------- | --------- |
 | Drawer open does not rebuild the grid | memoized `NotesViewsSection` with stable callbacks |
-| Month navigation refetches calendar only | calendar keyed by month; general keyed globally |
-| General list does not flash on month change | separate `["generalNotes"]` cache |
-| Home strip stays independent of page month | separate `["homeNotes"]` cache |
-| Cross-surface consistency after writes | `synchronizeNoteCaches` + `NoteChange` union |
+| Month navigation refetches calendar only | calendar keyed by month; undated keyed by categoryId |
+| Undated list does not flash on month change | separate `["generalNotes", categoryId]` caches |
+| Home strip stays independent of page month | separate `["homeNotes"]` cache (`strips`) |
+| Cross-surface consistency after writes | `synchronizeNoteCaches` + category hub |
 | Stale PATCH responses do not roll back newer edits | `onSuccess` gated by `lastEditedAt` |
 | Offline writes survive refresh | user-scoped localStorage + `storage` event across tabs |
 
@@ -294,7 +311,8 @@ the next hub pass. Realtime and offline adapters on Home use the same bridge as
 
 | Doc | Why |
 | --- | --- |
-| [read-models.md](../../../entities/note/docs/read-models.md) | Three Notes caches + Home payload shapes |
+| [read-models.md](../../../entities/note/docs/read-models.md) | Calendar, per-category general, Home strips, categories |
+| [categories.md](./categories.md) | Manage drawer and `category:<id>` views |
 | [writes-and-autosave.md](../../../entities/note/docs/writes-and-autosave.md) | Orchestrator actions and mutation surfaces |
 | [drawer-navigation.md](./drawer-navigation.md) | Page month vs drawer `activeDate` |
 | [quick-note.md](../../../entities/note/docs/quick-note.md) | Quick slot graduation and promotion |
@@ -304,4 +322,5 @@ the next hub pass. Realtime and offline adapters on Home use the same bridge as
 | [ADR 0005](../../../docs/adr/0005-selected-date-not-selected-note.md) | Selected date, not selected note |
 | [ADR 0006](../../../docs/adr/0006-pre-save-orchestrator.md) | Why save logic sits before mutations |
 | [ADR 0007](../../../docs/adr/0007-synchronize-note-caches-hub.md) | Cache fan-out hub |
-| [views/home/docs/notes-strip.md](../../home/docs/notes-strip.md) | Home strip implementation plan |
+| [ADR 0017](../../../docs/adr/0017-note-categories.md) | Categories nested in the note entity |
+| [views/home/docs/notes-strip.md](../../home/docs/notes-strip.md) | Home switcher + selected strip |

@@ -6,6 +6,25 @@ Build-history plans may still live under `app/development/changelogs/`; this fil
 
 ---
 
+## 2026-09-03 — Note categories (Diary + custom)
+
+Undated and quick notes now live in **user-managed categories** nested in the note entity (`entities/note/category/`). Calendar notes stay category-free (one per day).
+
+**What we shipped:**
+
+| Piece | Role |
+| ----- | ---- |
+| `mf_note_categories` (+ migration `042`) | Name, `showOnHome`, sort, seeded Diary (`isDefault`) |
+| Soft vs hard delete | Archive hides views; hard delete cascades notes; Diary cannot be hard-deleted |
+| Home | Title-row switcher over `strips[]` — quick + starred per `showOnHome` category |
+| Quick notes | One per category, not one per user |
+| Notes page | `?view=category:<uuid>` lists + manage drawer |
+
+**ADR:** [0017](./adr/0017-note-categories.md)  
+**Plan folder:** `app/development/changelogs/note-category/`
+
+---
+
 ## 2026-08-11 — Notes multi-device sync (revision + open drawers)
 
 Two devices could both show an open note drawer, yet edits on one often never

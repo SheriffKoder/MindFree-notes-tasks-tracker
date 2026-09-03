@@ -36,9 +36,10 @@ views/<page>/              Wires hooks to UI — does not invent keys
 
 | Key | Independence |
 | --- | ------------ |
-| `["calendarNotes", month]` | Month-scoped — navigating July must not refetch general |
-| `["generalNotes"]` | Month-independent |
-| `["homeNotes"]` | Home-only shape (quick + starred) |
+| `["calendarNotes", month]` | Month-scoped — navigating July must not refetch undated lists |
+| `["generalNotes", categoryId]` | Month-independent; one cache per category (prefix `["generalNotes"]` for scans) |
+| `["homeNotes"]` | Home strips (`quickNote` + `starredNotes` per `showOnHome` category) |
+| `["noteCategories"]` | Active category rows |
 
 Separate keys are intentional. One mega-`["notes"]` blob would couple month navigation to every consumer.
 

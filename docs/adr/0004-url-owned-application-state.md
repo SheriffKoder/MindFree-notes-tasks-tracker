@@ -9,7 +9,7 @@ Accepted
 The Notes page has application chrome that is not ephemeral UI:
 
 - Which month the calendar and month-notes list show
-- Which presentation is active (calendar grid, month cards, general list)
+- Which presentation is active (calendar grid, month cards, category undated list)
 
 Putting that only in React state loses bookmarking, refresh, and browser back. Putting it only on the server (`searchParams` in an async page) makes every toggle a server round-trip and Suspense flash — bad for a month navigator users click often.
 
@@ -18,12 +18,12 @@ Putting that only in React state loses bookmarking, refresh, and browser back. P
 1. Own **month** and **view** in the URL search string:
 
    ```text
-   /notes?month=YYYY-MM&view=calendar|month-notes|general-notes
+   /notes?month=YYYY-MM&view=calendar|month-notes|category:<uuid>
    ```
 
 2. Read and write them from a **client** hook (`useNotesUrlState`) via `useSearchParams` / router navigation.
 3. Keep the **route page sync** — do not make the Server Component wait on `searchParams` for the Notes shell.
-4. Bind TanStack `["calendarNotes", month]` to the URL month on the client; general notes stay on `["generalNotes"]` (month-independent).
+4. Bind TanStack `["calendarNotes", month]` to the URL month on the client; undated lists stay on `["generalNotes", categoryId]` (month-independent).
 5. Do **not** put drawer open state, selected day inside the drawer, or form drafts in the URL.
 
 ### Why
