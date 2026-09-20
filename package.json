@@ -5,7 +5,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:int": "vitest run --project int"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

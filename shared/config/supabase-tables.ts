@@ -4,10 +4,13 @@
  *
  * Change `TABLE_PREFIX` here and in `supabase/migrations/*.sql` if you
  * do not want a prefix (use `""` and rename tables accordingly).
+ *
+ * Integration tests may set `MF_TABLE_PREFIX=mf_testing_` so repos hit
+ * the isolation twin tables without touching live `mf_*` data.
  */
 
 /** MindFree table prefix — keep in sync with SQL migrations. */
-export const TABLE_PREFIX = "mf_";
+export const TABLE_PREFIX = process.env.MF_TABLE_PREFIX ?? "mf_";
 
 /** Notes table: calendar, general, and quick note rows (`category_id` for undated/quick). */
 export const NOTES_TABLE = `${TABLE_PREFIX}notes`;
