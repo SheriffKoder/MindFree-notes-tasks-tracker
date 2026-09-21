@@ -45,7 +45,14 @@ API mocking / Integration. E2E from the same notes is optional where noted.
 Outcome-first map of tests already added. Each line: what it proves → what-matters
 item → test file. Gaps stay empty until a CHEAPEST lands.
 
+**Stitched confidence** = each link proven separately (CHEAPEST).  
+**Continuous proof** = one E2E that runs the full wire.
+
 ### Notes
+
+#### Stitched confidence
+
+`authenticated >> notes load >> notes show >> click note >> update >> cached >> reflects on UI`
 
 - Logged-in user sees only their notes (Home strips) — [1 Tenant isolation](./1-tenant-isolation/notes.md) — [`get-home-notes-response.test.ts`](../../../tests/home/tenant-isolation/notes/int/get-home-notes-response.test.ts)
 - Unauthenticated Home notes GET is rejected — [1 Tenant isolation](./1-tenant-isolation/notes.md) — [`get-notes-home-route.test.ts`](../../../tests/home/tenant-isolation/notes/int/get-notes-home-route.test.ts)
@@ -60,6 +67,12 @@ item → test file. Gaps stay empty until a CHEAPEST lands.
 - Saved note row changed in DB — [5 Note edit (write)](./5-note-edit-write/persist-and-refresh.md) — [`update-note-persists-row.test.ts`](../../../tests/home/note-edit-write/persist-and-refresh/int/update-note-persists-row.test.ts)
 - Home cache reflected the change after update — [5 Note edit (write)](./5-note-edit-write/persist-and-refresh.md) — [`synchronize-home-cache-on-update.test.ts`](../../../tests/home/note-edit-write/persist-and-refresh/unit/synchronize-home-cache-on-update.test.ts)
 - Home UI reflected the cache after update — [5 Note edit (write)](./5-note-edit-write/persist-and-refresh.md) — [`home-notes-section-cache-to-ui.test.tsx`](../../../tests/home/note-edit-write/persist-and-refresh/unit/home-notes-section-cache-to-ui.test.tsx)
+
+#### Continuous proof — E2E
+
+`authenticated >> notes load >> notes show >> click note >> update >> strip updates >> reload still new`
+
+- Full wire in Chromium (login → edit → strip → hard reload) — [5 Note edit (write)](./5-note-edit-write/continuous-proof-e2e.md) — [`note-edit-write-continuous-proof.spec.ts`](../../../tests/home/note-edit-write/continuous-proof/e2e/note-edit-write-continuous-proof.spec.ts)
 
 ### Tasks
 

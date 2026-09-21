@@ -55,6 +55,6 @@ in the numbered list; the cell carries the why / role).
 Together 1–3 = saved → DB **and** cache **and** Home UI. No single CHEAPEST covers all three.
 
 **HIGHEST CONFIDENCE(s):**
-1. E2E: Home → edit starred note → save → strip text updates; hard refresh still shows new text ([1]–[6])
+1. E2E: Home → edit starred note → save → strip text updates; hard refresh still shows new text ([1]–[6]) — contract: [continuous-proof-e2e.md](./continuous-proof-e2e.md)
 
 ---

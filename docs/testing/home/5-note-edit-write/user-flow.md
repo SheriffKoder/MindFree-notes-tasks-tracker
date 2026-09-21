@@ -49,6 +49,6 @@ in the numbered list; the cell carries the why / role).
 2. Unit — **proves:** editing an existing note schedules an update (not create) (steps [4]–[5]) — [`tests/home/note-edit-write/user-flow/unit/evaluate-note-save-schedules-patch.test.ts`](../../../../tests/home/note-edit-write/user-flow/unit/evaluate-note-save-schedules-patch.test.ts)
 
 **HIGHEST CONFIDENCE(s):**
-1. E2E: Home → open starred note → change title → saving indicator / success; strip text updates (pairs with persist-and-refresh) ([1]–[5])
+1. E2E: Home → open starred note → change title → saving indicator / success; strip text updates (pairs with persist-and-refresh) ([1]–[5]) — contract: [continuous-proof-e2e.md](./continuous-proof-e2e.md)
 
 ---

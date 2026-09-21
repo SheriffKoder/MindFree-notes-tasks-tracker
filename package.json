@@ -7,7 +7,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:unit": "vitest run --project unit --project unit-dom",
-    "test:int": "vitest run --project int"
+    "test:int": "vitest run --project int",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -35,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.63.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

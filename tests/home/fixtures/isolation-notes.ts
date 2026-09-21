@@ -15,6 +15,12 @@ export const NOTE_A_QUICK_ID = "a2000002-0002-4002-8002-000000000002";
 /** User A starred note on `mf_testing_notes`. */
 export const NOTE_A_STARRED_ID = "a2000003-0003-4003-8003-000000000003";
 
+/** Seed title for User A starred note (migration 045). */
+export const NOTE_A_STARRED_SEED_TITLE = "A starred";
+
+/** Seed content for User A starred note (migration 045) — shown on Home strip. */
+export const NOTE_A_STARRED_SEED_CONTENT = "User A starred note";
+
 /** User B quick note on `mf_testing_notes`. */
 export const NOTE_B_QUICK_ID = "b3000002-0002-4002-8002-000000000002";
 

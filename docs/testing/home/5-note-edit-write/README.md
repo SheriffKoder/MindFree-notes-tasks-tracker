@@ -17,11 +17,13 @@ the row changes, and prove the Home strip cache updates. Isolation of
 | ----- | ---------------------- |
 | User flow | [user-flow.md](./user-flow.md) — Home strip click → drawer → form change → pre-save schedules PATCH |
 | API mocking / Integration | [persist-and-refresh.md](./persist-and-refresh.md) — mutation persists; Home strip cache / UI refreshes |
+| Continuous proof (E2E) | [continuous-proof-e2e.md](./continuous-proof-e2e.md) — one Playwright happy path (UI + reload) |
 
 | Group | Doc |
 | ----- | --- |
 | [User flow](./user-flow.md) | Edit — open drawer and autosave from Home |
 | [Persist + refresh](./persist-and-refresh.md) | Edit — PATCH persists + Home strip reflects |
+| [Continuous proof (E2E)](./continuous-proof-e2e.md) | Edit — full wire; assert what the user sees |
 
 **Persist + refresh — CHEAPEST TEST(s)** (see [persist-and-refresh.md](./persist-and-refresh.md)):
 
