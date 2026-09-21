@@ -6,7 +6,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:unit": "vitest run --project unit",
+    "test:unit": "vitest run --project unit --project unit-dom",
     "test:int": "vitest run --project int"
   },
   "dependencies": {
@@ -35,6 +35,9 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^20",
     "@types/react": "^19.2.17",
     "@types/react-date-range": "^1.4.10",
@@ -43,6 +46,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "^16.2.10",
+    "happy-dom": "^20.14.5",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",

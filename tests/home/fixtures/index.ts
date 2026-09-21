@@ -17,3 +17,8 @@ export {
   NOTE_CATEGORY_A_ID,
   NOTE_CATEGORY_B_ID,
 } from "@/tests/home/fixtures/isolation-notes";
+export {
+  FIXTURE_HOME_NOTES_WITH_STRIP,
+  FIXTURE_HOME_STRIP_DIARY,
+  FIXTURE_STARRED_NOTE,
+} from "@/tests/home/fixtures/home-notes-strips";

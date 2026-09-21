@@ -2,26 +2,27 @@ import path from "node:path";
 
 import { defineConfig } from "vitest/config";
 
+const alias = {
+  "@": path.resolve(__dirname, "."),
+};
+
 export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "."),
-    },
-  },
+  resolve: { alias },
   test: {
     environment: "node",
     projects: [
       {
-        resolve: {
-          alias: {
-            "@": path.resolve(__dirname, "."),
-          },
-        },
+        resolve: { alias },
         test: {
           name: "unit",
           environment: "node",
-          include: ["**/*.test.ts"],
-          exclude: ["tests/**", "node_modules/**"],
+          include: ["**/*.test.ts", "tests/**/unit/**/*.test.ts"],
+          exclude: [
+            "app/development/**",
+            "tests/**/int/**",
+            "tests/**/unit/**/*.test.tsx",
+            "node_modules/**",
+          ],
           setupFiles: [
             "./tests/setup/load-app-env.ts",
             "./tests/setup/unit-env.ts",
@@ -29,11 +30,21 @@ export default defineConfig({
         },
       },
       {
-        resolve: {
-          alias: {
-            "@": path.resolve(__dirname, "."),
-          },
+        resolve: { alias },
+        test: {
+          name: "unit-dom",
+          environment: "happy-dom",
+          include: ["tests/**/unit/**/*.test.tsx"],
+          exclude: ["node_modules/**"],
+          setupFiles: [
+            "./tests/setup/load-app-env.ts",
+            "./tests/setup/unit-env.ts",
+            "./tests/setup/rtl.ts",
+          ],
         },
+      },
+      {
+        resolve: { alias },
         test: {
           name: "int",
           environment: "node",

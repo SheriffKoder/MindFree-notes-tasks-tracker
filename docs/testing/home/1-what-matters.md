@@ -9,7 +9,7 @@ Ordered by product risk (highest first). Personal planning notes under
 | Priority | Area | What success looks like | Failure we protect against |
 | -------- | ---- | ----------------------- | -------------------------- |
 | 1 | Tenant isolation | Logged-in user sees only their notes, tasks, reminders; payment writes are theirs | User A receives or mutates User B's data |
-| 2 | Starred notes (read) | Starred notes display, grouped by home categories | Empty/wrong strips; notes missing or in the wrong category |
+| 2 | [Starred notes (read)](./2-starred-notes-read/) | Starred notes display, grouped by home categories | Empty/wrong strips; notes missing or in the wrong category |
 | 3 | Today's tasks (read) | Today's tasks list shows the user's tasks for the viewing day | Tasks missing, wrong day, or another user's tasks |
 | 4 | Today's reminders (read) | Today's reminders list shows the user's reminders for the viewing day | Reminders missing, wrong day, or another user's reminders |
 | 5 | Note edit (write) | Edit/update a note; change persists and UI reflects it | DB not updated, or UI stale after save |
