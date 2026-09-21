@@ -32,7 +32,7 @@ Password for both: `IsolationPass123!` (also listed in `.env.example`).
 | Task record | `a2000020-0020-4020-8020-000000000020` | `b3000020-0020-4020-8020-000000000020` |
 | Payment | `a2000030-0030-4030-8030-000000000030` | `b3000030-0030-4030-8030-000000000030` |
 
-**CHEAPEST.1 (notes):** `tests/home/int/get-home-notes-response.test.ts` — run with
+**Notes int tests:** `tests/home/tenant-isolation/notes/int/` — run with
 `npm run test:int` (needs `SUPABASE_SERVICE_ROLE_KEY` + migrations `043`–`045`).
 
 | Entity | Doc |
@@ -61,10 +61,12 @@ the placeholders. Keep the same heading levels and order.
 
 #### Flow — how it happens + where it can break
 
-Forward chain from Home UI → DB. Steps that can leak another user’s data are marked with `! failure`.
+Forward chain from Home UI → DB. Isolation risks: `⚠︎ failure: … (Should.n)` —
+tag matches the **Should** row item (same number as CHEAPEST.n). Use `(Nice)` /
+`(HIGHEST.n)` when only those cover the step.
 
 [1] {{Name}} to {{do what}} [@path/to/file]({{relative-link}})
-! failure: {{only if this step can break isolation}}
+⚠︎ failure: {{isolation risk}} (Should.n)
 ↓
 [2] {{Name}} to {{do what}} [@path/to/file]({{relative-link}})
 ↓
@@ -95,7 +97,8 @@ in the numbered list; the cell carries the why / role).
 > Fill the template for `{{View|Edit}} — {{flow}}` under tenant isolation for
 > `{{notes|tasks|reminders|payments}}`. Match the layout of
 > `docs/testing/home/1-tenant-isolation/notes.md` → View — read home strips.
-> Trace real files in the repo. Mark isolation risks with `! failure: …`.
+> Trace real files in the repo. Mark isolation risks with
+> `⚠︎ failure: … (Should.n)` (or `(Nice)` / `(HIGHEST.n)` when only those cover it).
 > Put Unit under Skip when the layer does not own `userId` / cannot prove
 > isolation — explain why in the cell. Number CHEAPEST/HIGHEST lists; when a
 > cell has multiple items, number them and link with `(CHEAPEST.n)` /

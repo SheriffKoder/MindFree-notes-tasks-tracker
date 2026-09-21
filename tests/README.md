@@ -2,7 +2,8 @@
 
 | Path | Kind |
 | ---- | ---- |
-| `tests/home/int/` | Home integration (real Supabase `mf_testing_*`) |
+| `tests/home/tenant-isolation/` | Home tenant-isolation tests (mirrors docs risk area) |
+| `tests/home/tenant-isolation/notes/int/` | Notes View/Edit isolation integration contracts |
 | `tests/home/fixtures/` | Fixed isolation user / row ids (migrations 044–045) |
 | `tests/setup/` | Env load, `MF_TABLE_PREFIX`, service-role client |
 

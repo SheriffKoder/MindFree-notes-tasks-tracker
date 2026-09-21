@@ -1,5 +1,5 @@
 /**
- * @file tests/home/int/get-notes-home-route.test.ts
+ * @file tests/home/tenant-isolation/notes/int/get-notes-home-route.test.ts
  * Locks CHEAPEST.2 for Home notes tenant isolation — View — read home strips.
  *
  * Doc: docs/testing/home/1-tenant-isolation/notes.md
