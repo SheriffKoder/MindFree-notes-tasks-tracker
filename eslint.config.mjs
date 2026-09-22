@@ -6,10 +6,15 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   globalIgnores([
+    // Next build / generate output
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Playwright local + CI artifacts (large minified report/trace JS)
+    "playwright-report/**",
+    "playwright-reports/**",
+    "test-results/**",
   ]),
 ]);
 

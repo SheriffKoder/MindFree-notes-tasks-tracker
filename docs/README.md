@@ -50,6 +50,7 @@ Onboarding and architecture for MindFree. Prefer these **WHY** docs over the lon
 | [concepts/](./concepts/) | Glossary + terminology |
 | [guides/security.md](./guides/security.md) | Auth gates, RLS, IDOR |
 | [testing/](./testing/) | Critical areas / what matters (testing map) |
+| [ci/](./ci/) | What checks we have today + where they land |
 | [entities/note/docs/](../entities/note/docs/) | Notes domain WHY |
 | [entities/activity/docs/](../entities/activity/docs/) | Activity (tasks + reminders) domain WHY |
 | [entities/profile/docs/](../entities/profile/docs/) | Profile domain WHY (tables, seeding, APIs) |

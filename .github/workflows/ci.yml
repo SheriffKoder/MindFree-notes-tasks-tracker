@@ -1,0 +1,175 @@
+# CI — Pull request + Main
+# Contract: docs/ci/2-before-yml.md
+# Local mirror: npm run ci
+#
+# Shape: quality ∥ build → e2e
+# quality = typecheck → test:unit (lint deferred — see docs/ci)
+# Vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+# Secret: SUPABASE_SERVICE_ROLE_KEY (e2e cleanup only)
+
+name: CI
+
+###########################################################
+# When this workflow runs
+###########################################################
+on:
+  # Every PR — gate before merge
+  pull_request:
+  # Default branch — re-confirm what shipped
+  push:
+    branches:
+      - main
+
+###########################################################
+# Shared run policy
+###########################################################
+# One active run per ref; newer pushes cancel the older PR run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege — checkout only; no write to contents.
+permissions:
+  contents: read
+
+jobs:
+  ###########################################################
+  # Job: quality — fail fast (no secrets, no browser)
+  # Runs: typecheck → test:unit
+  # Lint deferred: existing repo has many ESLint errors unrelated to this CI work.
+  ###########################################################
+  quality:
+    name: Quality (typecheck · unit)
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: source
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Node 20 + npm cache keyed by package-lock.json
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      # Step 3: clean install from lockfile
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4a: tsc --noEmit
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Step 4b: Vitest unit + unit-dom (RTL)
+      - name: Unit / component tests
+        run: npm run test:unit
+
+  ###########################################################
+  # Job: build — production compile (parallel with quality)
+  # Needs: NEXT_PUBLIC_* Variables
+  ###########################################################
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      # Public Supabase URL — GitHub Actions Variable
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      # Anon/publishable key — GitHub Actions Variable
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      # Step 1: source
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Node 20 + npm cache
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      # Step 3: clean install from lockfile
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: next build must succeed
+      - name: Next.js production build
+        run: npm run build
+
+  ###########################################################
+  # Job: e2e — Playwright Chromium (after quality + build)
+  # Needs: NEXT_PUBLIC_* Variables + SUPABASE_SERVICE_ROLE_KEY Secret
+  # MF_TABLE_PREFIX=mf_testing_ is set inside playwright.config.ts
+  ###########################################################
+  e2e:
+    name: E2E (Playwright Chromium)
+    runs-on: ubuntu-latest
+    # Do not burn browser minutes if quality or build already failed.
+    needs:
+      - quality
+      - build
+    env:
+      # Public Supabase URL — Variable (Next webServer)
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      # Anon/publishable key — Variable (Next webServer)
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      # Service role — Secret (seed restore / cleanup only; never NEXT_PUBLIC_)
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      # Step 1: source
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Node 20 + npm cache
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      # Step 3: clean install from lockfile
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: cache Chromium binaries (npm cache does not cover these)
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # Step 5a: cold cache — download Chromium + OS deps
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      # Step 5b: warm cache — OS deps only (binaries already restored)
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # Step 6: continuous-proof + smoke under tests/**/e2e
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      # Step 7a: HTML report artifact (CI folder: playwright-report/)
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # Step 7b: traces / screenshots / video on failure (CI folder: test-results/)
+      - name: Upload Playwright test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results
+          retention-days: 14
+          if-no-files-found: ignore

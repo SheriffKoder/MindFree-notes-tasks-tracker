@@ -40,6 +40,29 @@ API mocking / Integration. E2E from the same notes is optional where noted.
 | 10 | Payment create | User flow; API mocking / Integration (incl. user attribution) |
 | 11 | Offline / realtime adapters | Store/adapter mocks, fake timers; advanced vs classic API mock |
 
+## Stack practice — runners exercised
+
+Which installed harness has been used for each area. An area can land
+**Yes** in more than one column. Cell text names what was practiced or
+why it was skipped; **—** = not yet.
+
+| Priority | Area | Vitest (unit/int) | RTL (unit-dom) | Playwright |
+| -------- | ---- | ----------------- | -------------- | ---------- |
+| 1 | Tenant isolation | Yes (home notes response, route 401, SSR seed ×2) | Skip (UI does not own `userId`) | — |
+| 2 | Starred notes (read) | — | Yes (loading, error, empty, success) | — |
+| 3 | Today's tasks (read) | — | — | — |
+| 4 | Today's reminders (read) | — | — | — |
+| 5 | Note edit (write) | Yes (evaluateNoteSave → patch, DB persist, Home cache sync) | Yes (open-edit, cache→UI) | Yes (login → edit → reload) |
+| 6 | Task complete/update (write) | — | — | — |
+| 7 | Reminder complete/update (write) | — | — | — |
+| 8 | Quick note create | — | — | — |
+| 9 | Reminder quick add | — | — | — |
+| 10 | Payment create | — | — | — |
+| 11 | Offline / realtime adapters | — | — | — |
+
+RTL = Vitest `unit-dom` (component + DOM). Vitest unit/int = node unit or
+Supabase/route int without RTL. File inventory stays under Added tests.
+
 ## Added tests — entity journey
 
 Outcome-first map of tests already added. Each line: what it proves → what-matters

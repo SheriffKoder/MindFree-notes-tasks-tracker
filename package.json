@@ -5,6 +5,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "ci": "npm run typecheck && npm run test:unit && npm run build && npm run test:e2e",
     "test": "vitest run",
     "test:unit": "vitest run --project unit --project unit-dom",
     "test:int": "vitest run --project int",
