@@ -5,7 +5,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "vitest run"
+    "typecheck": "tsc --noEmit",
+    "ci": "npm run typecheck && npm run test:unit && npm run build && npm run test:e2e",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit --project unit-dom",
+    "test:int": "vitest run --project int",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -33,6 +40,10 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^20",
     "@types/react": "^19.2.17",
     "@types/react-date-range": "^1.4.10",
@@ -41,6 +52,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "^16.2.10",
+    "happy-dom": "^20.14.5",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
