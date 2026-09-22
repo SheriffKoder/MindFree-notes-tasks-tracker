@@ -46,11 +46,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Node 20 + npm cache keyed by package-lock.json
+      # Step 2: Node 22 + npm cache keyed by package-lock.json
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       # Step 3: clean install from lockfile
@@ -82,11 +82,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Node 20 + npm cache
+      # Step 2: Node 22 + npm cache
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       # Step 3: clean install from lockfile
@@ -121,11 +121,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Node 20 + npm cache
+      # Step 2: Node 22 + npm cache
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       # Step 3: clean install from lockfile
