@@ -15,6 +15,8 @@ import "./world-time-marker.css";
  */
 export interface WorldTimeMarkerProps {
   city: WorldTimeCity;
+  /** When true, desaturate the dot (non-selected while another city is locked). */
+  muted?: boolean;
 }
 
 /**
@@ -22,17 +24,27 @@ export interface WorldTimeMarkerProps {
  *
  * @param props - city metadata with map coordinates
  */
-export function WorldTimeMarker({ city }: WorldTimeMarkerProps) {
+export function WorldTimeMarker({ city, muted = false }: WorldTimeMarkerProps) {
   return (
     <li
       aria-label={city.label}
-      className="world-time-marker pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+      className={
+        muted
+          ? "world-time-marker pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 saturate-0 opacity-80"
+          : "world-time-marker pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+      }
       style={{ left: `${city.x}%`, top: `${city.y}%` }}
     >
       <span aria-hidden className="relative block h-1.5 w-1.5">
         {/* Soft halo — pulse scale + opacity; translate lives on the wrapper. */}
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <span className="world-time-marker-halo block size-3.5 rounded-full bg-[radial-gradient(circle,var(--color-accent)_0%,transparent_70%)]" />
+          <span
+            className={
+              muted
+                ? "world-time-marker-halo block size-3.5 rounded-full bg-[radial-gradient(circle,var(--color-accent)_0%,transparent_70%)]"
+                : "world-time-marker-halo block size-3.5 rounded-full bg-[radial-gradient(circle,var(--color-accent)_0%,transparent_70%)]"
+            }
+          />
         </span>
         <span className="relative block size-full rounded-full bg-[var(--color-accent)]" />
       </span>
